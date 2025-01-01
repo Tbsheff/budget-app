@@ -1,0 +1,28 @@
+# Stage 1: Build React Frontend
+FROM node:22-slim AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Build and Serve with Node.js Backend
+FROM node:22-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y python3 build-essential && apt-get clean
+COPY backend/package*.json ./
+RUN npm install
+COPY backend/ ./
+
+# Copy built React frontend files from Stage 1
+COPY --from=frontend-build /app/frontend/build ./frontend/build
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=5000
+
+# Expose the backend port
+EXPOSE 5000
+
+# Start the Node.js server
+CMD ["node", "server.js"]
