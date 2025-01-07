@@ -22,15 +22,13 @@ app.use("/api/incomes", require("./routes/incomeRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/goals", require("./routes/goalRoutes"));
 
-if (process.env.NODE_ENV === "production") {
-  // Serve static files from the React app
-  app.use(express.static(path.join(__dirname, "frontend/build")));
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  // Handle React routing, return all requests to React app
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend/build", "index.html"));
-  });
-}
+// Handle React routing, return all requests to React app
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"));
+});
 
 // Default route for debugging
 app.get("/", (req, res) => {

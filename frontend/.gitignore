@@ -1,8 +1,3 @@
-/node-modules
-node_modules
-.env
-backend/.env
-*.env
 # Logs
 logs
 *.log
