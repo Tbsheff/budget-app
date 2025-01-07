@@ -3,16 +3,21 @@ import { Link } from 'react-router-dom';
 
 function LandingPage() {
     return (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-            <h1>Welcome to Budget Planner!</h1>
-            <p>Take control of your finances with our easy-to-use budgeting app.</p>
-            <div style={{ marginTop: '2rem' }}>
-                <Link to="/register" style={{ marginRight: '1rem' }}>
-                    <button style={styles.button}>Get Started</button>
-                </Link>
-                <Link to="/login">
-                    <button style={styles.button}>Login</button>
-                </Link>
+        <div class="hero">
+            <div class="hero_content">
+                <div class="row">
+                    <div class="col-1-of-2">
+                        <h1 class="hero_title">A better way to manage your money</h1>
+                    </div>
+                    <div class="col-1-of-2">
+                        <img src="/images/coin.svg" alt="Budget App" class="hero_img" />
+                    </div>
+                </div>
+                <div>
+                    <button>
+                        <a href="/login">Get Started</a>
+                    </button>
+                </div>
             </div>
         </div>
     );
