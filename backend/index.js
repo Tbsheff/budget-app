@@ -32,11 +32,12 @@ app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/goals", require("./routes/goalRoutes"));
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+const frontendPath = path.join(__dirname, "frontend/dist");
+app.use(express.static(frontendPath));
 
 // Handle React routing, return all requests to React app
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"));
+  res.sendFile(path.resolve(frontendPath, "index.html"));
 });
 
 // Default route for debugging
