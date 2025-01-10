@@ -1,0 +1,42 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db'); // Adjust path as needed
+
+const Users = sequelize.define('users', {
+user_id: {
+            type: DataTypes.BIGINT,
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            
+            
+        },
+email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            
+            
+        },
+password_hash: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            
+            
+        },
+created_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            
+            
+        },
+    },
+    {
+        tableName: 'users',
+        timestamps: false, // Set to true if `createdAt` and `updatedAt` exist
+    }
+);
+
+module.exports = Users;

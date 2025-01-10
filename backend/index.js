@@ -1,14 +1,23 @@
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-const connectDB = require("./config/db");
 const path = require("path"); // Import path module
 require("dotenv").config();
 
+const sequelize = require("./config/db"); // Import the Sequelize instance
+
 const app = express();
 
-// Connect Database
-connectDB();
+// Test Sequelize Connection
+(async () => {
+  try {
+    await sequelize.authenticate(); // Authenticate the Sequelize connection
+    console.log("Database connected via Sequelize.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    process.exit(1); // Exit the application if the database connection fails
+  }
+})();
 
 // Middleware
 app.use(cors());
