@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Import the Sequelize User model
+const User = require("../models/users");
 
 // Register User
 exports.registerUser = async (req, res) => {
@@ -21,7 +21,7 @@ exports.registerUser = async (req, res) => {
     const newUser = await User.create({
       name,
       email,
-      password_hash: hashedPassword, // Assuming the column in your DB is `password_hash`
+      password_hash: hashedPassword,
     });
 
     return res.status(201).json({ message: "User created successfully", user: newUser });

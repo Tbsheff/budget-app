@@ -4,7 +4,7 @@ const cors = require("cors");
 const path = require("path"); // Import path module
 require("dotenv").config();
 
-const sequelize = require("./config/db"); // Import the Sequelize instance
+const { sequelize } = require("./config/db"); // Destructure the Sequelize instance
 
 const app = express();
 
