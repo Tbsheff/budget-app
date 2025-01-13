@@ -12,6 +12,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y python3 build-essential && apt-get clean
 COPY backend/package*.json ./ 
 RUN npm install
+RUN npm install -g nodemon
 COPY backend/ ./ 
 
 # Copy built React frontend files from Stage 1
@@ -24,5 +25,5 @@ ENV PORT=5000
 # Expose the backend port
 EXPOSE 5000
 
-# Start the Node.js server
-CMD ["node", "index.js"]
+# Default command to start the Node.js server using nodemon for development
+CMD ["nodemon", "--watch", "./backend", "index.js"]
