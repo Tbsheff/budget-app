@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import Navigation from "../components/landing/Navigation";
 
@@ -72,6 +72,14 @@ const Login: React.FC = () => {
               </button>
             </div>
           </form>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-primary hover:underline">
+                Register here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </>
