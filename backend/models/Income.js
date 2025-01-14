@@ -1,27 +1,48 @@
-// const mongoose = require('mongoose');
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db"); // Adjust path as needed
 
-// const incomeSchema = new mongoose.Schema({
-//     user: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'User'
-//     },
-//     source: {
-//         type: String,
-//         required: [true, 'Please specify the income source']
-//     },
-//     amount: {
-//         type: Number,
-//         required: [true, 'Please specify the amount']
-//     },
-//     frequency: {
-//         type: String,
-//         enum: ['monthly', 'yearly', 'weekly', 'biweekly', 'quarterly'],
-//         default: 'monthly'
-//     },
-//     createdAt: {
-//         type: Date,
-//         default: Date.now
-//     }
-// });
+const Income = sequelize.define(
+  "income",
+  {
+    income_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    amount: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+    },
+    frequency: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    pay_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    next_pay_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    tableName: "income_sources",
+    timestamps: false, // Set to true if `createdAt` and `updatedAt` exist
+  }
+);
 
-// module.exports = mongoose.model('Income', incomeSchema);
+module.exports = Income;
