@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Income from "./pages/Income";
 import Expense from "./pages/Expense";
-
+import { DashboardPage } from "./pages/Dashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,10 +22,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* Protected Routes */}
           {/* <Route element={<ProtectedRoute />}> */}
-            <Route path="/income/add" element={<Income />} />
+          <Route path="/income/add" element={<Income />} />
             <Route path="/income/edit/:id" element={<Income />} />
             <Route path="/expenses/add" element={<Expense />} />
             <Route path="/expenses/edit/:id" element={<Expense />} />
