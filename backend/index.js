@@ -30,6 +30,7 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/incomes", require("./routes/incomeRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/goals", require("./routes/goalRoutes"));
+app.use("/api/user-categories", require("./routes/userCategoriesRoutes"));
 
 // Serve static files from the React app
 const frontendPath = path.join(__dirname, "frontend/dist");

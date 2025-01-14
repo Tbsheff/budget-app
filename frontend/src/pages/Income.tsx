@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
-const IncomeForm: React.FC = () => {
+const Income: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -157,4 +157,4 @@ const IncomeForm: React.FC = () => {
   );
 };
 
-export default IncomeForm;
+export default Income;
