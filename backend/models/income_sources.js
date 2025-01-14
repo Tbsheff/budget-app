@@ -26,6 +26,10 @@ const Income_sources = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    pay_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
     next_pay_date: {
       type: DataTypes.DATE,
       allowNull: true,
