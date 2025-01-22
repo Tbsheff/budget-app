@@ -1,10 +1,27 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
-const { addIncome, getIncomes, deleteIncome } = require('../controllers/incomeController');
+const auth = require("../middleware/authMiddleware"); // Middleware for authentication
+const {
+  addIncome,
+  getIncomes,
+  deleteIncome,
+  updateIncome,
+  getIncomeById,
+} = require("../controllers/incomeController");
 
-router.post('/', auth, addIncome);
-router.get('/', auth, getIncomes);
-router.delete('/:id', auth, deleteIncome);
+// Add new income (POST /api/income)
+router.post("/", auth, addIncome);
+
+// Get all incomes (GET /api/income)
+router.get("/", auth, getIncomes);
+
+// Get income by ID (GET /api/income/:id)
+router.get("/:id", auth, getIncomeById);
+
+// Update an income by ID (PUT /api/income/:id)
+router.put("/:id", auth, updateIncome);
+
+// Delete an income by ID (DELETE /api/income/:id)
+router.delete("/:id", auth, deleteIncome);
 
 module.exports = router;

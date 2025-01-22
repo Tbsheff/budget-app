@@ -52,8 +52,6 @@ if [ "$TERMINAL_MODE" = true ]; then
 else
   echo "Starting Docker container in detached (background) mode..."
   docker run -d --env-file $ENV_FILE -p $HOST_PORT:$DEFAULT_PORT \
-    -v $(pwd)/backend:/app/backend \
-    -v $(pwd)/frontend:/app/frontend \
     --name $CONTAINER_NAME $IMAGE_NAME
 
   if [ $? -eq 0 ]; then
