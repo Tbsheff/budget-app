@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { DashboardPage } from "./pages/Dashboard";
-
+import Account from "./pages/Account";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -21,6 +21,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
