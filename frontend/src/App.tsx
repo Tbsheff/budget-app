@@ -31,7 +31,7 @@ const App = () => (
           <Route path="/expenses/add" element={<Expense />} />
           <Route path="/expenses/edit/:id" element={<Expense />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          {/* </Route> */}
+          <Route path="/account" element={<Account />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
