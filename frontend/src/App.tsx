@@ -23,7 +23,15 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/account" element={<Account />} />
+          {/* Protected Routes */}
+          {/* <Route element={<ProtectedRoute />}> */}
+          <Route path="/income/add" element={<Income />} />
+          <Route path="/income/edit/:id" element={<Income />} />
+          <Route path="/expenses/add" element={<Expense />} />
+          <Route path="/expenses/edit/:id" element={<Expense />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          {/* </Route> */}
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
