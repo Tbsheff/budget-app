@@ -33,7 +33,7 @@ const User_categories = sequelize.define(
   },
   {
     tableName: "user_categories",
-    timestamps: false, 
+    timestamps: false,
   }
 );
 
