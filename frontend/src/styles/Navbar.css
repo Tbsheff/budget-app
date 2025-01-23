@@ -1,0 +1,77 @@
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 90rem;
+    margin: 0 auto;
+    padding-inline: 2rem;
+    height: var(--nav-height, 3.5rem);
+    color: var(--color-dark, #000);
+    font-family: var(--font-base, sans-serif);
+    background: var(--color-light, #fff);
+    border-bottom: 2px solid black;
+}
+
+.nav__products ul,
+.nav__cta ul {
+    display: flex;
+    gap: var(--space-s, 1rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav__products ul li a,
+.nav__cta ul li a {
+    text-decoration: none;
+    color: var(--color-dark, #DA5C45);
+    font-weight: 700;
+    transition: color var(--transition-base, 0.25s ease);
+}
+
+.nav__products ul li a:hover,
+.nav__cta ul li a:hover {
+    color: var(--color-orange, #f76635);
+}
+
+.button {
+    border: none;
+    padding: var(--space-xs, 0.75rem) var(--space-s, 1rem);
+    border-radius: var(--border-radius, 4px);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.button--primary {
+    background-color: var(--color-blue-2, #008fcb);
+    color: var(--color-light, #fff);
+}
+
+.button--primary:hover {
+    background-color: var(--color-blue-1, #47ced7);
+}
+
+.nav__logo {
+    transition: all .75s ease-in-out;
+    position: relative;
+    flex: 1 1 33%;
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.nav__logo img {
+    max-height: 2.25rem;
+}
+
+.nav__products {
+    flex: 1 0 33%;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.nav__cta {
+    flex: 1 0 33%;
+    display: flex;
+    justify-content: flex-end;
+}
