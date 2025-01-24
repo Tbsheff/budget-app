@@ -18,6 +18,23 @@ exports.addSubcategory = async (req, res) => {
   }
 };
 
+// Get a specific subcategory by ID
+exports.getSubcategoryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subcategory = await UserSubcategories.findByPk(id);
+    if (!subcategory) {
+      return res.status(404).json({ message: "Subcategory not found" });
+    }
+
+    res.status(200).json(subcategory);
+  } catch (error) {
+    console.error("Error fetching subcategory by ID:", error);
+    res.status(500).json({ message: "Error fetching subcategory" });
+  }
+};
+
 // Get subcategories for a user or category
 exports.getSubcategories = async (req, res) => {
   try {
