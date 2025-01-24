@@ -5,7 +5,7 @@ import { BudgetSummary } from "@/components/BudgetSummary";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const Account = () => {
+const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -87,4 +87,4 @@ const Account = () => {
   );
 };
 
-export default Account;
+export default Dashboard;

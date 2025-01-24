@@ -29,12 +29,11 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/incomes", require("./routes/incomeRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
-app.use("/api/goals", require("./routes/goalRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/transactions", require("./routes/transactionRoutes"));
 app.use("/api/user-categories", require("./routes/userCategoriesRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.use("/api/account", require("./routes/accountRoutes"));
+app.use("/api/subcategories", require("./routes/subcategoriesRoutes"));
 
 // Serve static files from the React app
 const frontendPath = path.join(__dirname, "frontend/dist");

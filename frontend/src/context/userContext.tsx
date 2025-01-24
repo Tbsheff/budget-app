@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define the shape of the user object
 interface User {
@@ -11,7 +11,8 @@ interface User {
 // Define the context type
 interface UserContextType {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  setUser: (newUser: User | null) => void;
+  logout: () => void;
 }
 
 // Create the context
@@ -19,9 +20,31 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Provider component
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(() => {
+    // Initialize state from localStorage (if available)
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-  return <UserContext.Provider value={{ user, setUser }}>{children}</UserContext.Provider>;
+  // Sync user state to localStorage
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+  const setUser = (newUser: User | null) => {
+    setUserState(newUser);
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+
+  return <UserContext.Provider value={{ user, setUser, logout }}>{children}</UserContext.Provider>;
 };
 
 // Custom hook to use the UserContext
