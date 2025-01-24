@@ -1,10 +1,10 @@
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db"); // Adjust path as needed
+const { sequelize } = require("../config/db");
 
-const User_categories = sequelize.define(
-  "user_categories",
+const UserSubcategories = sequelize.define(
+  "user_subcategories",
   {
-    category_id: {
+    subcategory_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
@@ -14,16 +14,12 @@ const User_categories = sequelize.define(
       type: DataTypes.BIGINT,
       allowNull: false,
     },
-    default_category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+    category_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    monthly_budget: {
-      type: DataTypes.DECIMAL,
       allowNull: false,
     },
     created_at: {
@@ -32,9 +28,7 @@ const User_categories = sequelize.define(
     },
   },
   {
-    tableName: "user_categories",
+    tableName: "user_subcategories",
     timestamps: false,
   }
 );
-
-module.exports = User_categories;
