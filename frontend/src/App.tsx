@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { UserProvider } from "./context/userContext";
 // import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -19,20 +20,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/account" element={<Account />} />
-          {/* Protected Routes */}
-          {/* <Route element={<ProtectedRoute />}> */}
-          <Route path="/income/add" element={<Income />} />
-          <Route path="/income/edit/:id" element={<Income />} />
-          <Route path="/expenses/add" element={<Expense />} />
-          <Route path="/expenses/edit/:id" element={<Expense />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/account" element={<Account />} />
-        </Routes>
+        <UserProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/account" element={<Account />} />
+            {/* Protected Routes */}
+            {/* <Route element={<ProtectedRoute />}> */}
+            <Route path="/income/add" element={<Income />} />
+            <Route path="/income/edit/:id" element={<Income />} />
+            <Route path="/expenses/add" element={<Expense />} />
+            <Route path="/expenses/edit/:id" element={<Expense />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/account" element={<Account />} />
+          </Routes>
+        </UserProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
