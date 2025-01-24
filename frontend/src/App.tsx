@@ -22,10 +22,12 @@ const App = () => (
       <BrowserRouter>
         <UserProvider>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/account" element={<Account />} />
+
             {/* Protected Routes */}
             {/* <Route element={<ProtectedRoute />}> */}
             <Route path="/income/add" element={<Income />} />
@@ -33,7 +35,7 @@ const App = () => (
             <Route path="/expenses/add" element={<Expense />} />
             <Route path="/expenses/edit/:id" element={<Expense />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/account" element={<Account />} />
+            {/* </Route> */}
           </Routes>
         </UserProvider>
       </BrowserRouter>

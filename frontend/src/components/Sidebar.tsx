@@ -30,6 +30,8 @@ export function Sidebar() {
     ? `Hi, ${user.email.split("@")[0]}`
     : "Hi, Guest (Set your name in Profile)";
 
+  console.log("User in Sidebar:", user);
+
   return (
     <div className="w-64 min-h-screen bg-white border-r border-gray-200 p-4">
       <div className="flex items-center justify-between mb-8">
