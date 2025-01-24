@@ -9,7 +9,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Income from "./pages/Income";
 import Expense from "./pages/Expense";
-import { DashboardPage } from "./pages/Dashboard";
 import Account from "./pages/Account";
 const queryClient = new QueryClient();
 
@@ -30,7 +29,6 @@ const App = () => (
           <Route path="/income/edit/:id" element={<Income />} />
           <Route path="/expenses/add" element={<Expense />} />
           <Route path="/expenses/edit/:id" element={<Expense />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/account" element={<Account />} />
         </Routes>
       </BrowserRouter>
