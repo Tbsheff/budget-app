@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 import Income from "./pages/Income";
 import Expense from "./pages/Expense";
 import Dashboard from "./pages/Dashboard";
+import {ChatButton} from "./components/Chat/ChatButton";
+import {ChatPopup} from "./components/Chat/ChatPopup";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -27,16 +29,18 @@ const App = () => (
             <Route path="/register" element={<Register />} />
 
             {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/income/add" element={<Income />} />
-              <Route path="/income/edit/:id" element={<Income />} />
-              <Route path="/expenses/add" element={<Expense />} />
-              <Route path="/expenses/edit/:id" element={<Expense />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-            </Route>
+            {/* <Route element={<ProtectedRoute />}> */}
+            <Route path="/income/add" element={<Income />} />
+            <Route path="/income/edit/:id" element={<Income />} />
+            <Route path="/expenses/add" element={<Expense />} />
+            <Route path="/expenses/edit/:id" element={<Expense />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            {/* </Route> */}
           </Routes>
         </UserProvider>
       </BrowserRouter>
+      <ChatButton />
+      <ChatPopup />
     </TooltipProvider>
   </QueryClientProvider>
 );
