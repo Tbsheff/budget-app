@@ -109,6 +109,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   // Start editing a category
   const handleStartEdit = (categoryId: number) => {
+    console.log(`Clicked on category ID: ${categoryId}`);
     setEditingCategory(categoryId);
   };
 
@@ -216,7 +217,10 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     return (
       <span
         className="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
-        onClick={() => handleStartEdit(category.category_id)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent event bubbling
+          handleStartEdit(category.category_id);
+        }}
       >
         ${category.monthly_budget.toFixed(2)}
       </span>
@@ -254,7 +258,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
           <div className="space-y-2 md:space-y-4">
             {categories
               .filter(
-                (category) => !["Earnings", "Bills & Utilities", "Rent"].includes(category.name)
+                (category) => !["Earnings", "Bills & Utilities", "Housing"].includes(category.name)
               )
               .sort((a, b) => a.name.localeCompare(b.name)) // 🔹 Sort alphabetically by name
               .map(renderCategoryRow)}
