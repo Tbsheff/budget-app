@@ -12,58 +12,6 @@ import { useState } from "react";
 import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
 
-const categories = [
-  {
-    name: "Earnings",
-    budgeted: 900,
-    actual: 0,
-    icon: Download,
-    color: "text-emerald-500",
-  },
-  {
-    name: "Bills & Utilities",
-    budgeted: 10,
-    actual: 0,
-    icon: FileText,
-    color: "text-blue-500",
-  },
-  {
-    name: "Computers",
-    budgeted: 0,
-    actual: 0,
-    icon: Monitor,
-    color: "text-red-500",
-  },
-  {
-    name: "Dining & Drinks",
-    budgeted: 25,
-    actual: 0,
-    icon: Coffee,
-    color: "text-blue-500",
-  },
-  {
-    name: "Groceries",
-    budgeted: 120,
-    actual: 0,
-    icon: ShoppingCart,
-    color: "text-red-500",
-  },
-  {
-    name: "Rent",
-    budgeted: 405,
-    actual: 0,
-    icon: Home,
-    color: "text-purple-500",
-  },
-  {
-    name: "Everything Else",
-    budgeted: 100,
-    actual: 0,
-    icon: MoreHorizontal,
-    color: "text-blue-500",
-  },
-];
-
 export function BudgetCategories() {
   const { toast } = useToast();
   const [budgetedAmounts, setBudgetedAmounts] = useState(
@@ -133,12 +81,10 @@ export function BudgetCategories() {
   const renderCategoryRow = (category: typeof categories[0]) => (
     <div key={category.name} className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors">
       <div className="flex items-center">
-        <category.icon className={`w-5 h-5 ${category.color} mr-3`} />
         <span className="font-medium text-sm md:text-base">{category.name}</span>
       </div>
       <div className="flex items-center space-x-4 md:space-x-8">
         {renderAmount(category)}
-        <span className="text-green-500 text-sm md:text-base">${category.actual}</span>
         <button
           onClick={() => handleDeleteCategory(category.name)}
           className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1"
@@ -151,15 +97,6 @@ export function BudgetCategories() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-4 md:p-6">
-          <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET BASICS</h3>
-          <div className="space-y-2 md:space-y-4">
-            {localCategories.slice(0, 2).map(renderCategoryRow)}
-          </div>
-        </div>
-      </div>
-
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-4 md:p-6">
           <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET CATEGORIES</h3>
