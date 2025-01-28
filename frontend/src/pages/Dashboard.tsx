@@ -7,6 +7,16 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date()); // Added state to manage the current date
+
+  // Handlers for navigating months
+  const handleDateChange = (direction: "prev" | "next") => {
+    setCurrentDate((prevDate) => {
+      const newDate = new Date(prevDate);
+      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1));
+      return newDate;
+    });
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -26,7 +36,9 @@ const Dashboard = () => {
               <Sidebar />
             </SheetContent>
           </Sheet>
-          <h1 className="text-lg font-semibold">January 2025 Budget</h1>
+          <h1 className="text-lg font-semibold">{`${currentDate.toLocaleString("default", {
+            month: "long",
+          })} ${currentDate.getFullYear()} Budget`}</h1>
           <HelpCircle className="w-6 h-6 text-gray-500" />
         </div>
       </div>
@@ -35,16 +47,30 @@ const Dashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Desktop Header */}
           <div className="hidden md:flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">January 2025 Budget</h1>
+            <h1 className="text-2xl font-bold">{`${currentDate.toLocaleString("default", {
+              month: "long",
+            })} ${currentDate.getFullYear()} Budget`}</h1>
 
             <div className="flex items-center space-x-4">
-              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2">
+              <button
+                onClick={() => handleDateChange("prev")}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
+              >
                 <ChevronLeft className="w-4 h-4 mr-1" />
-                Dec. 2024
+                {`${new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toLocaleString(
+                  "default",
+                  { month: "short" }
+                )}. ${currentDate.getFullYear()}`}
               </button>
 
-              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2">
-                Feb. 2025
+              <button
+                onClick={() => handleDateChange("next")}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
+              >
+                {`${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1).toLocaleString(
+                  "default",
+                  { month: "short" }
+                )}. ${currentDate.getFullYear()}`}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </button>
 
@@ -56,12 +82,24 @@ const Dashboard = () => {
 
           {/* Mobile Month Navigation */}
           <div className="md:hidden flex justify-between items-center mb-6 mt-2">
-            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5">
+            <button
+              onClick={() => handleDateChange("prev")}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
+            >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              Dec
+              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toLocaleString(
+                "default",
+                { month: "short" }
+              )}`}
             </button>
-            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5">
-              Feb
+            <button
+              onClick={() => handleDateChange("next")}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
+            >
+              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1).toLocaleString(
+                "default",
+                { month: "short" }
+              )}`}
               <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
@@ -73,7 +111,7 @@ const Dashboard = () => {
             </div>
 
             <div className="md:col-span-2">
-              <BudgetCategories />
+              <BudgetCategories currentDate={currentDate} />
             </div>
 
             {/* Hide Summary on Mobile (already shown above) */}

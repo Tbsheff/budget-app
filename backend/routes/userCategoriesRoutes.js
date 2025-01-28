@@ -1,21 +1,27 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const UserCategories = require("../models/user_categories");
+const {
+  getUserCategories,
+  getUserCategoryById,
+  addUserCategory,
+  updateUserCategory,
+  deleteUserCategory,
+} = require("../controllers/userCategoriesController");
 
-// Fetch all categories for the authenticated user
-router.get("/", auth, async (req, res) => {
-  try {
-    const userId = req.user.id; // Assuming `req.user` contains the authenticated user's info
-    const categories = await UserCategories.findAll({
-      where: { user_id: userId },
-    });
+// Get all user categories (GET /api/user-categories)
+router.get("/", auth, getUserCategories);
 
-    res.json(categories);
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({ message: "Server Error" });
-  }
-});
+// Get a single category by ID (GET /api/user-categories/:id)
+router.get("/:id", auth, getUserCategoryById);
+
+// Add a new category (POST /api/user-categories)
+router.post("/", auth, addUserCategory);
+
+// Update a category by ID (PUT /api/user-categories/:id)
+router.put("/:id", auth, updateUserCategory);
+
+// Delete a category by ID (DELETE /api/user-categories/:id)
+router.delete("/:id", auth, deleteUserCategory);
 
 module.exports = router;
