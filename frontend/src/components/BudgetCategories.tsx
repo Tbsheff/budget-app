@@ -164,23 +164,30 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     }
   };
 
-  // Render each category row
-  const renderCategoryRow = (category: Category) => (
-    <div
-      key={category.category_id}
-      className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
-    >
-      <div className="flex items-center">
-        <span className="font-medium text-sm md:text-base">{category.name}</span>
+  const renderCategoryRow = (category: Category) => {
+    const spentAmount = aggregatedTotals[category.category_id] || 0;
+    const budgetAmount = category.monthly_budget;
+
+    // Determine text color based on whether spending is over budget
+    const amountTextColor = spentAmount > budgetAmount ? "text-red-500" : "text-green-500";
+
+    return (
+      <div
+        key={category.category_id}
+        className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
+      >
+        <div className="flex items-center">
+          <span className="font-medium text-sm md:text-base">{category.name}</span>
+        </div>
+        <div className="flex items-center space-x-4 md:space-x-8">
+          {renderAmount(category)}
+          <span className={`${amountTextColor} text-sm md:text-base`}>
+            ${spentAmount.toFixed(2)}
+          </span>
+        </div>
       </div>
-      <div className="flex items-center space-x-4 md:space-x-8">
-        {renderAmount(category)}
-        <span className="text-green-500 text-sm md:text-base">
-          ${aggregatedTotals[category.category_id]?.toFixed(2) || "0.00"}
-        </span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Render the budget input or formatted value
   const renderAmount = (category: Category) => {
