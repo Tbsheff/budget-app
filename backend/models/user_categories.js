@@ -25,6 +25,10 @@ const User_categories = sequelize.define(
     monthly_budget: {
       type: DataTypes.DECIMAL,
       allowNull: false,
+      get() {
+        const value = this.getDataValue("monthly_budget");
+        return value === null ? null : parseFloat(value);
+      },
     },
     created_at: {
       type: DataTypes.DATE,
