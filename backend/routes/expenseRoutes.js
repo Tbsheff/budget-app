@@ -7,9 +7,10 @@ const {
   createExpense,
   updateExpense,
   deleteExpense,
+  getAggregatedExpenses,
 } = require("../controllers/expenseController");
 
-// Routes
+router.get("/aggregated", auth, getAggregatedExpenses); // Fetch aggregated expenses by date range
 router.get("/", auth, getExpenses); // Fetch all expenses for the authenticated user
 router.get("/:id", auth, getExpenseById); // Fetch a specific expense by ID
 router.post("/", auth, createExpense); // Create a new expense

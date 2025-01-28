@@ -13,12 +13,17 @@ interface Category {
   created_at?: string; // Or `Date` if parsed
 }
 
-export function BudgetCategories() {
+interface BudgetCategoriesProps {
+  currentDate: Date;
+}
+
+export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const { toast } = useToast();
-  const [categories, setCategories] = useState<Category[]>([]); // Typed categories
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [aggregatedTotals, setAggregatedTotals] = useState<Record<number, number>>({});
   const [editingCategory, setEditingCategory] = useState<number | null>(null);
-  const [originalBudgets, setOriginalBudgets] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
+  const [originalBudgets, setOriginalBudgets] = useState<Record<number, number>>({});
 
   // Fetch categories from the API
   useEffect(() => {
@@ -29,18 +34,19 @@ export function BudgetCategories() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Ensure `monthly_budget` is a number and set the original budgets
         const sanitizedCategories = response.data.map((category) => ({
           ...category,
           monthly_budget: parseFloat(category.monthly_budget.toString()) || 0,
         }));
-        const initialBudgets = sanitizedCategories.reduce(
-          (acc, category) => ({ ...acc, [category.category_id]: category.monthly_budget }),
-          {}
-        );
 
         setCategories(sanitizedCategories);
-        setOriginalBudgets(initialBudgets);
+        setOriginalBudgets(
+          sanitizedCategories.reduce((acc, category) => {
+            acc[category.category_id] = category.monthly_budget;
+            return acc;
+          }, {} as Record<number, number>)
+        );
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -55,10 +61,55 @@ export function BudgetCategories() {
     fetchCategories();
   }, []);
 
+  // Fetch aggregated totals for the selected date range
+  useEffect(() => {
+    const fetchAggregatedTotals = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+          .toISOString()
+          .split("T")[0]; // Format YYYY-MM-DD
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+          .toISOString()
+          .split("T")[0];
+
+        console.log("🔹 Fetching transactions for:", { startDate, endDate });
+
+        const response = await axios.get(`/api/expenses/aggregated`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { startDate, endDate },
+        });
+
+        console.log("🔹 API Response:", response.data);
+
+        const totals = response.data.reduce(
+          (acc: Record<number, number>, item: { category_id: number; total_amount: string }) => {
+            acc[item.category_id] = parseFloat(item.total_amount) || 0;
+            return acc;
+          },
+          {}
+        );
+
+        setAggregatedTotals(totals);
+      } catch (error) {
+        console.error("❌ Error fetching aggregated totals:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch transaction totals.",
+        });
+      }
+    };
+
+    fetchAggregatedTotals();
+  }, [currentDate]);
+
+  // Start editing a category
   const handleStartEdit = (categoryId: number) => {
     setEditingCategory(categoryId);
   };
 
+  // editing submission
   const handleBlur = (categoryId: number) => {
     const category = categories.find((cat) => cat.category_id === categoryId);
     if (category) {
@@ -67,12 +118,14 @@ export function BudgetCategories() {
     setEditingCategory(null);
   };
 
+  // Handle `Enter` keypress
   const handleKeyDown = (e: React.KeyboardEvent, categoryId: number) => {
     if (e.key === "Enter") {
       handleBlur(categoryId);
     }
   };
 
+  // Handle budget input changes
   const handleBudgetChange = (categoryId: number, value: string) => {
     const numericValue = parseFloat(value) || 0;
     setCategories((prevCategories) =>
@@ -82,8 +135,8 @@ export function BudgetCategories() {
     );
   };
 
+  // Save the updated budget to the backend
   const handleSaveBudget = async (categoryId: number, newBudget: number) => {
-    // Only update if the budget has changed
     if (originalBudgets[categoryId] === newBudget) {
       return;
     }
@@ -111,6 +164,25 @@ export function BudgetCategories() {
     }
   };
 
+  // Render each category row
+  const renderCategoryRow = (category: Category) => (
+    <div
+      key={category.category_id}
+      className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
+    >
+      <div className="flex items-center">
+        <span className="font-medium text-sm md:text-base">{category.name}</span>
+      </div>
+      <div className="flex items-center space-x-4 md:space-x-8">
+        {renderAmount(category)}
+        <span className="text-green-500 text-sm md:text-base">
+          ${aggregatedTotals[category.category_id]?.toFixed(2) || "0.00"}
+        </span>
+      </div>
+    </div>
+  );
+
+  // Render the budget input or formatted value
   const renderAmount = (category: Category) => {
     if (editingCategory === category.category_id) {
       return (
@@ -134,18 +206,6 @@ export function BudgetCategories() {
       </span>
     );
   };
-
-  const renderCategoryRow = (category: Category) => (
-    <div
-      key={category.category_id}
-      className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
-    >
-      <div className="flex items-center">
-        <span className="font-medium text-sm md:text-base">{category.name}</span>
-      </div>
-      <div className="flex items-center space-x-4 md:space-x-8">{renderAmount(category)}</div>
-    </div>
-  );
 
   if (loading) {
     return <div>Loading...</div>;
