@@ -40,7 +40,9 @@ exports.registerUser = async (req, res) => {
       user_id: newUser.user_id, // Associate with the newly created user
       default_category_id: category.category_id,
       name: category.name,
-      monthly_budget: category.default_budget || 0, // Use default budget if available
+      monthly_budget: category.default_budget || 0, // maybe this would be a good way to input machin learning in after they have filled out extra user data
+      icon_name: category.icon_name,
+      icon_color: category.icon_color,
     }));
 
     // Bulk insert user categories

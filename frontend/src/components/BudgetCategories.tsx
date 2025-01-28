@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useToast } from "./ui/use-toast";
 import { Input } from "./ui/input";
+import * as LucideIcons from "lucide-react"; // Import all Lucide icons (eventually we should make a list and narrow it down)
 
 // Define the Category type
 interface Category {
@@ -10,7 +11,9 @@ interface Category {
   default_category_id?: number;
   name: string;
   monthly_budget: number;
-  created_at?: string; // Or `Date` if parsed
+  created_at?: string;
+  icon_name: string;
+  icon_color: string;
 }
 
 interface BudgetCategoriesProps {
@@ -165,20 +168,26 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   };
 
   const renderCategoryRow = (category: Category) => {
+    const IconComponent =
+      (LucideIcons[category.icon_name as keyof typeof LucideIcons] as React.ElementType) ||
+      LucideIcons.MoreHorizontal;
     const spentAmount = aggregatedTotals[category.category_id] || 0;
     const budgetAmount = category.monthly_budget;
-
-    // Determine text color based on whether spending is over budget
-    const amountTextColor = spentAmount > budgetAmount ? "text-red-500" : "text-green-500";
+    const isOverBudget = spentAmount > budgetAmount;
+    const amountTextColor = isOverBudget ? "text-red-500" : "text-green-500";
 
     return (
       <div
         key={category.category_id}
         className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
       >
-        <div className="flex items-center">
+        {/* Left Section: Icon and Category Name */}
+        <div className="flex items-center space-x-3 md:space-x-4">
+          <IconComponent className={`w-5 h-5 ${category.icon_color}`} />
           <span className="font-medium text-sm md:text-base">{category.name}</span>
         </div>
+
+        {/* Right Section: Budget, Spent Amount */}
         <div className="flex items-center space-x-4 md:space-x-8">
           {renderAmount(category)}
           <span className={`${amountTextColor} text-sm md:text-base`}>
@@ -220,10 +229,36 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Budget Basics Section */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET BASICS</h3>
+          <div className="space-y-2 md:space-y-4">
+            {categories
+              .filter((category) =>
+                ["Earnings", "Housing", "Bills & Utilities"].includes(category.name)
+              )
+              .sort((a, b) => {
+                const order = ["Earnings", "Housing", "Bills & Utilities"];
+                return order.indexOf(a.name) - order.indexOf(b.name); // Sort by the defined order
+              })
+              .map(renderCategoryRow)}
+          </div>
+        </div>
+      </div>
+
+      {/* Budget Categories Section */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-4 md:p-6">
           <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET CATEGORIES</h3>
-          <div className="space-y-2 md:space-y-4">{categories.map(renderCategoryRow)}</div>
+          <div className="space-y-2 md:space-y-4">
+            {categories
+              .filter(
+                (category) => !["Earnings", "Bills & Utilities", "Rent"].includes(category.name)
+              )
+              .sort((a, b) => a.name.localeCompare(b.name)) // 🔹 Sort alphabetically by name
+              .map(renderCategoryRow)}
+          </div>
         </div>
       </div>
     </div>

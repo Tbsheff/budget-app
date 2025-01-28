@@ -38,13 +38,15 @@ exports.getUserCategoryById = async (req, res) => {
 // Create a new category
 exports.addUserCategory = async (req, res) => {
   try {
-    const { name, monthly_budget } = req.body;
+    const { name, monthly_budget, icon_name, icon_color } = req.body;
     const userId = req.user.id;
 
     const newCategory = await UserCategories.create({
       user_id: userId,
       name,
       monthly_budget,
+      icon_name,
+      icon_color,
     });
 
     res.status(201).json(newCategory);
@@ -58,7 +60,7 @@ exports.addUserCategory = async (req, res) => {
 exports.updateUserCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, monthly_budget } = req.body;
+    const { name, monthly_budget, icon_name, icon_color } = req.body;
     const userId = req.user.id;
 
     const category = await UserCategories.findOne({
@@ -71,6 +73,8 @@ exports.updateUserCategory = async (req, res) => {
 
     category.name = name || category.name;
     category.monthly_budget = monthly_budget || category.monthly_budget;
+    category.icon_name = icon_name || category.icon_name;
+    category.icon_color = icon_color || category.icon_color;
 
     await category.save();
 
