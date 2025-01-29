@@ -23,10 +23,14 @@ interface BudgetCategoriesProps {
 export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [aggregatedTotals, setAggregatedTotals] = useState<Record<number, number>>({});
+  const [aggregatedTotals, setAggregatedTotals] = useState<
+    Record<number, number>
+  >({});
   const [editingCategory, setEditingCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [originalBudgets, setOriginalBudgets] = useState<Record<number, number>>({});
+  const [originalBudgets, setOriginalBudgets] = useState<
+    Record<number, number>
+  >({});
 
   // Fetch categories from the API
   useEffect(() => {
@@ -70,10 +74,18 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
       try {
         const token = localStorage.getItem("token");
 
-        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+        const startDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          1
+        )
           .toISOString()
           .split("T")[0]; // Format YYYY-MM-DD
-        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+        const endDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0
+        )
           .toISOString()
           .split("T")[0];
 
@@ -84,10 +96,11 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
           params: { startDate, endDate },
         });
 
-        console.log("🔹 API Response:", response.data);
-
         const totals = response.data.reduce(
-          (acc: Record<number, number>, item: { category_id: number; total_amount: string }) => {
+          (
+            acc: Record<number, number>,
+            item: { category_id: number; total_amount: string }
+          ) => {
             acc[item.category_id] = parseFloat(item.total_amount) || 0;
             return acc;
           },
@@ -134,7 +147,9 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     const numericValue = parseFloat(value) || 0;
     setCategories((prevCategories) =>
       prevCategories.map((cat) =>
-        cat.category_id === categoryId ? { ...cat, monthly_budget: numericValue } : cat
+        cat.category_id === categoryId
+          ? { ...cat, monthly_budget: numericValue }
+          : cat
       )
     );
   };
@@ -170,8 +185,9 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   const renderCategoryRow = (category: Category) => {
     const IconComponent =
-      (LucideIcons[category.icon_name as keyof typeof LucideIcons] as React.ElementType) ||
-      LucideIcons.MoreHorizontal;
+      (LucideIcons[
+        category.icon_name as keyof typeof LucideIcons
+      ] as React.ElementType) || LucideIcons.MoreHorizontal;
     const spentAmount = aggregatedTotals[category.category_id] || 0;
     const budgetAmount = category.monthly_budget;
     const isOverBudget = spentAmount > budgetAmount;
@@ -185,7 +201,9 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
         {/* Left Section: Icon and Category Name */}
         <div className="flex items-center space-x-3 md:space-x-4">
           <IconComponent className={`w-5 h-5 ${category.icon_color}`} />
-          <span className="font-medium text-sm md:text-base">{category.name}</span>
+          <span className="font-medium text-sm md:text-base">
+            {category.name}
+          </span>
         </div>
 
         {/* Right Section: Budget, Spent Amount */}
@@ -206,7 +224,9 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
         <Input
           type="text"
           value={category.monthly_budget}
-          onChange={(e) => handleBudgetChange(category.category_id, e.target.value)}
+          onChange={(e) =>
+            handleBudgetChange(category.category_id, e.target.value)
+          }
           onBlur={() => handleBlur(category.category_id)}
           onKeyDown={(e) => handleKeyDown(e, category.category_id)}
           className="w-20 h-8 text-right"
@@ -236,11 +256,15 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
       {/* Budget Basics Section */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-4 md:p-6">
-          <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET BASICS</h3>
+          <h3 className="text-base md:text-lg font-semibold mb-4">
+            BUDGET BASICS
+          </h3>
           <div className="space-y-2 md:space-y-4">
             {categories
               .filter((category) =>
-                ["Earnings", "Housing", "Bills & Utilities"].includes(category.name)
+                ["Earnings", "Housing", "Bills & Utilities"].includes(
+                  category.name
+                )
               )
               .sort((a, b) => {
                 const order = ["Earnings", "Housing", "Bills & Utilities"];
@@ -254,11 +278,16 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
       {/* Budget Categories Section */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-4 md:p-6">
-          <h3 className="text-base md:text-lg font-semibold mb-4">BUDGET CATEGORIES</h3>
+          <h3 className="text-base md:text-lg font-semibold mb-4">
+            BUDGET CATEGORIES
+          </h3>
           <div className="space-y-2 md:space-y-4">
             {categories
               .filter(
-                (category) => !["Earnings", "Bills & Utilities", "Housing"].includes(category.name)
+                (category) =>
+                  !["Earnings", "Bills & Utilities", "Housing"].includes(
+                    category.name
+                  )
               )
               .sort((a, b) => a.name.localeCompare(b.name)) // 🔹 Sort alphabetically by name
               .map(renderCategoryRow)}
