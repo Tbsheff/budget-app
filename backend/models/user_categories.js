@@ -30,6 +30,16 @@ const User_categories = sequelize.define(
         return value === null ? null : parseFloat(value);
       },
     },
+    icon_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "MoreHorizontal", // Default icon if none is assigned
+    },
+    icon_color: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "text-gray-500", // Default color if none is assigned
+    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: true,
