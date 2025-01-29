@@ -1,5 +1,5 @@
 const Transactions = require("../models/transactions");
-const sequelize = require("../config/db").sequelize; 
+const sequelize = require("../config/db").sequelize;
 const { Op } = require("sequelize");
 
 // Fetch aggregated expenses by category for a specific date range

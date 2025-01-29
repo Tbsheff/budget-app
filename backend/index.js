@@ -36,7 +36,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/subcategories", require("./routes/subcategoriesRoutes"));
 
 // Serve static files from the React app
-const frontendPath = path.join(__dirname, "frontend/dist");
+const frontendPath = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendPath));
 
 // Handle React routing, return all requests to React app
