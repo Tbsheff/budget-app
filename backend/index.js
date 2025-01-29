@@ -35,8 +35,13 @@ app.use("/api/user-categories", require("./routes/userCategoriesRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/subcategories", require("./routes/subcategoriesRoutes"));
 
-// Serve static files from the React app
-const frontendPath = path.join(__dirname, "../frontend/dist");
+// Detect whether running in Docker or locally
+const isDocker = process.env.RUNNING_IN_DOCKER === "true";
+
+// Dynamically set the path
+const frontendPath = isDocker
+  ? path.join(__dirname, "frontend/dist") // Docker path
+  : path.join(__dirname, "../frontend/dist"); // Local path
 app.use(express.static(frontendPath));
 
 // Handle React routing, return all requests to React app
