@@ -21,6 +21,7 @@ COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 # Environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
+ENV RUNNING_IN_DOCKER=true
 
 # Expose the backend port
 EXPOSE 5000
