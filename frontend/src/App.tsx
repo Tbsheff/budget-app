@@ -13,6 +13,8 @@ import Expense from "./pages/Expense";
 import Dashboard from "./pages/Dashboard";
 import { ChatButton } from "./components/Chat/ChatButton";
 import { ChatPopup } from "./components/Chat/ChatPopup";
+import TransactionsPage from "./pages/Transactions";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,8 @@ const AppRoutes = () => {
         <Route path="/expenses/add" element={<Expense />} />
         <Route path="/expenses/edit/:id" element={<Expense />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/profile" element={<Profile />} />
         {/* </Route> */}
       </Routes>
 

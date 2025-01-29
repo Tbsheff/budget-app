@@ -9,12 +9,13 @@ import {
   BadgePercent,
 } from "lucide-react";
 import { useUser } from "../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: RefreshCcw, label: "Recurring", path: "/recurring" },
   { icon: CreditCard, label: "Spending", path: "/spending" },
-  { icon: PiggyBank, label: "Budgets", path: "/budgets", active: true },
+  { icon: PiggyBank, label: "Budgets", path: "/dashboard", active: true },
   { icon: Wallet, label: "Net Worth", path: "/net-worth" },
   { icon: Search, label: "Transactions", path: "/transactions" },
   { icon: BadgePercent, label: "Credit Score", path: "/credit-score" },
@@ -22,6 +23,11 @@ const navItems = [
 
 export function Sidebar() {
   const { user } = useUser(); // Get user data from context
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
 
   // Determine greeting text
   const greeting = user?.first_name
@@ -41,8 +47,15 @@ export function Sidebar() {
             1
           </span>
         </div>
+
         <button className="text-gray-500 hover:text-gray-700">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            onClick={handleProfileClick}
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -65,7 +78,9 @@ export function Sidebar() {
             key={item.label}
             to={item.path}
             className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-              item.active ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50"
+              item.active
+                ? "bg-secondary text-primary"
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <item.icon className="w-5 h-5 mr-3" />
@@ -76,8 +91,8 @@ export function Sidebar() {
 
       <div className="mt-auto pt-8 border-t border-gray-200">
         <blockquote className="text-sm text-gray-500 italic">
-          "The pessimist sees difficulty in every opportunity. The optimist sees opportunity in
-          every difficulty."
+          "The pessimist sees difficulty in every opportunity. The optimist sees
+          opportunity in every difficulty."
         </blockquote>
         <p className="mt-2 text-sm text-gray-400">Winston Churchill</p>
       </div>
