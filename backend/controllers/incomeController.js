@@ -1,4 +1,41 @@
 const Income = require("../models/Income");
+const sequelize = require("../config/db").sequelize;
+const { Op } = require("sequelize");
+
+// Fetch aggregated earnings for a specific date range
+exports.getAggregatedEarnings = async (req, res) => {
+  try {
+    console.log("🔹 Received request for aggregated earnings");
+
+    const userId = req.user.id;
+    const { startDate, endDate } = req.query;
+
+    console.log("🔹 Query Params:", { userId, startDate, endDate });
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: "Start and end dates are required." });
+    }
+
+    // Aggregate the total earnings within the given date range
+    const aggregatedEarnings = await Income.findAll({
+      where: {
+        user_id: userId,
+        pay_date: { [Op.between]: [startDate, endDate] },
+      },
+      attributes: [[sequelize.fn("SUM", sequelize.col("amount")), "total_amount"]],
+    });
+
+    console.log("🔹 Aggregated Earnings Data:", aggregatedEarnings);
+
+    // Return the sum or default to 0 if no earnings exist
+    const totalEarnings = aggregatedEarnings[0]?.dataValues?.total_amount || 0;
+
+    res.status(200).json({ total_amount: parseFloat(totalEarnings) });
+  } catch (error) {
+    console.error("❌ Error fetching aggregated earnings:", error);
+    res.status(500).json({ message: "Failed to fetch aggregated earnings." });
+  }
+};
 
 // Get all incomes for a user
 exports.getIncomes = async (req, res) => {
