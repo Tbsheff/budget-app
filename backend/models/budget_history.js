@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db"); // Adjust path as needed
+const { sequelize } = require("../config/db");
 
-const Budget_history = sequelize.define(
+const BudgetHistory = sequelize.define(
   "budget_history",
   {
     history_id: {
@@ -19,7 +19,7 @@ const Budget_history = sequelize.define(
       allowNull: false,
     },
     month_year: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING, // 'YYYY-MM' format for simplicity and efficiency
       allowNull: false,
     },
     monthly_budget: {
@@ -32,13 +32,19 @@ const Budget_history = sequelize.define(
     },
     created_at: {
       type: DataTypes.DATE,
-      allowNull: true,
+      defaultValue: DataTypes.NOW,
+      allowNull: false,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      onUpdate: DataTypes.NOW,
     },
   },
   {
     tableName: "budget_history",
-    timestamps: false, // Set to true if `createdAt` and `updatedAt` exist
+    timestamps: true,
   }
 );
 
-module.exports = Budget_history;
+module.exports = BudgetHistory;
