@@ -117,10 +117,21 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     fetchAggregatedTotalsAndEarnings();
   }, [currentDate]);
 
+  // Determines if the date is for a past month or not
+  const isEditable = (categoryDate: Date): boolean => {
+    const today = new Date();
+    return (
+      categoryDate.getFullYear() > today.getFullYear() ||
+      (categoryDate.getFullYear() === today.getFullYear() &&
+        categoryDate.getMonth() >= today.getMonth())
+    );
+  };
+
   // Start editing a category
   const handleStartEdit = (categoryId: number) => {
-    console.log(`Clicked on category ID: ${categoryId}`);
-    setEditingCategory(categoryId);
+    if (isEditable(currentDate)) {
+      setEditingCategory(categoryId);
+    }
   };
 
   // editing submission
@@ -214,6 +225,14 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   // Render the budget input or formatted value
   const renderAmount = (category: Category) => {
+    if (!isEditable(currentDate)) {
+      return (
+        <span className="cursor-not-allowed text-gray-500">
+          ${category.monthly_budget.toFixed(2)}
+        </span>
+      );
+    }
+
     if (editingCategory === category.category_id) {
       return (
         <Input
