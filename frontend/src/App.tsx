@@ -15,6 +15,7 @@ import { ChatButton } from "./components/Chat/ChatButton";
 import { ChatPopup } from "./components/Chat/ChatPopup";
 import TransactionsPage from "./pages/Transactions";
 import Profile from "./pages/Profile";
+import Survey from "./pages/Survey";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/survey" element={<Survey />} />
         {/* </Route> */}
       </Routes>
 
