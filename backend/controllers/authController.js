@@ -24,12 +24,15 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user with default values for phone_number, language, and currency
     const newUser = await User.create({
       first_name,
       last_name,
       email,
       password_hash: hashedPassword,
+      phone_number: null,
+      language: "English", 
+      currency: "USD",
     });
 
     // Fetch default categories
@@ -40,7 +43,7 @@ exports.registerUser = async (req, res) => {
       user_id: newUser.user_id, // Associate with the newly created user
       default_category_id: category.category_id,
       name: category.name,
-      monthly_budget: category.default_budget || 0, // maybe this would be a good way to input machin learning in after they have filled out extra user data
+      monthly_budget: category.default_budget || 0, // Possible future ML integration
       icon_name: category.icon_name,
       icon_color: category.icon_color,
     }));
@@ -48,12 +51,25 @@ exports.registerUser = async (req, res) => {
     // Bulk insert user categories
     await User_categories.bulkCreate(userCategories);
 
-    return res.status(201).json({ message: "User created successfully", user: newUser });
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newUser.user_id,
+        first_name: newUser.first_name,
+        last_name: newUser.last_name,
+        email: newUser.email,
+        language: newUser.language,
+        currency: newUser.currency,
+      },
+    });
   } catch (err) {
     console.error("Error during registration:", err.message);
-    return res.status(500).json({ message: "An unexpected error occurred during registration." });
+    return res.status(500).json({
+      message: "An unexpected error occurred during registration.",
+    });
   }
 };
+
 
 // Login User
 exports.loginUser = async (req, res) => {

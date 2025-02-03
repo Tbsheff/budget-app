@@ -30,6 +30,18 @@ const Users = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    language: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    currency: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "users",
