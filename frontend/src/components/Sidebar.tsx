@@ -36,8 +36,6 @@ export function Sidebar() {
     ? `Hi, ${user.email.split("@")[0]}`
     : "Hi, Guest (Set your name in Profile)";
 
-  console.log("User in Sidebar:", user);
-
   return (
     <div className="w-64 min-h-screen bg-white border-r border-gray-200 p-4">
       <div className="flex items-center justify-between mb-8">
@@ -48,14 +46,8 @@ export function Sidebar() {
           </span>
         </div>
 
-        <button className="text-gray-500 hover:text-gray-700">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            onClick={handleProfileClick}
-          >
+        <button className="text-gray-500 hover:text-gray-700" onClick={handleProfileClick}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -78,9 +70,7 @@ export function Sidebar() {
             key={item.label}
             to={item.path}
             className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-              item.active
-                ? "bg-secondary text-primary"
-                : "text-gray-600 hover:bg-gray-50"
+              item.active ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <item.icon className="w-5 h-5 mr-3" />
@@ -91,8 +81,8 @@ export function Sidebar() {
 
       <div className="mt-auto pt-8 border-t border-gray-200">
         <blockquote className="text-sm text-gray-500 italic">
-          "The pessimist sees difficulty in every opportunity. The optimist sees
-          opportunity in every difficulty."
+          "The pessimist sees difficulty in every opportunity. The optimist sees opportunity in
+          every difficulty."
         </blockquote>
         <p className="mt-2 text-sm text-gray-400">Winston Churchill</p>
       </div>

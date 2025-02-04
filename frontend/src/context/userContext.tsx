@@ -1,17 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define the shape of the user object
-interface User {
+export interface User {
   id: string;
   first_name: string;
   last_name: string;
   email: string;
+  phone_number?: string;
+  language: string;
+  currency: string;
 }
 
 // Define the context type
 interface UserContextType {
   user: User | null;
-  setUser: (newUser: User | null) => void;
+  setUser: (newUser: User | null | ((prevUser: User | null) => User | null)) => void;
   logout: () => void;
 }
 
