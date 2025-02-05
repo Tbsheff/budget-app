@@ -3,8 +3,8 @@ import { QuestionTooltip } from './QuestionTooltip';
 interface InputFieldProps {
   label: string;
   type: 'number' | 'text';
-  value: number | string;
-  onChange: (value: any) => void;
+  value: string | number;
+  onChange: (value: string | number) => void;
   tooltip?: string;
   placeholder?: string;
   required?: boolean;
@@ -23,6 +23,19 @@ export function InputField({
   min,
   max,
 }: InputFieldProps) {
+
+  // Handle input change and keep empty input as an empty string
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+
+    // Allow empty strings for user-friendly backspacing
+    if (type === 'number' && inputValue === "") {
+      onChange("");
+    } else {
+      onChange(type === 'number' ? Number(inputValue) : inputValue);
+    }
+  };
+
   return (
     <div className="mb-6">
       <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -32,8 +45,8 @@ export function InputField({
       </label>
       <input
         type={type}
-        value={value}
-        onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
+        value={value === 0 ? "" : value}  // Avoid displaying 0 by default
+        onChange={handleInputChange}
         placeholder={placeholder}
         required={required}
         min={min}
