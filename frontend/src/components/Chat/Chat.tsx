@@ -1,21 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Send, Loader2, Pause, Bot } from 'lucide-react';
-import { useChatStore } from '../../store/chatStore';
-import { streamCompletion } from '../../lib/openai';
-import { generateDefaultBudget, formatCurrency, saveBudgetToDatabase, type BudgetPlan } from '../../lib/budget';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import { Send, Loader2, Pause, Bot } from "lucide-react";
+import { useChatStore } from "../../store/chatStore";
+import { streamCompletion } from "../../lib/openai";
+import {
+  generateDefaultBudget,
+  formatCurrency,
+  saveBudgetToDatabase,
+  type BudgetPlan,
+} from "../../lib/budget";
+import { UserProvider, useUser } from "../../context/userContext";
+
+// Function to get user from database
 
 export const Chat: React.FC = () => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const { messages, isLoading, addMessage, updateLastMessage, setLoading } = useChatStore();
+  const { messages, isLoading, addMessage, updateLastMessage, setLoading } =
+    useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const { user } = useUser();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -25,41 +34,46 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
     }
   }, [input]);
 
   const handleBudgetRequest = async (income: number) => {
     const budget = generateDefaultBudget(income);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (user) {
       try {
         await saveBudgetToDatabase(user.id, budget);
-        console.log('Budget saved successfully');
+        console.log("Budget saved successfully");
       } catch (error) {
-        console.error('Error saving budget:', error);
+        console.error("Error saving budget:", error);
       }
     }
+    console.log(user);
 
-    let response = `Here's your personalized monthly budget plan based on an income of ${formatCurrency(income)}:\n\n`;
+    let response = `Here's your personalized monthly budget plan based on an income of ${formatCurrency(
+      income
+    )}:\n\n`;
 
     budget.categories.forEach((category) => {
-      response += `## ${category.name} (${category.percentage}% - ${formatCurrency(category.amount)})\n\n`;
+      response += `## ${category.name} (${
+        category.percentage
+      }% - ${formatCurrency(category.amount)})\n\n`;
       category.subcategories?.forEach((sub) => {
-        response += `- ${sub.name}: ${formatCurrency(sub.amount)} (${sub.percentage}%)\n`;
+        response += `- ${sub.name}: ${formatCurrency(sub.amount)} (${
+          sub.percentage
+        }%)\n`;
       });
-      response += '\n';
+      response += "\n";
     });
 
-    response += '\nYou can customize this budget by:\n';
-    response += '1. Adjusting category percentages\n';
-    response += '2. Adding new categories\n';
-    response += '3. Removing existing categories\n';
-    response += '4. Saving your modifications\n\n';
-    response += 'Would you like to make any adjustments to this budget plan?';
+    response += "\nYou can customize this budget by:\n";
+    response += "1. Adjusting category percentages\n";
+    response += "2. Adding new categories\n";
+    response += "3. Removing existing categories\n";
+    response += "4. Saving your modifications\n\n";
+    response += "Would you like to make any adjustments to this budget plan?";
 
     return response;
   };
@@ -74,10 +88,10 @@ export const Chat: React.FC = () => {
 
   const formatTime = () => {
     const now = new Date();
-    return now.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
+    return now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -86,33 +100,41 @@ export const Chat: React.FC = () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
-    setInput('');
-    addMessage({ role: 'user', content: userMessage });
+    setInput("");
+    addMessage({ role: "user", content: userMessage });
     setLoading(true);
     setIsStreaming(true);
 
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
     }
 
-    addMessage({ role: 'assistant', content: '', isStreaming: true });
-    let assistantResponse = '';
+    addMessage({ role: "assistant", content: "", isStreaming: true });
+    let assistantResponse = "";
 
     const incomeMatch = userMessage.match(/budget.*?(\d+)k?/i);
     if (incomeMatch) {
-      const income = parseInt(incomeMatch[1]) * (userMessage.toLowerCase().includes('k') ? 1000 : 1);
+      const income =
+        parseInt(incomeMatch[1]) *
+        (userMessage.toLowerCase().includes("k") ? 1000 : 1);
       assistantResponse = await handleBudgetRequest(income);
       updateLastMessage(assistantResponse);
     } else {
       abortControllerRef.current = new AbortController();
       try {
-        await streamCompletion(userMessage, (token) => {
-          assistantResponse += token;
-          updateLastMessage(assistantResponse);
-        }, abortControllerRef.current.signal);
+        await streamCompletion(
+          userMessage,
+          (token) => {
+            assistantResponse += token;
+            updateLastMessage(assistantResponse);
+          },
+          abortControllerRef.current.signal
+        );
       } catch (error) {
-        if (error.name === 'AbortError') {
-          updateLastMessage(assistantResponse + '\n\n*Message streaming was stopped*');
+        if (error.name === "AbortError") {
+          updateLastMessage(
+            assistantResponse + "\n\n*Message streaming was stopped*"
+          );
         } else {
           throw error;
         }
@@ -124,7 +146,7 @@ export const Chat: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -137,36 +159,42 @@ export const Chat: React.FC = () => {
           <div
             key={message.id}
             className={`flex items-end gap-2 ${
-              message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+              message.role === "user" ? "flex-row-reverse" : "flex-row"
             }`}
           >
-            {message.role === 'user' ? (
+            {message.role === "user" ? (
               <div className="user-avatar hidden sm:block" />
             ) : (
               <div className="assistant-avatar hidden sm:flex">
                 <Bot className="w-5 h-5" />
               </div>
             )}
-            <div className={`group relative max-w-[85%] sm:max-w-[80%] ${
-              message.role === 'user' ? 'items-end' : 'items-start'
-            }`}>
+            <div
+              className={`group relative max-w-[85%] sm:max-w-[80%] ${
+                message.role === "user" ? "items-end" : "items-start"
+              }`}
+            >
               <div
                 className={`rounded-2xl p-3 sm:p-4 ${
-                  message.role === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-100 shadow-lg'
-                } ${message.isStreaming && isStreaming ? 'animate-pulse' : ''}`}
+                  message.role === "user"
+                    ? "bg-purple-600 text-white"
+                    : "bg-purple-100 shadow-lg"
+                } ${message.isStreaming && isStreaming ? "animate-pulse" : ""}`}
               >
                 <ReactMarkdown className="prose prose-sm sm:prose-base max-w-none dark:prose-invert break-words">
-                  {message.content || ' '}
+                  {message.content || " "}
                 </ReactMarkdown>
-                {message.isStreaming && isStreaming && index === messages.length - 1 && (
-                  <span className="inline-block w-2 h-4 ml-1 bg-gray-400 animate-pulse" />
-                )}
+                {message.isStreaming &&
+                  isStreaming &&
+                  index === messages.length - 1 && (
+                    <span className="inline-block w-2 h-4 ml-1 bg-gray-400 animate-pulse" />
+                  )}
               </div>
-              <div className={`message-time mt-1 text-[10px] sm:text-xs ${
-                message.role === 'user' ? 'text-right' : 'text-left'
-              }`}>
+              <div
+                className={`message-time mt-1 text-[10px] sm:text-xs ${
+                  message.role === "user" ? "text-right" : "text-left"
+                }`}
+              >
                 {formatTime()}
               </div>
             </div>
@@ -190,10 +218,10 @@ export const Chat: React.FC = () => {
               className={`w-full py-2 px-3 sm:p-3 text-sm sm:text-base rounded-2xl border-2 
                 border-purple-300/20 bg-white resize-none overflow-hidden
                 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent
-                ${isLoading ? 'bg-gray-100' : ''}`}
+                ${isLoading ? "bg-gray-100" : ""}`}
               disabled={isLoading}
               rows={1}
-              style={{ minHeight: '44px', maxHeight: '150px' }}
+              style={{ minHeight: "44px", maxHeight: "150px" }}
             />
             <div className="absolute right-3 bottom-2 text-xs text-gray-400 select-none">
               ⏎ to send

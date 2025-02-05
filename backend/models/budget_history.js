@@ -1,5 +1,5 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db");
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/db.js"; // Ensure you use the correct import path and add .js extension
 
 const BudgetHistory = sequelize.define(
   "budget_history",
@@ -38,7 +38,6 @@ const BudgetHistory = sequelize.define(
     updated_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
-      onUpdate: DataTypes.NOW,
     },
   },
   {
@@ -47,4 +46,4 @@ const BudgetHistory = sequelize.define(
   }
 );
 
-module.exports = BudgetHistory;
+export default BudgetHistory;

@@ -23,8 +23,10 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || "127.0.0.1",
     dialect: "mysql",
     port: process.env.DB_PORT || 3306,
-    logging: false, // Disable logging; set to true for debugging
-  }
+    logging: false,
+    dialectModule: false, // Disable logging; set to true for debugging
+  },
+   
 );
 
 module.exports = {
