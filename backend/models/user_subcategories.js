@@ -32,3 +32,4 @@ const UserSubcategories = sequelize.define(
     timestamps: false,
   }
 );
+module.exports = UserSubcategories;

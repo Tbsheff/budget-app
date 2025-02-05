@@ -108,17 +108,9 @@ export const saveBudgetToDatabase = async (
   userId: string,
   budget: BudgetPlan
 ) => {
-  const budgetEntries = budget.categories.map((category) => ({
-    user_id: userId,
-    name: category.name,
-    monthly_budget: category.amount,
-    icon_name: "default-icon", // You can customize this as needed
-    icon_color: "default-color", // You can customize this as needed
-  }));
-
   try {
-    for (const entry of budgetEntries) {
-      const response = await fetch(
+    for (const category of budget.categories) {
+      const categoryResponse = await fetch(
         "http://localhost:5000/api/user-categories",
         {
           method: "POST",
@@ -126,12 +118,44 @@ export const saveBudgetToDatabase = async (
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify(entry),
+          body: JSON.stringify({
+            user_id: userId,
+            name: category.name,
+            monthly_budget: category.amount,
+            icon_name: "default-icon", // You can customize this as needed
+            icon_color: "default-color", // You can customize this as needed
+          }),
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to save budget data.");
+      if (!categoryResponse.ok) {
+        throw new Error("Failed to save category data.");
+      }
+
+      const categoryData = await categoryResponse.json();
+
+      if (category.subcategories) {
+        for (const subcategory of category.subcategories) {
+          const subcategoryResponse = await fetch(
+            "http://localhost:5000/api/subcategories",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                category_id: categoryData.category_id,
+                name: subcategory.name,
+              }),
+            }
+          );
+
+          if (!subcategoryResponse.ok) {
+            throw new Error("Failed to save subcategory data.");
+          }
+        }
       }
     }
 

@@ -1,9 +1,10 @@
-import { QuestionTooltip } from './QuestionTooltip';
+import { QuestionTooltip } from "./QuestionTooltip";
 
 interface InputFieldProps {
   label: string;
-  type: 'number' | 'text';
-  value: number | string;
+  type: "number" | "text";
+  value: number | string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange: (value: any) => void;
   tooltip?: string;
   placeholder?: string;
@@ -23,6 +24,20 @@ export function InputField({
   min,
   max,
 }: InputFieldProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+
+    if (type === "number") {
+      if (val === "") {
+        onChange(undefined);
+      } else {
+        onChange(Number(val));
+      }
+    } else {
+      onChange(val);
+    }
+  };
+
   return (
     <div className="mb-6">
       <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -32,8 +47,8 @@ export function InputField({
       </label>
       <input
         type={type}
-        value={value}
-        onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
+        value={value ?? ""}
+        onChange={handleChange}
         placeholder={placeholder}
         required={required}
         min={min}
