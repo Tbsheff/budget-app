@@ -11,8 +11,6 @@ import {
 } from "../../lib/budget";
 import { UserProvider, useUser } from "../../context/userContext";
 
-// Function to get user from database
-
 export const Chat: React.FC = () => {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -38,6 +36,20 @@ export const Chat: React.FC = () => {
       textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
     }
   }, [input]);
+
+  // Focus the textarea when the component mounts
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  // Focus the textarea whenever isStreaming or isLoading changes
+  useEffect(() => {
+    if (!isStreaming && !isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isStreaming, isLoading]);
 
   const handleBudgetRequest = async (income: number) => {
     const budget = generateDefaultBudget(income);
@@ -104,10 +116,6 @@ export const Chat: React.FC = () => {
     addMessage({ role: "user", content: userMessage });
     setLoading(true);
     setIsStreaming(true);
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
 
     addMessage({ role: "assistant", content: "", isStreaming: true });
     let assistantResponse = "";

@@ -1,19 +1,33 @@
 import OpenAI from "openai";
 import { chatbotInstructions } from "./chatbotInstructions";
+import axios from "axios";
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
 });
+const token = localStorage.getItem("token");
 
-const response = await fetch("http://localhost:5000/api/user/profile", {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
+const response = await axios.get("/api/users/profile", {
+  headers: { Authorization: `Bearer ${token}` },
 });
 
-const profile = await response.data;
-console.log(profile);
+const budget = await axios.get("/api/user-categories", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+const data = response.data;
+const initialProfile = {
+  firstName: data.first_name,
+  lastName: data.last_name,
+  email: data.email,
+  phone: data.phone_number,
+  language: data.language,
+  currency: data.currency,
+};
+const profileString = JSON.stringify(initialProfile);
+const budgetString = JSON.stringify(budget.data);
+console.log(budgetString);
 
 export const streamCompletion = async (
   prompt: string,
@@ -26,7 +40,7 @@ export const streamCompletion = async (
       messages: [
         {
           role: "system",
-          content: chatbotInstructions,
+          content: `${chatbotInstructions} ${profileString} ${budgetString}`,
         },
         { role: "user", content: prompt },
       ],
