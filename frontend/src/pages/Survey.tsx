@@ -9,6 +9,7 @@ import { SurveyData, initialSurveyData } from "../types";
 import { useToast } from "../components/ui/use-toast"; // Toast for success/error messages
 import { ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/userContext";
 
 const TOTAL_PAGES = 10;
 
@@ -39,6 +40,7 @@ function Survey() {
   const [formData, setFormData] = useState<SurveyData>(initialSurveyData);
   const { toast } = useToast(); // Toast for success/error messages
   const navigate = useNavigate(); // For redirection after submission
+  const { setUser } = useUser();
 
   // Update field value in form state
   const updateField = (field: keyof SurveyData, value: string | number | string[]) => {
@@ -91,16 +93,19 @@ function Survey() {
     try {
       const token = localStorage.getItem("token");
 
-      await axios.post("/api/surveys", formData, {
+      await axios.post("/api/survey", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // 🔧 Update survey_completed in the user context
+      setUser((prevUser) => (prevUser ? { ...prevUser, survey_completed: true } : null));
 
       toast({
         title: "Success",
         description: "Survey submitted successfully.",
       });
 
-      navigate("/dashboard"); // Redirect to dashboard or another page after submission
+      navigate("/dashboard"); // Redirect to the dashboard after submission
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast({

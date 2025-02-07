@@ -42,6 +42,10 @@ const Users = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    survey_completed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
   },
   {
     tableName: "users",

@@ -1,18 +1,25 @@
 const Survey = require("../models/survey");
 
 // Save a new survey
-exports.saveSurvey = async (req, res) => {
-  try {
-    const surveyData = req.body;
-    surveyData.user_id = req.user.id;  // Assume user ID comes from authentication middleware
+const User = require("../models/users");
 
-    const newSurvey = await Survey.create(surveyData);
-    res.status(201).json({ message: "Survey submitted successfully", survey: newSurvey });
-  } catch (error) {
-    console.error("Error saving survey:", error);
-    res.status(500).json({ message: "Failed to save survey" });
-  }
-};
+exports.saveSurvey = async (req, res) => {
+    try {
+        const surveyData = req.body;
+        surveyData.user_id = req.user.id;
+
+        // Save survey to database
+        await Survey.create(surveyData);
+
+        // Update user's survey_completed flag
+        await User.update({ survey_completed: true }, { where: { user_id: req.user.id } });
+
+        res.status(201).json({ message: "Survey submitted successfully" });
+    } catch (error) {
+        console.error("Error during survey submission:", error);  // Log full error
+        res.status(500).json({ message: "Failed to save survey", error: error.message });
+    }
+    };  
 
 // Get a user's survey by survey_id
 exports.getSurvey = async (req, res) => {
@@ -21,7 +28,7 @@ exports.getSurvey = async (req, res) => {
     const survey = await Survey.findOne({
       where: {
         survey_id,
-        user_id: req.user.id,  // Ensuring the survey belongs to the logged-in user
+        user_id: req.user.id, // Ensuring the survey belongs to the logged-in user
       },
     });
 

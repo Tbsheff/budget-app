@@ -45,7 +45,7 @@ export function InputField({
       </label>
       <input
         type={type}
-        value={value === 0 ? "" : value}  // Avoid displaying 0 by default
+        value={value === 0 ? "" : value} 
         onChange={handleInputChange}
         placeholder={placeholder}
         required={required}
