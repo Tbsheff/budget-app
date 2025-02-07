@@ -34,13 +34,11 @@ const Login: React.FC = () => {
       });
 
       // Redirect based on survey completion
-      // if (response.data.user.survey_completed) {
-      //   console.log("Survey already completed. Redirecting to dashboard.");
-      //   navigate("/dashboard");
-      // } else {
-      //   console.log("Survey not completed. Redirecting to survey.");
-      //   navigate("/survey");
-      // }
+      if (response.data.user.survey_completed) {
+        navigate("/dashboard");
+      } else {
+        navigate("/survey");
+      }
     } catch (error) {
       alert("Login failed. Please check your credentials and try again.");
     }
