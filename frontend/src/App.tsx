@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { UserProvider, useUser } from "./context/userContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SurveyRoute from "./components/SurveyRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
