@@ -37,8 +37,6 @@ const App = () => (
 const AppRoutes = () => {
   const { user } = useUser();
   const location = useLocation();
-
-  // Define the routes where the chat components should be shown
   const chatRoutes = ["/dashboard", "/income/add", "/expenses/add"];
 
   return (
@@ -49,18 +47,19 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+
         {/* Protected Routes */}
-        {/* <Route element={<ProtectedRoute />}> */}
-        <Route path="/income/add" element={<Income />} />
-        <Route path="/income/edit/:id" element={<Income />} />
-        <Route path="/expenses/add" element={<Expense />} />
-        <Route path="/expenses/edit/:id" element={<Expense />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/survey" element={<Survey />} />
-        {/* </Route> */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/survey" element={<Survey />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/income/add" element={<Income />} />
+          <Route path="/income/edit/:id" element={<Income />} />
+          <Route path="/expenses/add" element={<Expense />} />
+          <Route path="/expenses/edit/:id" element={<Expense />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+        </Route>
       </Routes>
 
       {user && chatRoutes.includes(location.pathname) && (

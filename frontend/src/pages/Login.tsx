@@ -27,10 +27,18 @@ const Login: React.FC = () => {
         first_name: response.data.user.first_name,
         last_name: response.data.user.last_name,
         email: response.data.user.email,
+        survey_completed: response.data.user.survey_completed,
+        phone_number: response.data.user.phone_number || null,
+        language: response.data.user.language || "English",
+        currency: response.data.user.currency || "USD",
       });
 
-      // Redirect to the dashboard
-      navigate("/dashboard");
+      // Redirect based on survey completion
+      if (response.data.user.survey_completed) {
+        navigate("/dashboard");
+      } else {
+        navigate("/survey");
+      }
     } catch (error) {
       alert("Login failed. Please check your credentials and try again.");
     }

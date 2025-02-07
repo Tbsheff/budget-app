@@ -31,8 +31,9 @@ exports.registerUser = async (req, res) => {
       email,
       password_hash: hashedPassword,
       phone_number: null,
-      language: "English", 
+      language: "English",
       currency: "USD",
+      survey_completed: false,
     });
 
     // Fetch default categories
@@ -60,6 +61,7 @@ exports.registerUser = async (req, res) => {
         email: newUser.email,
         language: newUser.language,
         currency: newUser.currency,
+        survey_completed: newUser.survey_completed,
       },
     });
   } catch (err) {
@@ -69,7 +71,6 @@ exports.registerUser = async (req, res) => {
     });
   }
 };
-
 
 // Login User
 exports.loginUser = async (req, res) => {
@@ -98,6 +99,7 @@ exports.loginUser = async (req, res) => {
       expiresIn: "1d",
     });
 
+    // Include survey_completed in the response
     return res.status(200).json({
       token,
       user: {
@@ -105,6 +107,7 @@ exports.loginUser = async (req, res) => {
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
+        survey_completed: user.survey_completed, // Map this properly
       },
     });
   } catch (err) {
