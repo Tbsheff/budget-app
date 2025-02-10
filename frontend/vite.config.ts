@@ -3,16 +3,15 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
     proxy: {
       "/api": {
-        target: "http://localhost:5000", // Your backend server
+        target: "http://localhost:5000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, "/api"), // Ensure path stays intact
+        rewrite: (path) => path.replace(/^\/api/, "/api"),
       },
     },
   },
@@ -22,12 +21,8 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  esbuild: {
-    target: "esnext", // Target the latest JS features, including Top-Level Await
+  build: {
+    target: "es2022", // Explicitly target modern JavaScript
   },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: "esnext",      // Ensure ESNext for dependencies
-    }
-  },
+  optimizeDeps: {},
 }));
