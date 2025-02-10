@@ -7,7 +7,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-neutral-100">
       <Navigation />
-      <TranslationWidget />
+
       <Hero />
       <Features />
       <Footer />

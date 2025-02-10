@@ -17,6 +17,7 @@ import TransactionsPage from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Survey from "./pages/Survey";
+import TranslationWidget from "@/components/Translation";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  
 );
 
 const AppRoutes = () => {
@@ -65,6 +67,7 @@ const AppRoutes = () => {
         <>
           <ChatButton />
           <ChatPopup />
+          <TranslationWidget />
         </>
       )}
     </>
