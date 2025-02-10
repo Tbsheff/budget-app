@@ -4,7 +4,7 @@ import { BudgetCategories } from "@/components/BudgetCategories";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { IconPicker } from "@/components/Categories/IconPicker";
+
 
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -123,11 +123,7 @@ const Dashboard = () => {
 
             <div className="md:col-span-2">
               <BudgetCategories currentDate={currentDate} />
-              <IconPicker
-                isOpen={false}
-                onClose={() => setIsMobileMenuOpen(false)}
-                onSelect={(icon) => console.log(icon)}
-              />
+              
             </div>
 
             {/* Hide Summary on Mobile (already shown above) */}

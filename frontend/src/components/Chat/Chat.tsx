@@ -62,7 +62,6 @@ export const Chat: React.FC = () => {
         console.error("Error saving budget:", error);
       }
     }
-    console.log(user);
 
     let response = `Here's your personalized monthly budget plan based on an income of ${formatCurrency(
       income
