@@ -6,34 +6,50 @@ const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
 });
-const token = localStorage.getItem("token");
 
-const response = await axios.get("/api/users/profile", {
-  headers: { Authorization: `Bearer ${token}` },
-});
+const fetchProfileAndBudget = async () => {
+  const token = localStorage.getItem("token");
 
-const budget = await axios.get("/api/user-categories", {
-  headers: { Authorization: `Bearer ${token}` },
-});
+  if (!token) {
+    console.warn("No token found. Skipping profile and budget fetch.");
+    return { profileString: "", budgetString: "" };
+  }
 
-const data = response.data;
-const initialProfile = {
-  firstName: data.first_name,
-  lastName: data.last_name,
-  email: data.email,
-  phone: data.phone_number,
-  language: data.language,
-  currency: data.currency,
+  try {
+    const response = await axios.get("/api/users/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const budget = await axios.get("/api/user-categories", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const initialProfile = {
+      firstName: response.data.first_name,
+      lastName: response.data.last_name,
+      email: response.data.email,
+      phone: response.data.phone_number,
+      language: response.data.language,
+      currency: response.data.currency,
+    };
+
+    const profileString = JSON.stringify(initialProfile);
+    const budgetString = JSON.stringify(budget.data);
+
+    return { profileString, budgetString };
+  } catch (error) {
+    console.error("Error fetching profile or budget:", error);
+    return { profileString: "", budgetString: "" };
+  }
 };
-const profileString = JSON.stringify(initialProfile);
-const budgetString = JSON.stringify(budget.data);
-console.log(budgetString);
 
 export const streamCompletion = async (
   prompt: string,
   onToken: (token: string) => void,
   signal?: AbortSignal
 ) => {
+  const { profileString, budgetString } = await fetchProfileAndBudget();
+
   const stream = await openai.chat.completions.create(
     {
       model: "gpt-3.5-turbo",
