@@ -1,27 +1,48 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db"); // Adjust path as needed
 
-const incomeSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+const Income = sequelize.define(
+  "income",
+  {
+    income_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      primaryKey: true,
+      autoIncrement: true,
     },
-    source: {
-        type: String,
-        required: [true, 'Please specify the income source']
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     amount: {
-        type: Number,
-        required: [true, 'Please specify the amount']
+      type: DataTypes.DECIMAL,
+      allowNull: false,
     },
     frequency: {
-        type: String,
-        enum: ['monthly', 'yearly', 'weekly', 'biweekly', 'quarterly'],
-        default: 'monthly'
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+    pay_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    next_pay_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    tableName: "income_sources",
+    timestamps: false, // Set to true if `createdAt` and `updatedAt` exist
+  }
+);
 
-module.exports = mongoose.model('Income', incomeSchema);
+module.exports = Income;
