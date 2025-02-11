@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { Send, Loader2, Pause, Bot } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Pause,
+  Bot,
+  DollarSign,
+  PiggyBank,
+  TrendingUp,
+} from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 import { streamCompletion } from "../../lib/openai";
 import {
@@ -62,7 +70,6 @@ export const Chat: React.FC = () => {
         console.error("Error saving budget:", error);
       }
     }
-    console.log(user);
 
     let response = `Here's your personalized monthly budget plan based on an income of ${formatCurrency(
       income
@@ -88,6 +95,12 @@ export const Chat: React.FC = () => {
     response += "Would you like to make any adjustments to this budget plan?";
 
     return response;
+  };
+
+  const handleQuickstartPrompt = (prompt: string) => {
+    setInput(prompt);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSubmit(new Event("submit") as any);
   };
 
   const stopStreaming = () => {
@@ -163,51 +176,115 @@ export const Chat: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
-        {messages.map((message, index) => (
-          <div
-            key={message.id}
-            className={`flex items-end gap-2 ${
-              message.role === "user" ? "flex-row-reverse" : "flex-row"
-            }`}
-          >
-            {message.role === "user" ? (
-              <div className="user-avatar hidden sm:block" />
-            ) : (
-              <div className="assistant-avatar hidden sm:flex">
-                <Bot className="w-5 h-5" />
-              </div>
-            )}
-            <div
-              className={`group relative max-w-[85%] sm:max-w-[80%] ${
-                message.role === "user" ? "items-end" : "items-start"
-              }`}
-            >
-              <div
-                className={`rounded-2xl p-3 sm:p-4 ${
-                  message.role === "user"
-                    ? "bg-purple-600 text-white"
-                    : "bg-purple-100 shadow-lg"
-                } ${message.isStreaming && isStreaming ? "animate-pulse" : ""}`}
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full space-y-6 px-4 text-center">
+            <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full">
+              <Bot className="w-8 h-8 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Welcome to Your Financial Assistant
+              </h3>
+              <p className="text-gray-600 mb-6">
+                How can I help you with your financial planning today?
+              </p>
+            </div>
+            <div className="grid gap-3 w-full max-w-sm">
+              <button
+                onClick={() =>
+                  handleQuickstartPrompt(
+                    "Create a budget for $5000 monthly income"
+                  )
+                }
+                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
+                  rounded-lg text-left transition-colors duration-200"
               >
-                <ReactMarkdown className="prose prose-sm sm:prose-base max-w-none dark:prose-invert break-words">
-                  {message.content || " "}
-                </ReactMarkdown>
-                {message.isStreaming &&
-                  isStreaming &&
-                  index === messages.length - 1 && (
-                    <span className="inline-block w-2 h-4 ml-1 bg-gray-400 animate-pulse" />
-                  )}
-              </div>
-              <div
-                className={`message-time mt-1 text-[10px] sm:text-xs ${
-                  message.role === "user" ? "text-right" : "text-left"
-                }`}
+                <span className="flex items-center">
+                  <DollarSign className="w-5 h-5 text-purple-600 mr-2" />
+                  <span className="text-gray-700">Create a monthly budget</span>
+                </span>
+              </button>
+              <button
+                onClick={() =>
+                  handleQuickstartPrompt("What's the 50/30/20 budgeting rule?")
+                }
+                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
+                  rounded-lg text-left transition-colors duration-200"
               >
-                {formatTime()}
-              </div>
+                <span className="flex items-center">
+                  <PiggyBank className="w-5 h-5 text-purple-600 mr-2" />
+                  <span className="text-gray-700">
+                    Learn about 50/30/20 rule
+                  </span>
+                </span>
+              </button>
+              <button
+                onClick={() =>
+                  handleQuickstartPrompt(
+                    "How can I start investing with little money?"
+                  )
+                }
+                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
+                  rounded-lg text-left transition-colors duration-200"
+              >
+                <span className="flex items-center">
+                  <TrendingUp className="w-5 h-5 text-purple-600 mr-2" />
+                  <span className="text-gray-700">
+                    Investment tips for beginners
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
-        ))}
+        ) : (
+          messages.map((message, index) => (
+            <div
+              key={message.id}
+              className={`flex items-end gap-2 ${
+                message.role === "user" ? "flex-row-reverse" : "flex-row"
+              }`}
+            >
+              {message.role === "user" ? (
+                <div className="user-avatar hidden sm:block" />
+              ) : (
+                <div className="assistant-avatar hidden sm:flex">
+                  <Bot className="w-5 h-5" />
+                </div>
+              )}
+              <div
+                className={`group relative max-w-[85%] sm:max-w-[80%] ${
+                  message.role === "user" ? "items-end" : "items-start"
+                }`}
+              >
+                <div
+                  className={`rounded-2xl p-3 sm:p-4 ${
+                    message.role === "user"
+                      ? "bg-purple-600 text-white"
+                      : "bg-purple-100 shadow-lg"
+                  } ${
+                    message.isStreaming && isStreaming ? "animate-pulse" : ""
+                  }`}
+                >
+                  <ReactMarkdown className="prose prose-sm sm:prose-base max-w-none dark:prose-invert break-words">
+                    {message.content || " "}
+                  </ReactMarkdown>
+                  {message.isStreaming &&
+                    isStreaming &&
+                    index === messages.length - 1 && (
+                      <span className="inline-block w-2 h-4 ml-1 bg-gray-400 animate-pulse" />
+                    )}
+                </div>
+                <div
+                  className={`message-time mt-1 text-[10px] sm:text-xs ${
+                    message.role === "user" ? "text-right" : "text-left"
+                  }`}
+                >
+                  {formatTime()}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
 

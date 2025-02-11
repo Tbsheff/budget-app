@@ -11,12 +11,14 @@ import Register from "./pages/Register";
 import Income from "./pages/Income";
 import Expense from "./pages/Expense";
 import Dashboard from "./pages/Dashboard";
+import SpendingPage from "./pages/Spending";
 import { ChatButton } from "./components/Chat/ChatButton";
 import { ChatPopup } from "./components/Chat/ChatPopup";
 import TransactionsPage from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Survey from "./pages/Survey";
+import TranslationWidget from "@/components/Translation";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  
 );
 
 const AppRoutes = () => {
@@ -47,11 +50,11 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/spending" element={<SpendingPage />} />
           <Route path="/income/add" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />
           <Route path="/expenses/add" element={<Expense />} />
@@ -66,6 +69,7 @@ const AppRoutes = () => {
         <>
           <ChatButton />
           <ChatPopup />
+          <TranslationWidget />
         </>
       )}
     </>

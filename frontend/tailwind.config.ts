@@ -26,12 +26,28 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#141413",
-          foreground: "#FAFAF8",
+          DEFAULT: "#E11D48",
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#8989DE",
-          foreground: "#141413",
+          DEFAULT: "#F1F5F9",
+          foreground: "#0F172A",
+        },
+        muted: {
+          DEFAULT: "#F8FAFC",
+          foreground: "#64748B",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         neutral: {
           100: "#FAFAF8",
@@ -60,9 +76,10 @@ export default {
           "sans-serif",
         ],
       },
-      animation: {
-        "fade-up": "fadeUp 0.5s ease-out forwards",
-        "fade-in": "fadeIn 0.5s ease-out forwards",
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         fadeUp: {
@@ -73,11 +90,25 @@ export default {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "fade-up": "fadeUp 0.5s ease-out forwards",
+        "fade-in": "fadeIn 0.5s ease-out forwards",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
       backdropBlur: {
         xs: "2px",
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, tailwindcssAnimate],
 } satisfies Config;
