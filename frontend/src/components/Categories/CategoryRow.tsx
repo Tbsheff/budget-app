@@ -1,10 +1,8 @@
+import { useState } from "react";
 import { RenderAmount } from "./RenderAmount";
 import { IconPicker } from "./IconPicker";
 import BudgetProgress from "./BudgetProgress";
 import * as LucideIcons from "lucide-react";
-import { LucideProps } from "lucide-react";
-import { Icon as LucideIcon } from "lucide-react";
-import { FC } from "react";
 
 interface Category {
   category_id: number;
@@ -20,12 +18,7 @@ interface CategoryRowProps {
   aggregatedEarnings: number;
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
-}
-
-interface IconPickerProps {
-  value: LucideIcons.LucideIcon;
-  onChange: (icon: LucideIcons.LucideIcon) => void;
-  color?: string;
+  onBudgetUpdate: (categoryId: number, newBudget: number) => void;
 }
 
 export function CategoryRow({
@@ -34,39 +27,44 @@ export function CategoryRow({
   aggregatedEarnings,
   currentDate,
   onIconChange,
+  onBudgetUpdate,
 }: CategoryRowProps) {
   const IconComponent =
-    (LucideIcons[
-      category.icon_name as keyof typeof LucideIcons
-    ] as React.ElementType) || LucideIcons.MoreHorizontal;
+    (LucideIcons[category.icon_name as keyof typeof LucideIcons] as React.ElementType) ||
+    LucideIcons.MoreHorizontal;
+
   const spentAmount =
     category.name === "Earnings"
       ? aggregatedEarnings
       : aggregatedTotals[category.category_id] || 0;
+
   const budgetAmount = category.monthly_budget;
-  const isOverBudget = spentAmount > category.monthly_budget;
+  const isOverBudget = spentAmount > budgetAmount;
   const amountTextColor = isOverBudget ? "text-red-500" : "text-green-500";
 
   return (
     <>
       <div className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors">
+        {/* Left Section: Icon and Category Name */}
         <div className="flex items-center flex-1">
           <IconPicker
             value={
-              LucideIcons[
-                category.icon_name as keyof typeof LucideIcons
-              ] as typeof LucideIcon
+              LucideIcons[category.icon_name as keyof typeof LucideIcons] as LucideIcons.LucideIcon ||
+              LucideIcons.MoreHorizontal as LucideIcons.LucideIcon
             }
             onChange={(icon) => onIconChange(category.category_id, icon.name)}
             color={category.icon_color}
           />
-          <span className="font-medium text-sm md:text-base ml-3">
-            {category.name}
-          </span>
+          <span className="font-medium text-sm md:text-base ml-3">{category.name}</span>
         </div>
 
+        {/* Right Section: Budget, Spent Amount */}
         <div className="flex items-center space-x-4 md:space-x-8">
-          <RenderAmount category={category} currentDate={currentDate} />
+          <RenderAmount
+            category={category}
+            currentDate={currentDate}
+            onBudgetUpdate={onBudgetUpdate}
+          />
           <span className={`${amountTextColor} text-sm md:text-base`}>
             ${spentAmount.toFixed(2)}
           </span>

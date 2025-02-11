@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Input } from "../ui/input";
+import axios from "axios";
+import { useToast } from "../ui/use-toast";
+import { format } from "date-fns";
 
 interface Category {
   category_id: number;
@@ -9,26 +12,78 @@ interface Category {
 interface RenderAmountProps {
   category: Category;
   currentDate: Date;
+  onBudgetUpdate: (categoryId: number, newBudget: number) => void;
 }
 
-export function RenderAmount({ category, currentDate }: RenderAmountProps) {
+export function RenderAmount({ category, currentDate, onBudgetUpdate }: RenderAmountProps) {
+  const { toast } = useToast();
   const [editing, setEditing] = useState(false);
-  const budgetAmount = category?.monthly_budget ?? 0; // Ensure a default value
+  const [inputValue, setInputValue] = useState(category.monthly_budget.toFixed(2));
 
-  return editing ? (
-    <Input
-      type="text"
-      value={budgetAmount.toFixed(2)}
-      onBlur={() => setEditing(false)}
-      className="w-20 h-8 text-right"
-      autoFocus
-    />
+  // Determine if editing is allowed based on date
+  const isEditable = () => {
+    const today = new Date();
+    return (
+      currentDate.getFullYear() > today.getFullYear() ||
+      (currentDate.getFullYear() === today.getFullYear() &&
+        currentDate.getMonth() >= today.getMonth())
+    );
+  };
+
+  // Handle budget input changes (fixes backspace issue)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  // Handle blur and save if value changed
+  const handleBlur = async () => {
+    setEditing(false);
+    const newBudget = parseFloat(inputValue);
+
+    if (isNaN(newBudget) || newBudget < 0) {
+      setInputValue(category.monthly_budget.toFixed(2));
+      return;
+    }
+
+    if (category.monthly_budget !== newBudget) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.put(
+          `/api/user-categories/${category.category_id}`,
+          { monthly_budget: newBudget },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        onBudgetUpdate(category.category_id, newBudget);
+        toast({ title: "Success", description: "Budget updated successfully." });
+      } catch (error) {
+        console.error("Error updating budget:", error);
+        toast({ title: "Error", description: "Could not update budget." });
+        setInputValue(category.monthly_budget.toFixed(2)); // Reset on failure
+      }
+    }
+  };
+
+  return isEditable() ? (
+    editing ? (
+      <Input
+        type="text"
+        value={inputValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={(e) => e.key === "Enter" && handleBlur()}
+        className="w-20 h-8 text-right"
+        autoFocus
+      />
+    ) : (
+      <span
+        className="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
+        onClick={() => setEditing(true)}
+      >
+        ${category.monthly_budget.toFixed(2)}
+      </span>
+    )
   ) : (
-    <span
-      className="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
-      onClick={() => setEditing(true)}
-    >
-      ${budgetAmount.toFixed(2)}
-    </span>
+    <span className="cursor-not-allowed text-gray-500">${category.monthly_budget.toFixed(2)}</span>
   );
 }

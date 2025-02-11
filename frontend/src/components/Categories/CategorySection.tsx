@@ -24,6 +24,7 @@ interface CategorySectionProps {
   aggregatedEarnings: number;
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
+  onBudgetUpdate: (categoryId: number, newBudget: number) => void; // ✅ Added missing prop
 }
 
 export function CategorySection({
@@ -32,6 +33,7 @@ export function CategorySection({
   aggregatedEarnings,
   currentDate,
   onIconChange,
+  onBudgetUpdate, // ✅ Receive the function prop
 }: CategorySectionProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -46,6 +48,7 @@ export function CategorySection({
             aggregatedEarnings={aggregatedEarnings}
             currentDate={currentDate}
             onIconChange={onIconChange}
+            onBudgetUpdate={onBudgetUpdate} // ✅ Pass this down to `CategoryRow`
           />
         ))}
       </div>
