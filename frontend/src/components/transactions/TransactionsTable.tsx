@@ -23,6 +23,7 @@ interface EditingValues {
   name: string;
   category: string;
   amount: number;
+  date: Date;
 }
 
 interface TransactionsTableProps {
@@ -62,9 +63,26 @@ export function TransactionsTable({
       <TableBody>
         {transactions.map((transaction) => (
           <TableRow key={transaction.id} className="hover:bg-gray-50">
+            {/* Editable Date Field */}
             <TableCell className="font-medium">
-              {format(transaction.date, "MMM dd, yyyy")}
+              {editingId === transaction.id ? (
+                <Input
+                  type="date"
+                  value={editingValues.date ? format(editingValues.date, "yyyy-MM-dd") : ""}
+                  onChange={(e) =>
+                    onEditingValuesChange({
+                      ...editingValues,
+                      date: e.target.value ? new Date(e.target.value) : new Date(),
+                    })
+                  }
+                  className="w-full"
+                />
+              ) : (
+                format(transaction.date, "MMM dd, yyyy")
+              )}
             </TableCell>
+
+            {/* Editable Name Field */}
             <TableCell>
               {editingId === transaction.id ? (
                 <Input
@@ -81,6 +99,8 @@ export function TransactionsTable({
                 transaction.name
               )}
             </TableCell>
+
+            {/* Editable Category Dropdown */}
             <TableCell>
               {editingId === transaction.id ? (
                 <Select
@@ -107,6 +127,8 @@ export function TransactionsTable({
                 transaction.category
               )}
             </TableCell>
+
+            {/* Editable Amount Field */}
             <TableCell className="text-right">
               {editingId === transaction.id ? (
                 <Input
@@ -124,9 +146,7 @@ export function TransactionsTable({
               ) : (
                 <div
                   className={`flex items-center justify-end gap-1 ${
-                    transaction.type === "expense"
-                      ? "text-[#ea384c]"
-                      : "text-green-500"
+                    transaction.type === "expense" ? "text-[#ea384c]" : "text-green-500"
                   }`}
                 >
                   <DollarSign className="w-4 h-4" />
@@ -134,6 +154,8 @@ export function TransactionsTable({
                 </div>
               )}
             </TableCell>
+
+            {/* Action Buttons */}
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
                 {editingId === transaction.id ? (

@@ -67,95 +67,52 @@ const categories = [
 const SpendingPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(categories);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<"month" | "year">("month");
   const [transactions, setTransactions] = useState(initialTransactions);
+
+  // Editing state
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingValues, setEditingValues] = useState({
+  const [editingValues, setEditingValues] = useState<{
+    name: string;
+    category: string;
+    amount: number;
+    date: Date; // <-- Add date here
+  }>({
     name: "",
     category: "",
     amount: 0,
+    date: new Date(), // <-- Initialize with the current date
   });
+  
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch = transaction.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesCategories =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(transaction.category);
-    const matchesDateRange =
-      !dateRange?.from ||
-      !dateRange?.to ||
-      (transaction.date >= dateRange.from && transaction.date <= dateRange.to);
-
-    return matchesSearch && matchesCategories && matchesDateRange;
-  });
-
-  const startEditing = (transaction: Transaction) => {
+  const handleStartEditing = (transaction: Transaction) => {
     setEditingId(transaction.id);
     setEditingValues({
       name: transaction.name,
       category: transaction.category,
       amount: transaction.amount,
+      date: transaction.date ? new Date(transaction.date) : new Date(), // Ensure date is always a Date object
     });
   };
+  
+  
 
-  const cancelEditing = () => {
+  const handleCancelEditing = () => {
     setEditingId(null);
-    setEditingValues({ name: "", category: "", amount: 0 });
+    setEditingValues({ name: "", category: "", amount: 0, date: new Date() });
   };
 
-  const saveEditing = (id: number) => {
-    setTransactions(
-      transactions.map((t) => (t.id === id ? { ...t, ...editingValues } : t))
-    );
+  const handleSaveEditing = (id: number) => {
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...editingValues } : t)));
     setEditingId(null);
-    toast({
-      title: "Changes saved",
-      description: "Transaction has been updated successfully.",
-    });
+    toast({ title: "Transaction Updated", description: "Changes saved successfully!" });
   };
 
-  const deleteTransaction = (id: number) => {
-    setTransactions(transactions.filter((t) => t.id !== id));
-    toast({
-      title: "Transaction deleted",
-      description: "The transaction has been removed.",
-    });
-  };
-
-  const exportToCSV = () => {
-    const headers = ["Date", "Name", "Category", "Type", "Amount"];
-    const csvRows = transactions.map((t) => [
-      format(t.date, "yyyy-MM-dd"),
-      t.name,
-      t.category,
-      t.type,
-      t.amount.toFixed(2),
-    ]);
-    const csvContent = [
-      headers.join(","),
-      ...csvRows.map((row) => row.join(",")),
-    ].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `transactions-${format(new Date(), "yyyy-MM-dd")}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({
-      title: "Export successful",
-      description: "Your transactions have been exported to CSV.",
-    });
+  const handleDeleteTransaction = (id: number) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    toast({ title: "Transaction Deleted", description: "Transaction has been removed." });
   };
 
   return (
@@ -163,7 +120,6 @@ const SpendingPage = () => {
       <div className="hidden md:block">
         <Sidebar />
       </div>
-
       <main className="flex-1 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
@@ -171,33 +127,42 @@ const SpendingPage = () => {
             <Button
               variant="outline"
               className="flex items-center gap-2"
-              onClick={exportToCSV}
+              onClick={() => alert("Export logic goes here!")}
             >
-              <Download className="w-4 h-4" />
-              Export
+              <Download className="w-4 h-4" /> Export
             </Button>
           </div>
 
+          {/* Transaction Filters */}
           <TransactionFilters
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             selectedCategories={selectedCategories}
             onCategoriesChange={setSelectedCategories}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
             categories={categories}
           />
 
           <div className="bg-white rounded-lg shadow">
             <TransactionsTable
-              transactions={filteredTransactions}
+              transactions={transactions.filter((t) => {
+                return (
+                  t.date.getFullYear() === selectedDate.getFullYear() &&
+                  (viewMode === "month" ? t.date.getMonth() === selectedDate.getMonth() : true) &&
+                  selectedCategories.includes(t.category) &&
+                  t.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+              })}
               categories={categories}
               editingId={editingId}
               editingValues={editingValues}
-              onStartEditing={startEditing}
-              onCancelEditing={cancelEditing}
-              onSaveEditing={saveEditing}
-              onDeleteTransaction={deleteTransaction}
+              onStartEditing={handleStartEditing}
+              onCancelEditing={handleCancelEditing}
+              onSaveEditing={handleSaveEditing}
+              onDeleteTransaction={handleDeleteTransaction}
               onEditingValuesChange={setEditingValues}
             />
           </div>
