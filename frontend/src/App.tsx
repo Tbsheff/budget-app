@@ -37,7 +37,7 @@ const App = () => (
 const AppRoutes = () => {
   const { user } = useUser();
   const location = useLocation();
-  const chatRoutes = ["/dashboard", "/income/add", "/expenses/add"];
+  const chatRoutes = ["/dashboard", "/incomes", "/transactions"];
 
   return (
     <>
@@ -52,9 +52,8 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/income/add" element={<Income />} />
+          <Route path="/incomes" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />
-          <Route path="/expenses/add" element={<Expense />} />
           <Route path="/expenses/edit/:id" element={<Expense />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/profile" element={<Profile />} />

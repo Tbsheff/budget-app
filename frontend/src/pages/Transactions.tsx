@@ -1,9 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { Plus, Upload, Camera, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Upload, Camera, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Sidebar } from "@/components/Sidebar";
 import axios from "axios";
 import { useToast } from "../components/ui/use-toast";
@@ -13,11 +18,11 @@ const TransactionsPage = () => {
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [transactionDate, setTransactionDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const { toast } = useToast();
 
+  // Fetch categories from backend on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -26,7 +31,12 @@ const TransactionsPage = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        setCategories(response.data);
+
+        // Filter out "Earnings" from categories
+        const filteredCategories = response.data.filter(
+          (category) => category.name.toLowerCase() !== "earnings"
+        );
+        setCategories(filteredCategories);
       } catch (error) {
         console.error("Error fetching categories:", error);
         toast({
@@ -37,23 +47,7 @@ const TransactionsPage = () => {
     };
 
     fetchCategories();
-
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
   }, []);
-
-  const handleCategorySelect = (id) => {
-    setCategoryId(String(id));
-    setIsDropdownOpen(false);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +58,7 @@ const TransactionsPage = () => {
         category_id: parseInt(categoryId),
         amount: parseFloat(amount),
         description,
-        transaction_date: new Date().toISOString(),
+        transaction_date: transactionDate,
       };
 
       await axios.post("/api/expenses", transactionData, {
@@ -81,6 +75,7 @@ const TransactionsPage = () => {
       setAmount("");
       setDescription("");
       setCategoryId("");
+      setTransactionDate("");
     } catch (error) {
       console.error("Error adding transaction:", error);
       toast({
@@ -144,34 +139,39 @@ const TransactionsPage = () => {
                   />
                 </div>
 
-                <div className="space-y-2 relative" ref={dropdownRef}>
+                <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen((prev) => !prev)}
-                    className="w-full p-2 border rounded-md text-left bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  <select
+                    id="category"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    required
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
                   >
-                    {categoryId
-                      ? categories.find((cat) => cat.category_id === parseInt(categoryId))?.name ||
-                        "Select a category"
-                      : "Select a category"}
-                  </button>
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {categories.map((category) => (
+                      <option key={category.category_id} value={category.category_id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {isDropdownOpen && (
-                    <ul className="absolute z-10 w-full border bg-white rounded-md shadow-lg max-h-48 overflow-auto mt-2">
-                      {categories.map((category) => (
-                        <li
-                          key={category.category_id}
-                          className={`p-2 hover:bg-indigo-500 hover:text-white cursor-pointer ${
-                            parseInt(categoryId) === category.category_id ? "bg-indigo-100" : ""
-                          }`}
-                          onClick={() => handleCategorySelect(category.category_id)}
-                        >
-                          {category.name}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                <div className="space-y-2">
+                  <Label htmlFor="transactionDate">Transaction Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="transactionDate"
+                      type="date"
+                      className="pl-10"
+                      value={transactionDate}
+                      onChange={(e) => setTransactionDate(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
