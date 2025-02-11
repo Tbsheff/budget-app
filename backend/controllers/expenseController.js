@@ -1,4 +1,5 @@
 const Transactions = require("../models/transactions");
+const UserCategories = require("../models/user_categories");
 const sequelize = require("../config/db").sequelize;
 const { Op } = require("sequelize");
 
@@ -34,16 +35,44 @@ exports.getAggregatedExpenses = async (req, res) => {
   }
 };
 
-// Fetch all expenses
 exports.getExpenses = async (req, res) => {
   try {
-    const expenses = await Transactions.findAll({ where: { user_id: req.user.id } });
-    res.status(200).json(expenses);
+    const userId = req.user.id;
+
+    // Fetch all transactions for the user
+    const expenses = await Transactions.findAll({
+      where: { user_id: userId },
+      attributes: ["transaction_id", "description", "amount", "transaction_date", "category_id"],
+    });
+
+    // Fetch all user categories
+    const categories = await UserCategories.findAll({
+      where: { user_id: userId },
+      attributes: ["category_id", "name"],
+    });
+
+    // Create a category lookup object
+    const categoryMap = {};
+    categories.forEach((category) => {
+      categoryMap[category.category_id] = category.name;
+    });
+
+    // Attach category names to expenses
+    const formattedExpenses = expenses.map((expense) => ({
+      transaction_id: expense.transaction_id,
+      description: expense.description,
+      amount: Number(expense.amount), // Ensure it's a number
+      transaction_date: expense.transaction_date,
+      category_name: categoryMap[expense.category_id], // Default if missing
+    }));
+
+    res.status(200).json(formattedExpenses);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching expenses:", error);
     res.status(500).json({ message: "Failed to fetch expenses." });
   }
 };
+
 
 // Fetch a specific expense by ID
 exports.getExpenseById = async (req, res) => {

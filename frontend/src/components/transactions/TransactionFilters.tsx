@@ -36,6 +36,28 @@ export function TransactionFilters({
 }: TransactionFiltersProps) {
   const [tempYear, setTempYear] = useState(selectedDate.getFullYear());
 
+  const handleCategorySelect = (category: string) => {
+    if (category === "all") {
+      onCategoriesChange(categories); // Select all categories
+    } else if (category === "clear") {
+      onCategoriesChange([]); // Clear all selections
+    } else {
+      // Toggle selected category
+      const updatedCategories = selectedCategories.includes(category)
+        ? selectedCategories.filter((c) => c !== category)
+        : [...selectedCategories, category];
+
+      onCategoriesChange(updatedCategories);
+    }
+  };
+
+  const getCategoryLabel = () => {
+    if (selectedCategories.length === categories.length) return "All Categories";
+    if (selectedCategories.length === 0) return "No Categories";
+    if (selectedCategories.length === 1) return selectedCategories[0];
+    return `${selectedCategories.length} Categories`;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-4 items-center">
@@ -142,20 +164,10 @@ export function TransactionFilters({
         </Popover>
 
         {/* Category Filter */}
-        <Select
-          value={selectedCategories.length === categories.length ? "all" : "default"}
-          onValueChange={(value) => {
-            if (value === "all") onCategoriesChange(categories);
-            else if (value === "clear") onCategoriesChange([]);
-          }}
-        >
+        <Select value="default" onValueChange={handleCategorySelect}>
           <SelectTrigger className="w-[200px] border border-gray-300 bg-white text-black">
             <ShoppingBag className="w-4 h-4 mr-2" />
-            <SelectValue>
-              {selectedCategories.length === categories.length
-                ? "All Categories"
-                : selectedCategories.join(", ")}
-            </SelectValue>
+            <SelectValue>{getCategoryLabel()}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
