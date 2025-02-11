@@ -5,7 +5,6 @@ import { BudgetSummary } from "@/components/BudgetSummary";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date()); // Added state to manage the current date
@@ -37,12 +36,9 @@ const Dashboard = () => {
               <Sidebar />
             </SheetContent>
           </Sheet>
-          <h1 className="text-lg font-semibold">{`${currentDate.toLocaleString(
-            "default",
-            {
-              month: "long",
-            }
-          )} ${currentDate.getFullYear()} Budget`}</h1>
+          <h1 className="text-lg font-semibold">{`${currentDate.toLocaleString("default", {
+            month: "long",
+          })} ${currentDate.getFullYear()} Budget`}</h1>
           <HelpCircle className="w-6 h-6 text-gray-500" />
         </div>
       </div>
@@ -51,12 +47,9 @@ const Dashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Desktop Header */}
           <div className="hidden md:flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">{`${currentDate.toLocaleString(
-              "default",
-              {
-                month: "long",
-              }
-            )} ${currentDate.getFullYear()} Budget`}</h1>
+            <h1 className="text-2xl font-bold">{`${currentDate.toLocaleString("default", {
+              month: "long",
+            })} ${currentDate.getFullYear()} Budget`}</h1>
 
             <div className="flex items-center space-x-4">
               <button
@@ -64,24 +57,20 @@ const Dashboard = () => {
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
-                {`${new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth() - 1
-                ).toLocaleString("default", {
-                  month: "short",
-                })}. ${currentDate.getFullYear()}`}
+                {new Intl.DateTimeFormat("default", {
+                  month: "long", // Use "long" for full month names or "short" if you want abbreviations.
+                  year: "numeric", // Display the full year
+                }).format(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
               </button>
 
               <button
                 onClick={() => handleDateChange("next")}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
               >
-                {`${new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth() + 1
-                ).toLocaleString("default", {
-                  month: "short",
-                })}. ${currentDate.getFullYear()}`}
+                {new Intl.DateTimeFormat("default", {
+                  month: "long", // Full month names
+                  year: "numeric", // Include year
+                }).format(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </button>
 
@@ -98,19 +87,19 @@ const Dashboard = () => {
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              {`${new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth() - 1
-              ).toLocaleString("default", { month: "short" })}`}
+              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toLocaleString(
+                "default",
+                { month: "short" }
+              )}`}
             </button>
             <button
               onClick={() => handleDateChange("next")}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
             >
-              {`${new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth() + 1
-              ).toLocaleString("default", { month: "short" })}`}
+              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1).toLocaleString(
+                "default",
+                { month: "short" }
+              )}`}
               <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
@@ -123,7 +112,6 @@ const Dashboard = () => {
 
             <div className="md:col-span-2">
               <BudgetCategories currentDate={currentDate} />
-              
             </div>
 
             {/* Hide Summary on Mobile (already shown above) */}
