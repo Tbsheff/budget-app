@@ -19,6 +19,13 @@ const Budget_groups = sequelize.define(
         tableName: "budget_groups",
         timestamps: false,
     }
-
 );
+
+Budget_groups.associate = function (models) {
+    Budget_groups.hasMany(models.User_categories, {
+        foreignKey: "budget_group_id",
+        as: "categories",
+    });
+};
+
 module.exports = Budget_groups;

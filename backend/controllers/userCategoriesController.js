@@ -1,11 +1,19 @@
 const UserCategories = require("../models/user_categories");
+const BudgetGroup = require("../models/budget_groups");
 
-// Fetch all categories for a specific user
+// Fetch all categories for a specific user and include budget group information
 exports.getUserCategories = async (req, res) => {
   try {
     const userId = req.user.id; // Assumes `authMiddleware` sets `req.user`
     const categories = await UserCategories.findAll({
       where: { user_id: userId },
+      include: [
+        {
+          model: BudgetGroup,
+          as: 'budget_group',
+          attributes: ['id', 'group_name'],
+        },
+      ],
     });
     res.status(200).json(categories);
   } catch (error) {
