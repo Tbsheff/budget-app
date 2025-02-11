@@ -52,7 +52,7 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/incomes" element={<Income />} />
+          <Route path="/income" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />
           <Route path="/expenses/edit/:id" element={<Expense />} />
           <Route path="/transactions" element={<TransactionsPage />} />

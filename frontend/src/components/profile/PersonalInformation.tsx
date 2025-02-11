@@ -8,7 +8,6 @@ interface PersonalInformationProps {
     lastName: string;
     email: string;
     phone: string;
-    language: string;
   };
   isEditing: boolean;
   onInputChange: (field: string, value: string) => void;
@@ -22,7 +21,6 @@ export const PersonalInformation = ({
   const [localPhone, setLocalPhone] = useState(profileData.phone);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
-  // Keep phone number in sync with parent state
   useEffect(() => {
     setLocalPhone(profileData.phone);
   }, [profileData.phone]);
@@ -39,8 +37,7 @@ export const PersonalInformation = ({
 
   const handlePhoneChange = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
-    setLocalPhone(value); // Update local phone state before validation
-
+    setLocalPhone(value);
     if (cleaned.length > 11 || (cleaned.length > 10 && !cleaned.startsWith("1"))) {
       setPhoneError("Phone number must be exactly 10 digits or start with +1.");
     } else {
@@ -53,13 +50,13 @@ export const PersonalInformation = ({
     if (cleaned.length === 10 || (cleaned.length === 11 && cleaned.startsWith("1"))) {
       const formatted = formatPhoneNumber(localPhone);
       setLocalPhone(formatted);
-      onInputChange("phone", formatted); // Update the parent state only on blur
+      onInputChange("phone", formatted);
     }
   };
 
   const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      (e.target as HTMLInputElement).blur(); // Blur the current input field
+      (e.target as HTMLInputElement).blur();
     }
   };
 
@@ -119,18 +116,6 @@ export const PersonalInformation = ({
             onKeyDown={handleEnterKey}
           />
           {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
-        </div>
-
-        <div className="grid gap-3">
-          <Label htmlFor="language">Preferred Language</Label>
-          <Input
-            id="language"
-            value={profileData.language}
-            readOnly={!isEditing}
-            className={!isEditing ? "bg-gray-50" : ""}
-            onChange={(e) => onInputChange("language", e.target.value)}
-            onKeyDown={handleEnterKey}
-          />
         </div>
       </div>
     </div>

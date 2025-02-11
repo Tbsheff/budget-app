@@ -130,8 +130,9 @@ const EditProfile = () => {
             />
             <Preferences
               currency={profileData.currency}
+              language={profileData.language}
               isEditing={true}
-              onInputChange={(value) => handleInputChange("currency", value)}
+              onInputChange={handleInputChange}
             />
           </div>
         </div>
