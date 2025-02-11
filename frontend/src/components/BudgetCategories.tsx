@@ -3,7 +3,6 @@ import axios from "axios";
 import { useToast } from "./ui/use-toast";
 import { CategorySection } from "./Categories/CategorySection";
 
-// Define the Category type
 interface Category {
   category_id: number;
   user_id: number;
@@ -13,6 +12,16 @@ interface Category {
   created_at?: string;
   icon_name: string;
   icon_color: string;
+  budget_group: {
+    id: number;
+    group_name: string;
+  };
+}
+
+interface BudgetGroup {
+  id: number;
+  group_name: string;
+  categories: Category[];
 }
 
 interface BudgetCategoriesProps {
@@ -21,100 +30,97 @@ interface BudgetCategoriesProps {
 
 export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const { toast } = useToast();
-  const [categoriesWithSubcategories, setCategoriesWithSubcategories] =
-    useState<Record<number, { category: Category; subcategories: Category[] }>>(
-      {}
-    );
-
-  const [loading, setLoading] = useState(true);
+  const [budgetGroups, setBudgetGroups] = useState<BudgetGroup[]>([]);
   const [aggregatedTotals, setAggregatedTotals] = useState<
     Record<number, number>
   >({});
   const [aggregatedEarnings, setAggregatedEarnings] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch both categories and subcategories
   useEffect(() => {
-    const fetchCategoriesAndSubcategories = async () => {
+    const fetchBudgetGroups = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Fetch Categories
-        const categoryResponse = await axios.get<Category[]>(
+        // Fetch User Categories
+        const userCategoriesResponse = await axios.get<Category[]>(
           "/api/user-categories",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        // Fetch Subcategories
-        const subcategoryResponse = await axios.get<Category[]>(
-          "/api/subcategories",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        if (
+          userCategoriesResponse.headers["content-type"]?.includes(
+            "application/json"
+          )
+        ) {
+          console.log("User Categories:", userCategoriesResponse.data);
 
-        // Organize subcategories under their parent category
-        const categoryMap: Record<
-          number,
-          { category: Category; subcategories: Category[] }
-        > = {};
-        categoryResponse.data.forEach((category) => {
-          categoryMap[category.category_id] = { category, subcategories: [] };
-        });
+          // Group categories by budget group
+          const groupedCategories = userCategoriesResponse.data.reduce(
+            (acc, category) => {
+              const groupId = category.budget_group.id;
+              if (!acc[groupId]) {
+                acc[groupId] = {
+                  id: groupId,
+                  group_name: category.budget_group.group_name,
+                  categories: [],
+                };
+              }
+              acc[groupId].categories.push(category);
+              return acc;
+            },
+            {} as Record<number, BudgetGroup>
+          );
 
-        subcategoryResponse.data.forEach((sub) => {
-          if (categoryMap[sub.category_id]) {
-            categoryMap[sub.category_id].subcategories.push(sub);
-          }
-        });
-
-        setCategoriesWithSubcategories(categoryMap);
+          setBudgetGroups(Object.values(groupedCategories));
+        } else {
+          throw new Error("Invalid response format");
+        }
       } catch (error) {
-        console.error("Error fetching categories and subcategories:", error);
+        console.error("Error fetching user categories:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch user categories.",
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategoriesAndSubcategories();
+    fetchBudgetGroups();
   }, []);
-
-  const handleIconChange = (categoryId: number, newIconName: string) => {
-    setCategoriesWithSubcategories((prev) => {
-      const updatedCategories = { ...prev };
-
-      if (updatedCategories[categoryId]) {
-        updatedCategories[categoryId] = {
-          ...updatedCategories[categoryId],
-          category: {
-            ...updatedCategories[categoryId].category,
-            icon_name: newIconName, // ✅ Update the icon
-          },
-        };
-      }
-
-      return updatedCategories;
-    });
-  };
 
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-6">
-      {Object.values(categoriesWithSubcategories).map(
-        ({ category, subcategories }) => (
-          <CategorySection
-            key={category.category_id}
-            category={category}
-            subcategories={subcategories}
-            aggregatedTotals={aggregatedTotals}
-            aggregatedEarnings={aggregatedEarnings}
-            currentDate={currentDate}
-            onIconChange={handleIconChange} // Pass the function as a prop
-          />
-        )
-      )}
+      {budgetGroups.map((budgetGroup) => (
+        <CategorySection
+          key={budgetGroup.id}
+          budgetGroup={budgetGroup}
+          aggregatedTotals={aggregatedTotals}
+          aggregatedEarnings={aggregatedEarnings}
+          currentDate={currentDate}
+          onIconChange={(categoryId, newIconName) => {
+            setBudgetGroups((prevGroups) =>
+              prevGroups.map((group) =>
+                group.id === budgetGroup.id
+                  ? {
+                      ...group,
+                      categories: group.categories.map((category) =>
+                        category.category_id === categoryId
+                          ? { ...category, icon_name: newIconName }
+                          : category
+                      ),
+                    }
+                  : group
+              )
+            );
+          }}
+        />
+      ))}
     </div>
   );
 }

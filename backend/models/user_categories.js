@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db"); // Adjust path as needed
+const { sequelize } = require("../config/db");
+const BudgetGroup = require("./budget_groups"); // Adjust path as needed
 
 const User_categories = sequelize.define(
   "user_categories",
@@ -54,5 +55,10 @@ const User_categories = sequelize.define(
     timestamps: false,
   }
 );
+
+User_categories.belongsTo(BudgetGroup, {
+  foreignKey: "budget_group_id",
+  as: "budget_group",
+});
 
 module.exports = User_categories;

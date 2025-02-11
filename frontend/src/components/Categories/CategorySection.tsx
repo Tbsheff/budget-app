@@ -12,50 +12,42 @@ interface Category {
   icon_color: string;
 }
 
+interface BudgetGroup {
+  id: number;
+  group_name: string;
+  categories: Category[];
+}
+
 interface CategorySectionProps {
-  category: Category;
-  subcategories: Category[];
+  budgetGroup: BudgetGroup;
   aggregatedTotals: Record<number, number>;
   aggregatedEarnings: number;
   currentDate: Date;
-  onIconChange: (categoryId: number, newIconName: string) => void; // ✅ Add this
+  onIconChange: (categoryId: number, newIconName: string) => void;
 }
 
 export function CategorySection({
-  category,
-  subcategories,
+  budgetGroup,
   aggregatedTotals,
   aggregatedEarnings,
   currentDate,
-  onIconChange, // ✅ Add this
+  onIconChange,
 }: CategorySectionProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-4 md:p-6">
-        <h3 className="text-lg font-semibold mb-4">{category.name}</h3>
+        <h3 className="text-lg font-semibold mb-4">{budgetGroup.group_name}</h3>
 
-        {/* Render Parent Category */}
-        <CategoryRow
-          category={category}
-          aggregatedTotals={aggregatedTotals}
-          aggregatedEarnings={aggregatedEarnings}
-          currentDate={currentDate}
-          onIconChange={onIconChange} // ✅ Pass it correctly
-        />
-
-        {/* {subcategories.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {subcategories.map((sub) => (
-              <CategoryRow
-                category={sub}
-                aggregatedTotals={aggregatedTotals}
-                aggregatedEarnings={aggregatedEarnings}
-                currentDate={currentDate}
-                onIconChange={onIconChange} // ✅ Pass it correctly
-              />
-            ))}
-          </div>
-        )} */}
+        {budgetGroup.categories.map((category) => (
+          <CategoryRow
+            key={category.category_id}
+            category={category}
+            aggregatedTotals={aggregatedTotals}
+            aggregatedEarnings={aggregatedEarnings}
+            currentDate={currentDate}
+            onIconChange={onIconChange}
+          />
+        ))}
       </div>
     </div>
   );
