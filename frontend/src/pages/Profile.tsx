@@ -60,6 +60,7 @@ const Profile = () => {
             />
             <Preferences
               currency={profileData.currency}
+              language={profileData.language}
               isEditing={false}
               onInputChange={() => {}}
             />

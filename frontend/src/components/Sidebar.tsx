@@ -13,12 +13,10 @@ import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: RefreshCcw, label: "Recurring", path: "/recurring" },
   { icon: CreditCard, label: "Spending", path: "/spending" },
   { icon: PiggyBank, label: "Budgets", path: "/dashboard", active: true },
-  { icon: Wallet, label: "Net Worth", path: "/net-worth" },
+  { icon: Wallet, label: "Income", path: "/income" },
   { icon: Search, label: "Transactions", path: "/transactions" },
-  { icon: BadgePercent, label: "Credit Score", path: "/credit-score" },
 ];
 
 export function Sidebar() {

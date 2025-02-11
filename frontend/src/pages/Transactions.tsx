@@ -1,41 +1,94 @@
-import { useState } from "react";
-import { Plus, Upload, Camera, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Upload, Camera, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Sidebar } from "@/components/Sidebar";
+import axios from "axios";
+import { useToast } from "../components/ui/use-toast";
 
 const TransactionsPage = () => {
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [transactionDate, setTransactionDate] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  // Placeholder categories - these would typically come from your database
-  const categories = [
-    "Housing",
-    "Transportation",
-    "Food",
-    "Utilities",
-    "Entertainment",
-  ];
+  // Fetch categories from backend on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("/api/user-categories", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
-  const handleSubmit = (e: React.FormEvent) => {
+        // Filter out "Earnings" from categories
+        const filteredCategories = response.data.filter(
+          (category) => category.name.toLowerCase() !== "earnings"
+        );
+        setCategories(filteredCategories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories. Please try again.",
+        });
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // This would typically save to your database
-    console.log({ amount, description, category });
+    setIsSubmitting(true);
+
+    try {
+      const transactionData = {
+        category_id: parseInt(categoryId),
+        amount: parseFloat(amount),
+        description,
+        transaction_date: transactionDate,
+      };
+
+      await axios.post("/api/expenses", transactionData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast({
+        title: "Transaction Added",
+        description: "Your transaction has been successfully added.",
+      });
+
+      setAmount("");
+      setDescription("");
+      setCategoryId("");
+      setTransactionDate("");
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add the transaction. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
       </div>
@@ -70,6 +123,7 @@ const TransactionsPage = () => {
                       className="pl-10"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -81,60 +135,90 @@ const TransactionsPage = () => {
                     placeholder="Enter transaction description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select
+                    id="category"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    required
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  >
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {categories.map((category) => (
+                      <option key={category.category_id} value={category.category_id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Add Transaction
+                <div className="space-y-2">
+                  <Label htmlFor="transactionDate">Transaction Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="transactionDate"
+                      type="date"
+                      className="pl-10"
+                      value={transactionDate}
+                      onChange={(e) => setTransactionDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Adding..." : "Add Transaction"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="receipt" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4">
+                <div className="relative border-2 border-dashed rounded-lg p-8 text-center space-y-4">
                   <div className="flex justify-center">
                     <Upload className="h-12 w-12 text-gray-400" />
                   </div>
                   <div>
-                    <Button variant="outline" className="mx-auto">
+                    <Button
+                      variant="outline"
+                      className="mx-auto cursor-not-allowed opacity-50"
+                      disabled
+                    >
                       Upload Receipt
                       <Upload className="ml-2 h-4 w-4" />
                     </Button>
+                    <p className="text-sm text-indigo-600 mt-2">Coming Soon</p>
                   </div>
                   <p className="text-sm text-gray-500">
-                    Drag and drop or click to upload
+                    Drag and drop or click to upload (feature under development)
                   </p>
                 </div>
 
-                <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4">
+                <div className="relative border-2 border-dashed rounded-lg p-8 text-center space-y-4">
                   <div className="flex justify-center">
                     <Camera className="h-12 w-12 text-gray-400" />
                   </div>
                   <div>
-                    <Button variant="outline" className="mx-auto">
+                    <Button
+                      variant="outline"
+                      className="mx-auto cursor-not-allowed opacity-50"
+                      disabled
+                    >
                       Take Photo
                       <Camera className="ml-2 h-4 w-4" />
                     </Button>
+                    <p className="text-sm text-indigo-600 mt-2">Coming Soon</p>
                   </div>
                   <p className="text-sm text-gray-500">
-                    Use your camera to capture receipt
+                    Use your camera to capture receipt (feature under development)
                   </p>
                 </div>
               </div>
