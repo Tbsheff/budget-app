@@ -41,9 +41,7 @@ interface BudgetCategoriesProps {
 export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const { toast } = useToast();
   const [budgetGroups, setBudgetGroups] = useState<BudgetGroup[]>([]);
-  const [aggregatedTotals, setAggregatedTotals] = useState<
-    Record<number, number>
-  >({});
+  const [aggregatedTotals, setAggregatedTotals] = useState<Record<number, number>>({});
   const [aggregatedEarnings, setAggregatedEarnings] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
@@ -55,36 +53,26 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
         const token = localStorage.getItem("token");
 
         // Fetch User Categories
-        const userCategoriesResponse = await axios.get<Category[]>(
-          "/api/user-categories",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const userCategoriesResponse = await axios.get<Category[]>("/api/user-categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        if (
-          userCategoriesResponse.headers["content-type"]?.includes(
-            "application/json"
-          )
-        ) {
+        if (userCategoriesResponse.headers["content-type"]?.includes("application/json")) {
           console.log("User Categories:", userCategoriesResponse.data);
 
           // Group categories by budget group
-          const groupedCategories = userCategoriesResponse.data.reduce(
-            (acc, category) => {
-              const groupId = category.budget_group.id;
-              if (!acc[groupId]) {
-                acc[groupId] = {
-                  id: groupId,
-                  group_name: category.budget_group.group_name,
-                  categories: [],
-                };
-              }
-              acc[groupId].categories.push(category);
-              return acc;
-            },
-            {} as Record<number, BudgetGroup>
-          );
+          const groupedCategories = userCategoriesResponse.data.reduce((acc, category) => {
+            const groupId = category.budget_group.id;
+            if (!acc[groupId]) {
+              acc[groupId] = {
+                id: groupId,
+                group_name: category.budget_group.group_name,
+                categories: [],
+              };
+            }
+            acc[groupId].categories.push(category);
+            return acc;
+          }, {} as Record<number, BudgetGroup>);
 
           setBudgetGroups(Object.values(groupedCategories));
         } else {
@@ -109,18 +97,10 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
       try {
         const token = localStorage.getItem("token");
 
-        const startDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        )
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
           .toISOString()
           .split("T")[0]; // Format YYYY-MM-DD
-        const endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        )
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
           .toISOString()
           .split("T")[0];
 
@@ -131,10 +111,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
         });
 
         const expenseTotals = expensesResponse.data.reduce(
-          (
-            acc: Record<number, number>,
-            item: { category_id: number; total_amount: string }
-          ) => {
+          (acc: Record<number, number>, item: { category_id: number; total_amount: string }) => {
             acc[item.category_id] = parseFloat(item.total_amount) || 0;
             return acc;
           },
@@ -165,18 +142,25 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     fetchAggregatedTotalsAndEarnings();
   }, [currentDate]);
 
-  const addNewBudgetGroup = () => {
-    if (newGroupName.trim()) {
-      setBudgetGroups((prev) => [
-        ...prev,
-        { id: Date.now(), group_name: newGroupName.trim(), categories: [] },
-      ]);
-      setNewGroupName("");
-      setIsGroupDialogOpen(false);
-      toast({
-        title: "Budget Group Added",
-        description: "A new budget group has been created.",
-      });
+  const addNewBudgetGroup = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "/api/budget-groups/create",
+        { group_name: newGroupName.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setBudgetGroups((prev) => [...prev, { ...response.data, categories: [] }]); // Add new group to UI
+      setNewGroupName(""); // Clear input field
+      setIsGroupDialogOpen(false); // Close dialog
+
+      toast({ title: "Success", description: "New budget group created!" });
+    } catch (error) {
+      console.error("Error creating budget group:", error);
+      toast({ title: "Error", description: "Could not create budget group." });
     }
   };
 
@@ -184,11 +168,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   return (
     <div className="space-y-6">
-      <Button
-        onClick={() => setIsGroupDialogOpen(true)}
-        variant="outline"
-        className="mb-4 w-full"
-      >
+      <Button onClick={() => setIsGroupDialogOpen(true)} variant="outline" className="mb-4 w-full">
         <Plus className="w-4 h-4 mr-2" />
         Add New Budget Group
       </Button>
@@ -206,10 +186,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
             />
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsGroupDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={addNewBudgetGroup}>OK</Button>
@@ -252,6 +229,15 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
                           : category
                       ),
                     }
+                  : group
+              )
+            );
+          }}
+          onCategoryAdded={(budgetGroupId, newCategory) => {
+            setBudgetGroups((prevGroups) =>
+              prevGroups.map((group) =>
+                group.id === budgetGroupId
+                  ? { ...group, categories: [...group.categories, newCategory] }
                   : group
               )
             );

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const { getDistinctBudgetGroups } = require("../controllers/budgetGroupController");
+const { createBudgetGroup } = require("../controllers/budgetGroupController");
 
-router.get("/user", auth, getDistinctBudgetGroups);
+router.post("/create", auth, createBudgetGroup);
 
 module.exports = router;
