@@ -36,6 +36,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/subcategories", require("./routes/subcategoriesRoutes"));
 app.use("/api/survey", require("./routes/surveyRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
+app.use("/api/budget-groups", require("./routes/groupRoutes"));
 
 // Detect whether running in Docker or locally
 const isDocker = process.env.RUNNING_IN_DOCKER === "true";

@@ -115,3 +115,31 @@ exports.deleteUserCategory = async (req, res) => {
     res.status(500).json({ message: "Error deleting user category." });
   }
 };
+
+// Create a new user category within an existing budget group
+exports.createUserCategory = async (req, res) => {
+  try {
+      const { name, budget_group_id } = req.body;
+      const user_id = req.user.id; // Get user ID from authentication
+
+      if (!name || !budget_group_id) {
+          return res.status(400).json({ message: "Category name and budget group ID are required." });
+      }
+
+      // Insert new category for the user
+      const newCategory = await userCategories.create({
+          user_id,
+          name,
+          monthly_budget: 0, // Default starting budget
+          icon_name: "Circle", // Default icon
+          icon_color: "text-gray-500", // Default color
+          budget_group_id,
+      });
+
+      res.status(201).json(newCategory);
+  } catch (error) {
+      console.error("Error creating user category:", error);
+      res.status(500).json({ message: "Failed to create user category." });
+  }
+};
+

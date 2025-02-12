@@ -11,6 +11,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
+import { useToast } from "../ui/use-toast";
 
 interface Category {
   category_id: number;
@@ -21,6 +23,7 @@ interface Category {
   created_at?: string;
   icon_name: string;
   icon_color: string;
+  budget_group: { id: number; group_name: string }; // ✅ Ensure this exists
 }
 
 interface BudgetGroup {
@@ -36,6 +39,7 @@ interface CategorySectionProps {
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
   onBudgetUpdate: (categoryId: number, newBudget: number) => void;
+  onCategoryAdded: (budgetGroupId: number, newCategory: Category) => void; // ✅ New prop
 }
 
 export function CategorySection({
@@ -45,26 +49,42 @@ export function CategorySection({
   currentDate,
   onIconChange,
   onBudgetUpdate,
+  onCategoryAdded, // ✅ Receive function from `BudgetCategories.tsx`
 }: CategorySectionProps) {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const { toast } = useToast();
 
-  const addNewCategory = () => {
-    if (newCategoryName.trim()) {
-      const newCategory: Category = {
-        category_id: Date.now(),
-        user_id: budgetGroup.id, // Assuming user_id is the same as budgetGroup.id
-        name: newCategoryName.trim(),
-        monthly_budget: 0,
-        icon_name: "MoreHorizontal",
-        icon_color: "text-gray-500",
-        created_at: new Date().toISOString(),
-      };
-      budgetGroup.categories.push(newCategory);
+  const addNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "/api/user-categories",
+        {
+          name: newCategoryName.trim(),
+          budget_group_id: budgetGroup.id,
+          monthly_budget: 0,
+          icon_name: "MoreHorizontal",
+          icon_color: "text-gray-500",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const newCategory: Category = response.data;
+
+      // ✅ Call `onCategoryAdded` to update state in `BudgetCategories.tsx`
+      onCategoryAdded(budgetGroup.id, newCategory);
+
+      toast({ title: "Category Added", description: `"${newCategory.name}" has been created.` });
       setNewCategoryName("");
       setIsCategoryDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast({ title: "Error", description: "Failed to add category." });
     }
-  };
+  };  
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
