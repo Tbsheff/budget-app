@@ -7,6 +7,7 @@ const {
   addUserCategory,
   updateUserCategory,
   deleteUserCategory,
+  createUserCategory
 } = require("../controllers/userCategoriesController");
 
 // Get all user categories (GET /api/user-categories)
@@ -23,5 +24,8 @@ router.put("/:id", auth, updateUserCategory);
 
 // Delete a category by ID (DELETE /api/user-categories/:id)
 router.delete("/:id", auth, deleteUserCategory);
+
+// Create a new category (POST /api/user-categories/create)
+router.post("/create", auth, createUserCategory);
 
 module.exports = router;
