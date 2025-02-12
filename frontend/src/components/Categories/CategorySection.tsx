@@ -1,5 +1,16 @@
+import { useState } from "react";
 import { CategoryRow } from "./CategoryRow";
 import BudgetProgress from "./BudgetProgress";
+import { Plus } from "lucide-react";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface Category {
   category_id: number;
@@ -24,7 +35,7 @@ interface CategorySectionProps {
   aggregatedEarnings: number;
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
-  onBudgetUpdate: (categoryId: number, newBudget: number) => void; // ✅ Added missing prop
+  onBudgetUpdate: (categoryId: number, newBudget: number) => void;
 }
 
 export function CategorySection({
@@ -33,12 +44,69 @@ export function CategorySection({
   aggregatedEarnings,
   currentDate,
   onIconChange,
-  onBudgetUpdate, // ✅ Receive the function prop
+  onBudgetUpdate,
 }: CategorySectionProps) {
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const addNewCategory = () => {
+    if (newCategoryName.trim()) {
+      const newCategory: Category = {
+        category_id: Date.now(),
+        user_id: budgetGroup.id, // Assuming user_id is the same as budgetGroup.id
+        name: newCategoryName.trim(),
+        monthly_budget: 0,
+        icon_name: "MoreHorizontal",
+        icon_color: "text-gray-500",
+        created_at: new Date().toISOString(),
+      };
+      budgetGroup.categories.push(newCategory);
+      setNewCategoryName("");
+      setIsCategoryDialogOpen(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-4 md:p-6">
-        <h3 className="text-lg font-semibold mb-4">{budgetGroup.group_name}</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">{budgetGroup.group_name}</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCategoryDialogOpen(true)}
+            className="h-8"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <Dialog
+          open={isCategoryDialogOpen}
+          onOpenChange={setIsCategoryDialogOpen}
+        >
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>New Category</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Input
+                placeholder="Enter category name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsCategoryDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={addNewCategory}>OK</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {budgetGroup.categories.map((category) => (
           <CategoryRow
@@ -48,7 +116,7 @@ export function CategorySection({
             aggregatedEarnings={aggregatedEarnings}
             currentDate={currentDate}
             onIconChange={onIconChange}
-            onBudgetUpdate={onBudgetUpdate} // ✅ Pass this down to `CategoryRow`
+            onBudgetUpdate={onBudgetUpdate}
           />
         ))}
       </div>
