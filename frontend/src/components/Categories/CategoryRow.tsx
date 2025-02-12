@@ -30,8 +30,9 @@ export function CategoryRow({
   onBudgetUpdate,
 }: CategoryRowProps) {
   const IconComponent =
-    (LucideIcons[category.icon_name as keyof typeof LucideIcons] as React.ElementType) ||
-    LucideIcons.MoreHorizontal;
+    (LucideIcons[
+      category.icon_name as keyof typeof LucideIcons
+    ] as React.ElementType) || LucideIcons.MoreHorizontal;
 
   const spentAmount =
     category.name === "Earnings"
@@ -48,14 +49,21 @@ export function CategoryRow({
         {/* Left Section: Icon and Category Name */}
         <div className="flex items-center flex-1">
           <IconPicker
+            categoryId={category.category_id}
             value={
-              LucideIcons[category.icon_name as keyof typeof LucideIcons] as LucideIcons.LucideIcon ||
-              LucideIcons.MoreHorizontal as LucideIcons.LucideIcon
+              (LucideIcons[
+                category.icon_name as keyof typeof LucideIcons
+              ] as LucideIcons.LucideIcon) ||
+              (LucideIcons.MoreHorizontal as LucideIcons.LucideIcon)
             }
-            onChange={(icon) => onIconChange(category.category_id, icon.name)}
+            onChange={(icon) =>
+              onIconChange(category.category_id, icon.displayName)
+            }
             color={category.icon_color}
           />
-          <span className="font-medium text-sm md:text-base ml-3">{category.name}</span>
+          <span className="font-medium text-sm md:text-base ml-3">
+            {category.name}
+          </span>
         </div>
 
         {/* Right Section: Budget, Spent Amount */}
