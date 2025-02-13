@@ -10,6 +10,7 @@ import { useToast } from "../components/ui/use-toast"; // Toast for success/erro
 import { ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/userContext";
+import OpenAI from "openai"; // Import OpenAI
 
 const TOTAL_PAGES = 10;
 
@@ -38,12 +39,18 @@ const FINANCIAL_PRIORITIES = [
 function Survey() {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState<SurveyData>(initialSurveyData);
+  const [budget, setBudget] = useState(null); // State for budget
+  const [isLoading, setIsLoading] = useState(false); // State for loading
+  const [error, setError] = useState(""); // State for error
   const { toast } = useToast(); // Toast for success/error messages
   const navigate = useNavigate(); // For redirection after submission
   const { setUser } = useUser();
 
   // Update field value in form state
-  const updateField = (field: keyof SurveyData, value: string | number | string[]) => {
+  const updateField = (
+    field: keyof SurveyData,
+    value: string | number | string[]
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: typeof value === "string" && value.trim() === "" ? 0 : value,
@@ -98,7 +105,9 @@ function Survey() {
       });
 
       // 🔧 Update survey_completed in the user context
-      setUser((prevUser) => (prevUser ? { ...prevUser, survey_completed: true } : null));
+      setUser((prevUser) =>
+        prevUser ? { ...prevUser, survey_completed: true } : null
+      );
 
       toast({
         title: "Success",
@@ -106,12 +115,86 @@ function Survey() {
       });
 
       navigate("/dashboard"); // Redirect to the dashboard after submission
+
+      // Call generateBudget after successful survey submission
+      await generateBudget();
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast({
         title: "Error",
         description: "Failed to submit the survey. Please try again.",
       });
+    }
+  };
+
+  // Generate budget using OpenAI
+  const generateBudget = async () => {
+    try {
+      setIsLoading(true);
+      setError("");
+
+      const openai = new OpenAI({
+        apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const prompt = `Based on the following financial survey data, create a detailed monthly budget and provide financial recommendations:
+      
+      Monthly Income: $${formData.monthlyIncome}
+      Additional Income: $${formData.additionalIncome || 0}
+      Current Expenses:
+      - Housing: $${formData.housingPayment}
+      - Utilities: $${formData.utilities}
+      - Internet/Phone: $${formData.internetAndPhone}
+      - Transportation: $${formData.transportationCosts}
+      - Health Insurance: $${formData.healthInsurance}
+      - Groceries: $${formData.groceries}
+      Current Savings: $${formData.monthlySavings}
+      Desired Monthly Savings: $${formData.desiredMonthlySavings}
+      Financial Priorities: ${formData.financialPriorities.join(", ")}
+      
+      Please provide:
+      1. A detailed monthly budget breakdown with specific amounts for each category
+      2. Three specific recommendations for achieving their financial goals
+      
+      Format the response as JSON with the following structure:
+      {
+        "budgetGroups": [
+          {
+            "group_name": "string",
+            "categories": [
+              {
+                "name": "string",
+                "monthly_budget": number,
+                "icon_name": "string",
+                "icon_color": "string"
+              }
+            ]
+          }
+        ],
+        "recommendations": ["string"]
+      }`;
+
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "gpt-3.5-turbo",
+        response_format: { type: "json_object" },
+      });
+
+      const response = JSON.parse(completion.choices[0].message.content);
+
+      // Save the budget to the database
+      const token = localStorage.getItem("token");
+      await axios.post("/api/budget/save", response, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setBudget(response);
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to generate budget:", err);
+      setError("Failed to generate budget. Please try again.");
+      setIsLoading(false);
     }
   };
 
@@ -125,7 +208,9 @@ function Survey() {
               label="What is your age?"
               type="number"
               value={formData.age === 0 ? "" : formData.age} // Avoid showing 0
-              onChange={(value) => updateField("age", value === "" ? 0 : Number(value))}
+              onChange={(value) =>
+                updateField("age", value === "" ? 0 : Number(value))
+              }
               min={18}
               max={100}
               tooltip="Must be at least 18 years old"
@@ -133,9 +218,16 @@ function Survey() {
             <InputField
               label="What is your target retirement age?"
               type="number"
-              value={formData.targetRetirementAge === 0 ? "" : formData.targetRetirementAge}
+              value={
+                formData.targetRetirementAge === 0
+                  ? ""
+                  : formData.targetRetirementAge
+              }
               onChange={(value) =>
-                updateField("targetRetirementAge", value === "" ? 0 : Number(value))
+                updateField(
+                  "targetRetirementAge",
+                  value === "" ? 0 : Number(value)
+                )
               }
               min={formData.age}
               max={100}
@@ -157,16 +249,23 @@ function Survey() {
               label="What is your monthly take-home income after taxes?"
               type="number"
               value={formData.monthlyIncome === 0 ? "" : formData.monthlyIncome}
-              onChange={(value) => updateField("monthlyIncome", value === "" ? 0 : Number(value))}
+              onChange={(value) =>
+                updateField("monthlyIncome", value === "" ? 0 : Number(value))
+              }
               min={0}
               tooltip="Your net income after all tax deductions"
             />
             <InputField
               label="Do you have any additional sources of income? If yes, how much monthly?"
               type="number"
-              value={formData.additionalIncome === 0 ? "" : formData.additionalIncome}
+              value={
+                formData.additionalIncome === 0 ? "" : formData.additionalIncome
+              }
               onChange={(value) =>
-                updateField("additionalIncome", value === "" ? 0 : Number(value))
+                updateField(
+                  "additionalIncome",
+                  value === "" ? 0 : Number(value)
+                )
               }
               min={0}
               required={false}
@@ -180,7 +279,9 @@ function Survey() {
             label="What is your monthly housing payment (rent/mortgage)?"
             type="number"
             value={formData.housingPayment === 0 ? "" : formData.housingPayment}
-            onChange={(value) => updateField("housingPayment", value === "" ? 0 : Number(value))}
+            onChange={(value) =>
+              updateField("housingPayment", value === "" ? 0 : Number(value))
+            }
             min={0}
             tooltip="Include rent or mortgage payment only"
           />
@@ -313,18 +414,23 @@ function Survey() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-8">
           <ClipboardList className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Planning Survey</h1>
-          <p className="text-gray-600">Help us understand your financial situation better</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Financial Planning Survey
+          </h1>
+          <p className="text-gray-600">
+            Help us understand your financial situation better
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-8">
           <ProgressBar currentPage={currentPage} totalPages={TOTAL_PAGES} />
 
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (currentPage === TOTAL_PAGES) {
-                handleSubmitSurvey();
+                await handleSubmitSurvey();
+                await generateBudget();
               } else {
                 setCurrentPage((prev) => prev + 1);
               }
@@ -336,9 +442,10 @@ function Survey() {
               currentPage={currentPage}
               totalPages={TOTAL_PAGES}
               onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              onNext={() => {
+              onNext={async () => {
                 if (currentPage === TOTAL_PAGES) {
-                  handleSubmitSurvey();
+                  await handleSubmitSurvey();
+                  await generateBudget();
                 } else {
                   setCurrentPage((prev) => prev + 1);
                 }
@@ -346,6 +453,17 @@ function Survey() {
               isValid={isPageValid()}
             />
           </form>
+
+          {isLoading && <p>Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {budget && (
+            <div>
+              <h2 className="text-xl font-bold mt-6">Generated Budget</h2>
+              <pre className="bg-gray-100 p-4 rounded">
+                {JSON.stringify(budget, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     </div>

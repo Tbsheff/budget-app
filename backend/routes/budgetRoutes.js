@@ -3,6 +3,10 @@ import BudgetHistory from "../models/budget_history.js"; // Only used in backend
 
 const router = express.Router();
 
+const { saveBudget } = require("../controllers/budgetController");
+
+router.post("/save", auth, saveBudget);
+
 // API endpoint to save budget data
 router.post("/budget-history", async (req, res) => {
   try {
