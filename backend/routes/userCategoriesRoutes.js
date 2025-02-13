@@ -17,7 +17,7 @@ router.get("/", auth, getUserCategories);
 router.get("/:id", auth, getUserCategoryById);
 
 // Add a new category (POST /api/user-categories)
-router.post("/", auth, addUserCategory);
+router.post("/add", auth, addUserCategory);
 
 // Update a category by ID (PUT /api/user-categories/:id)
 router.put("/:id", auth, updateUserCategory);
