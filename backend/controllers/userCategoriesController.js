@@ -121,35 +121,25 @@ exports.deleteUserCategory = async (req, res) => {
 // Create a new user category within an existing budget group
 exports.createUserCategory = async (req, res) => {
   try {
-    const { name, budget_group_id, monthly_budget, icon_name, icon_color } = req.body;
-    const userId = req.user.id; // ✅ Get user ID from auth middleware
+      const { name, budget_group_id, monthly_budget, icon_name, icon_color } = req.body;
+      const userId = req.user.id;
 
-    if (!name || !budget_group_id) {
-      return res.status(400).json({ message: "Category name and budget group are required." });
-    }
+      if (!name || !budget_group_id) {
+          return res.status(400).json({ message: "Category name and budget group ID are required." });
+      }
 
-    // ✅ Ensure that the budget_group_id exists for this user
-    const userBudgetGroup = await UserBudgetGroups.findOne({
-      where: { user_id: userId, budget_group_id },
-    });
+      const newCategory = await UserCategories.create({
+          user_id: userId,
+          name,
+          budget_group_id, // ✅ Ensure this is being saved
+          monthly_budget: monthly_budget || 0,
+          icon_name: icon_name || "MoreHorizontal",
+          icon_color: icon_color || "text-gray-500",
+      });
 
-    if (!userBudgetGroup) {
-      return res.status(400).json({ message: "Invalid budget group for this user." });
-    }
-
-    // ✅ Create the new category with the correct budget_group_id
-    const newCategory = await UserCategories.create({
-      user_id: userId,
-      name,
-      budget_group_id,
-      monthly_budget: monthly_budget || 0,
-      icon_name: icon_name || "MoreHorizontal",
-      icon_color: icon_color || "text-gray-500",
-    });
-
-    res.status(201).json(newCategory);
+      res.status(201).json(newCategory); // ✅ Return budget_group_id in response
   } catch (error) {
-    console.error("Error creating user category:", error);
-    res.status(500).json({ message: "Failed to create category." });
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category." });
   }
 };

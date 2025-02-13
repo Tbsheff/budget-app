@@ -57,26 +57,25 @@ export function CategorySection({
 
   const addNewCategory = async () => {
     if (!newCategoryName.trim()) return;
-  
+
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "/api/user-categories",
         {
           name: newCategoryName.trim(),
-          budget_group_id: budgetGroup.id,
+          budget_group_id: budgetGroup.id, // ✅ Ensure this is passed
           monthly_budget: 0,
           icon_name: "MoreHorizontal",
           icon_color: "text-gray-500",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       const newCategory: Category = response.data;
-  
-      // ✅ Add new category to the UI
-      onCategoryAdded(budgetGroup.id, newCategory);
-  
+
+      onCategoryAdded(budgetGroup.id, newCategory); // ✅ Ensure it's added to the correct group
+
       toast({ title: "Category Added", description: `"${newCategory.name}" has been created.` });
       setNewCategoryName("");
       setIsCategoryDialogOpen(false);
@@ -85,7 +84,6 @@ export function CategorySection({
       toast({ title: "Error", description: "Failed to add category." });
     }
   };
-  
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -102,10 +100,7 @@ export function CategorySection({
           </Button>
         </div>
 
-        <Dialog
-          open={isCategoryDialogOpen}
-          onOpenChange={setIsCategoryDialogOpen}
-        >
+        <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>New Category</DialogTitle>
@@ -118,10 +113,7 @@ export function CategorySection({
               />
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCategoryDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={addNewCategory}>OK</Button>
