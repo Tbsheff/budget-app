@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
-const BudgetGroup = require("./budget_groups"); // Adjust path as needed
+const User_budget_groups = require("./user_budget_groups"); // Reference updated
 
 const User_categories = sequelize.define(
   "user_categories",
@@ -56,9 +56,9 @@ const User_categories = sequelize.define(
   }
 );
 
-User_categories.belongsTo(BudgetGroup, {
-  foreignKey: "budget_group_id",
-  as: "budget_group",
+User_categories.belongsTo(User_budget_groups, {
+    foreignKey: "budget_group_id",
+    as: "budget_group",
 });
 
 module.exports = User_categories;

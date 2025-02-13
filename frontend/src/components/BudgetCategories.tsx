@@ -48,48 +48,59 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const [newGroupName, setNewGroupName] = useState("");
 
   useEffect(() => {
-    const fetchBudgetGroups = async () => {
+    const fetchBudgetGroupsAndCategories = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Fetch User Categories
-        const userCategoriesResponse = await axios.get<Category[]>("/api/user-categories", {
+        // ✅ Fetch user-specific budget groups
+        const budgetGroupsResponse = await axios.get("/api/budget-groups", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (userCategoriesResponse.headers["content-type"]?.includes("application/json")) {
-          console.log("User Categories:", userCategoriesResponse.data);
+        const userBudgetGroups = budgetGroupsResponse.data;
 
-          // Group categories by budget group
-          const groupedCategories = userCategoriesResponse.data.reduce((acc, category) => {
-            const groupId = category.budget_group.id;
-            if (!acc[groupId]) {
-              acc[groupId] = {
-                id: groupId,
-                group_name: category.budget_group.group_name,
-                categories: [],
-              };
-            }
-            acc[groupId].categories.push(category);
-            return acc;
-          }, {} as Record<number, BudgetGroup>);
+        // ✅ Fetch user categories separately
+        const userCategoriesResponse = await axios.get("/api/user-categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-          setBudgetGroups(Object.values(groupedCategories));
-        } else {
-          throw new Error("Invalid response format");
-        }
+        const userCategories = userCategoriesResponse.data;
+
+        // ✅ Ensure all budget groups exist, even if empty
+        const groupedCategories: Record<number, BudgetGroup> = {};
+        userBudgetGroups.forEach((group) => {
+          groupedCategories[group.budget_group_id] = {
+            id: group.budget_group_id,
+            group_name: group.group_name,
+            categories: [],
+          };
+        });
+
+        // ✅ Assign categories to the correct budget groups
+        userCategories.forEach((category) => {
+          const groupId = category.budget_group?.budget_group_id; 
+          if (!groupId) return; 
+
+          if (groupedCategories[groupId]) {
+            groupedCategories[groupId].categories.push(category); 
+          } else {
+            console.warn("Category has an invalid budget group:", category); 
+          }
+        });
+
+        setBudgetGroups(Object.values(groupedCategories)); // ✅ Set state properly
       } catch (error) {
-        console.error("Error fetching user categories:", error);
+        console.error("Error fetching budget groups and categories:", error);
         toast({
           title: "Error",
-          description: "Could not fetch user categories.",
+          description: "Could not fetch budget groups and categories.",
         });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBudgetGroups();
+    fetchBudgetGroupsAndCategories();
   }, []);
 
   useEffect(() => {
