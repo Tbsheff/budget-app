@@ -61,16 +61,17 @@ export function CategorySection({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "/api/user-categories",
+        "/api/user-categories/create", // ✅ Use this endpoint instead
         {
           name: newCategoryName.trim(),
-          budget_group_id: budgetGroup.id, // ✅ Ensure this is passed
+          budget_group_id: budgetGroup.id,
           monthly_budget: 0,
           icon_name: "MoreHorizontal",
           icon_color: "text-gray-500",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
 
       const newCategory: Category = response.data;
 
