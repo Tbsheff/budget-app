@@ -98,3 +98,13 @@
     @apply px-6 py-3 bg-accent-purple text-white rounded-lg hover:bg-accent-purple/90 transition-all duration-200 font-medium tracking-wide shadow-sm hover:shadow-md backdrop-blur-sm border border-white/10;
   }
 }
+
+iframe.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  height: 0 !important;
+  width: 0 !important;
+  pointer-events: none !important;
+}
