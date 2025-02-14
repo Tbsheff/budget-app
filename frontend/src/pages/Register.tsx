@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/landing/Navigation";
 import axios from "axios";
+import { useToast } from "../components/ui/use-toast";
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +14,13 @@ const Register: React.FC = () => {
   const [passwordError, setPasswordError] = useState("");
 
   const navigate = useNavigate();
+  const { toast, dismiss } = useToast();
+
+  useEffect(() => {
+    return () => {
+      dismiss(); // Dismiss all active toasts when component unmounts
+    };
+  }, []);
 
   const validatePassword = (password: string) => {
     const lengthCheck = password.length >= 12;
@@ -22,7 +30,7 @@ const Register: React.FC = () => {
     const specialCharCheck = (password.match(/[!@#$%^&*]/g) || []).length >= 2;
 
     if (!lengthCheck || !uppercaseCheck || !lowercaseCheck || !numberCheck || !specialCharCheck) {
-      return "Password must contain at least 8 characters, including uppercase, lowercase, a number, and a special character.";
+      return "Password must contain at least 12 characters, including uppercase, lowercase, a number, and two special characters.";
     }
     return "";
   };
@@ -39,11 +47,21 @@ const Register: React.FC = () => {
 
     if (passwordError) {
       setError("Please fix password requirements before submitting.");
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description: "Please ensure your password meets the security requirements.",
+      });
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "The passwords entered do not match. Please try again.",
+      });
       return;
     }
 
@@ -54,10 +72,22 @@ const Register: React.FC = () => {
         email,
         password,
       });
-      alert("Registration successful! Please login.");
-      navigate("/login");
+
+      toast({
+        variant: "default",
+        title: "Registration Successful",
+        description: "Your account has been created. Redirecting to login...",
+      });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
-      alert(err.response?.data?.message || "Error registering user");
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: err.response?.data?.message || "Error registering user",
+      });
     }
   };
 
@@ -123,9 +153,7 @@ const Register: React.FC = () => {
                 onChange={handlePasswordChange}
                 className="w-full px-3 py-2 mt-1 border rounded shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
               />
-              {passwordError && (
-                <p className="mt-1 text-sm text-red-500">{passwordError}</p>
-              )}
+              {passwordError && <p className="mt-1 text-sm text-red-500">{passwordError}</p>}
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
@@ -142,8 +170,9 @@ const Register: React.FC = () => {
               />
             </div>
             <p className="mt-1 text-xs italic text-gray-500">
-                *Passwords must contain at least 12 characters, including uppercase, lowercase, a number, and two special characters
-              </p>
+              *Passwords must contain at least 12 characters, including uppercase, lowercase, a
+              number, and two special characters
+            </p>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div>
               <button

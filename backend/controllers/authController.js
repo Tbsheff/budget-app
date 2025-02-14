@@ -3,8 +3,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/users");
 const Default_categories = require("../models/default_categories");
 const User_categories = require("../models/user_categories");
+const Budget_groups = require("../models/budget_groups"); // Correct reference
+const User_budget_groups = require("../models/user_budget_groups");
 
-// Register User
 exports.registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, password } = req.body;
@@ -24,7 +25,7 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user with default values for phone_number, language, and currency
+    // Create user
     const newUser = await User.create({
       first_name,
       last_name,
@@ -36,21 +37,44 @@ exports.registerUser = async (req, res) => {
       survey_completed: false,
     });
 
-    // Fetch default categories
-    const defaultCategories = await Default_categories.findAll();
+    // Fetch default budget groups
+    // const defaultBudgetGroups = await Budget_groups.findAll();
 
-    // Map default categories to user categories
-    const userCategories = defaultCategories.map((category) => ({
-      user_id: newUser.user_id, // Associate with the newly created user
-      default_category_id: category.category_id,
-      name: category.name,
-      monthly_budget: category.default_budget || 0, // Possible future ML integration
-      icon_name: category.icon_name,
-      icon_color: category.icon_color,
-    }));
+    // // Create user-specific budget groups
+    // const userBudgetGroups = await Promise.all(
+    //   defaultBudgetGroups.map(async (group) => {
+    //     return await User_budget_groups.create({
+    //       user_id: newUser.user_id,
+    //       default_category_id: group.id, // Correct mapping
+    //       group_name: group.group_name,
+    //     });
+    //   })
+    // );
 
-    // Bulk insert user categories
-    await User_categories.bulkCreate(userCategories);
+    // // Create a map to relate default budget groups to the new user-specific ones
+    // const budgetGroupMap = {};
+    // userBudgetGroups.forEach((userGroup) => {
+    //   budgetGroupMap[userGroup.default_category_id] = userGroup.budget_group_id;
+    // });
+    
+
+    // // Fetch default categories
+    // const defaultCategories = await Default_categories.findAll();
+
+    // // Map default categories to user categories, ensuring correct budget group reference
+    // const userCategories = defaultCategories.map((category) => ({
+    //   user_id: newUser.user_id,
+    //   default_category_id: category.default_category_id,
+    //   name: category.name,
+    //   monthly_budget: category.default_budget || 0,
+    //   icon_name: category.icon_name,
+    //   icon_color: category.icon_color,
+    //   budget_group_id: budgetGroupMap[category.budget_group_id] || null,
+    // }));
+    
+
+    // // Bulk insert user categories
+    // await User_categories.bulkCreate(userCategories);
 
     return res.status(201).json({
       message: "User created successfully",

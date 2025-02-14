@@ -23,7 +23,7 @@ interface Category {
   created_at?: string;
   icon_name: string;
   icon_color: string;
-  budget_group: { id: number; group_name: string }; // ✅ Ensure this exists
+  budget_group: { id: number; group_name: string };
 }
 
 interface BudgetGroup {
@@ -49,7 +49,7 @@ export function CategorySection({
   currentDate,
   onIconChange,
   onBudgetUpdate,
-  onCategoryAdded, // ✅ Receive function from `BudgetCategories.tsx`
+  onCategoryAdded,
 }: CategorySectionProps) {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -61,7 +61,7 @@ export function CategorySection({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "/api/user-categories",
+        "/api/user-categories/create", // ✅ Use this endpoint instead
         {
           name: newCategoryName.trim(),
           budget_group_id: budgetGroup.id,
@@ -71,11 +71,11 @@ export function CategorySection({
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
 
       const newCategory: Category = response.data;
 
-      // ✅ Call `onCategoryAdded` to update state in `BudgetCategories.tsx`
-      onCategoryAdded(budgetGroup.id, newCategory);
+      onCategoryAdded(budgetGroup.id, newCategory); // ✅ Ensure it's added to the correct group
 
       toast({ title: "Category Added", description: `"${newCategory.name}" has been created.` });
       setNewCategoryName("");
@@ -84,7 +84,7 @@ export function CategorySection({
       console.error("Error adding category:", error);
       toast({ title: "Error", description: "Failed to add category." });
     }
-  };  
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -101,10 +101,7 @@ export function CategorySection({
           </Button>
         </div>
 
-        <Dialog
-          open={isCategoryDialogOpen}
-          onOpenChange={setIsCategoryDialogOpen}
-        >
+        <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>New Category</DialogTitle>
@@ -117,10 +114,7 @@ export function CategorySection({
               />
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCategoryDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={addNewCategory}>OK</Button>
