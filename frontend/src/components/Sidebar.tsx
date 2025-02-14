@@ -1,13 +1,13 @@
-import { Link, useLocation } from "react-router-dom"; // ✅ Import useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ Import useNavigate
 import {
   LayoutDashboard,
   CreditCard,
   PiggyBank,
   Wallet,
   Search,
+  LogOut, // ✅ Import Logout Icon
 } from "lucide-react";
 import { useUser } from "../context/userContext";
-import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -18,12 +18,19 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { user } = useUser();
+  const { user, setUser } = useUser(); // ✅ Ensure `setUser` is accessible
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleProfileClick = () => {
     navigate("/profile");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ✅ Remove auth token
+    setUser(null); // ✅ Reset user state
+    navigate("/login"); // ✅ Redirect to login page
+    setTimeout(() => window.location.reload(), 100); // ✅ Ensure full logout
   };
 
   // Determine greeting text
@@ -62,9 +69,9 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="space-y-1">
+      <nav className="space-y-1 flex-1">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path; 
+          const isActive = location.pathname === item.path;
 
           return (
             <Link
@@ -80,13 +87,16 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Quote Section */}
-      <div className="mt-auto pt-8 border-t border-gray-200">
-        <blockquote className="text-sm text-gray-500 italic">
-          "The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty."
-        </blockquote>
-        <p className="mt-2 text-sm text-gray-400">Winston Churchill</p>
-      </div>
+      {/* 🔥 Logout Button (At the Bottom) */}
+      <button
+        onClick={handleLogout}
+        className="w-full mt-auto flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-300 bg-gray-300 text-gray-800 hover:bg-gray-400"
+
+
+      >
+        <LogOut className="w-5 h-5 mr-3" />
+        Log Out
+      </button>
     </div>
   );
 }
