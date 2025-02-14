@@ -5,7 +5,7 @@ const Hero = () => {
   const features = [
     "Smart AI-powered budget tracking",
     "Student-specific expense categories",
-    "Financial aid & scholarship planning"
+    "Financial aid & scholarship planning",
   ];
 
   return (
@@ -13,19 +13,20 @@ const Hero = () => {
       {/* Desktop Layout */}
       <div className="hidden md:block max-w-7xl mx-auto relative z-10 pt-32 pb-16">
         <div className="grid grid-cols-2 gap-12 items-center">
-          <motion.div 
+          <motion.div
             className="text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <motion.h1 
+            <motion.h1
               className="text-6xl font-bold leading-[1.1] mb-12 tracking-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              Smart budgeting,<br />
+              Smart budgeting,
+              <br />
               made for students.
             </motion.h1>
 
@@ -55,15 +56,15 @@ const Hero = () => {
             </motion.div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="relative"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <img 
+            <img
               src="/placeholder.svg"
-              alt="Student budget planning illustration" 
+              alt="Student budget planning illustration"
               className="w-full h-auto"
             />
           </motion.div>
@@ -72,19 +73,20 @@ const Hero = () => {
 
       {/* Mobile Layout */}
       <div className="md:hidden pt-24 pb-12">
-        <motion.div 
+        <motion.div
           className="text-center px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <motion.h1 
+          <motion.h1
             className="text-4xl font-bold leading-tight mb-8 tracking-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Smart budgeting,<br />
+            Smart budgeting,
+            <br />
             made for students.
           </motion.h1>
 
@@ -94,9 +96,9 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <img 
+            <img
               src="/placeholder.svg"
-              alt="Student budget planning illustration" 
+              alt="Student budget planning illustration"
               className="w-full h-auto max-w-[280px] mx-auto mb-8"
             />
           </motion.div>

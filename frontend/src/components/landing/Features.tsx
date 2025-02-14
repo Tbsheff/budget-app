@@ -5,18 +5,30 @@ const Features = () => {
   const features = [
     {
       title: "Smart Student Budget Tracking",
-      description: "AI-powered expense tracking designed specifically for student life and academic expenses.",
-      points: ["Textbook & Course Material Tracking", "Meal Plan Optimization", "Student Housing Expenses"],
+      description:
+        "AI-powered expense tracking designed specifically for student life and academic expenses.",
+      points: [
+        "Get personalized budgeting recommendations from a smart chatbot that understands your spending habits",
+        "Stay on top of your budget with a mobile-friendly app for on-the-go tracking",
+        "Easily upload receipts to save time and keep accurate records",
+      ],
       icon: <Wallet className="w-6 h-6 text-accent-purple" />,
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80"
+      image:
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80",
     },
     {
       title: "Academic Financial Planning",
-      description: "Plan your academic finances with smart insights and recommendations tailored for students.",
-      points: ["Scholarship Deadline Reminders", "Financial Aid Planning", "Course Budget Calculator"],
+      description:
+        "Plan your academic finances with smart insights and recommendations tailored for students.",
+      points: [
+        "View past budgets to track your progress over time",
+        "Visualize spending trends with easy-to-read graphs",
+        "Get personalized recommendations for your savings goals",
+      ],
       icon: <BookOpen className="w-6 h-6 text-accent-blue" />,
-      image: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&q=80"
-    }
+      image:
+        "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&q=80",
+    },
   ];
 
   return (
@@ -28,12 +40,18 @@ const Features = () => {
           </span>
           <h2 className="heading-lg mt-6">Smart Budgeting for Students</h2>
           <p className="text-neutral-600 mt-4 max-w-2xl mx-auto">
-            AI-powered tools to help you manage your academic expenses and achieve your educational goals.
+            AI-powered tools to help you manage your academic expenses and
+            achieve your educational goals.
           </p>
         </div>
 
         {features.map((feature, index) => (
-          <div key={feature.title} className={`flex flex-col md:flex-row gap-12 items-center mb-24 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
+          <div
+            key={feature.title}
+            className={`flex flex-col md:flex-row gap-12 items-center mb-24 ${
+              index % 2 === 1 ? "md:flex-row-reverse" : ""
+            }`}
+          >
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
                 {feature.icon}
@@ -50,14 +68,14 @@ const Features = () => {
                   </li>
                 ))}
               </ul>
-              <div className="mt-8">
+              {/* <div className="mt-8">
                 <button className="button-primary">Start Free Trial</button>
-              </div>
+              </div> */}
             </div>
             <div className="flex-1">
               <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
-                <img 
-                  src={feature.image} 
+                <img
+                  src={feature.image}
                   alt={feature.title}
                   className="w-full h-full object-cover rounded-lg aspect-video"
                 />
