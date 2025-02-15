@@ -51,7 +51,7 @@ const Survey: React.FC = () => {
 
       const budgetData = await generateBudget(formData, setIsLoading, setError);
       console.log(budgetData);
-      navigate("/dashboard");
+      navigate("/budget");
       setBudget(budgetData);
     } catch (error) {
       console.error("Error submitting survey:", error);

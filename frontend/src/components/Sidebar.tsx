@@ -13,7 +13,7 @@ import { useUser } from "../context/userContext";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: CreditCard, label: "Spending", path: "/spending" },
-  { icon: PiggyBank, label: "Budgets", path: "/budgets" },
+  { icon: PiggyBank, label: "Budgets", path: "/budget" },
   { icon: Target, label: "Savings Plan", path: "/savings" },
   { icon: Wallet, label: "Income", path: "/income" },
   { icon: Search, label: "Transactions", path: "/transactions" },
