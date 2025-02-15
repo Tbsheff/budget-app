@@ -39,6 +39,7 @@ app.use("/api/settings", require("./routes/settingsRoutes"));
 app.use("/api/budget-groups", require("./routes/groupRoutes"));
 app.use("/api/budget", require("./routes/budgetRoutes"));
 app.use("/api/receipts", require("./routes/receiptRoutes"));
+app.use("/api/savings-goals", require("./routes/savingsGoalsRoutes"));
 app.use("/api/category", require("./routes/categoryAnalyticsRoutes"));
 
 // Detect whether running in Docker or locally

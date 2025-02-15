@@ -6,6 +6,7 @@ import {
   Wallet,
   Search,
   LogOut, //  Logout Icon
+  Target,
 } from "lucide-react";
 import { useUser } from "../context/userContext";
 
@@ -13,6 +14,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: CreditCard, label: "Spending", path: "/spending" },
   { icon: PiggyBank, label: "Budgets", path: "/budgets" },
+  { icon: Target, label: "Savings Plan", path: "/savings" },
   { icon: Wallet, label: "Income", path: "/income" },
   { icon: Search, label: "Transactions", path: "/transactions" },
 ];
@@ -37,8 +39,8 @@ export function Sidebar() {
   const greeting = user?.first_name
     ? `Hi, ${user.first_name}`
     : user?.email
-    ? `Hi, ${user.email.split("@")[0]}`
-    : "Hi, Guest (Set your name in Profile)";
+      ? `Hi, ${user.email.split("@")[0]}`
+      : "Hi, Guest (Set your name in Profile)";
 
   return (
     <div className="w-64 min-h-screen bg-white border-r border-gray-200 p-4 flex flex-col">

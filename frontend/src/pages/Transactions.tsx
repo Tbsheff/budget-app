@@ -46,6 +46,7 @@ const TransactionsPage = () => {
     category_id: "",
     transaction_date: "",
   });
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch categories from backend on mount
@@ -144,6 +145,7 @@ const TransactionsPage = () => {
         setIsSubmitting(false);
         setShowConfirmDialog(false);
         setSelectedFile(null);
+        setImageUrl(null);
       }
     };
 
@@ -153,6 +155,7 @@ const TransactionsPage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setSelectedFile(file);
+    setImageUrl(URL.createObjectURL(file));
   };
 
   const handleFileUpload = async () => {
@@ -439,6 +442,12 @@ const TransactionsPage = () => {
             <DialogTitle>Confirm Transaction Details</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {imageUrl && (
+              <div className="space-y-2">
+                <Label>Receipt Image</Label>
+                <img src={imageUrl} alt="Receipt" className="w-full h-auto" />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Amount</Label>
               <div className="relative">
