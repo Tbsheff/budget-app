@@ -39,6 +39,7 @@ app.use("/api/settings", require("./routes/settingsRoutes"));
 app.use("/api/budget-groups", require("./routes/groupRoutes"));
 app.use("/api/budget", require("./routes/budgetRoutes"));
 app.use("/api/receipts", require("./routes/receiptRoutes"));
+app.use("/api/savings-goals", require("./routes/savingsGoalsRoutes"));
 
 // Detect whether running in Docker or locally
 const isDocker = process.env.RUNNING_IN_DOCKER === "true";

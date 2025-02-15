@@ -19,6 +19,7 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Survey from "./pages/Survey";
 import TranslationWidget from "@/components/Translation";
+import SavingsPlan from "./pages/SavingsPlan";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +35,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-  
 );
 
 const AppRoutes = () => {
@@ -61,6 +61,7 @@ const AppRoutes = () => {
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/savings" element={<SavingsPlan />} />
         </Route>
       </Routes>
 
