@@ -1,8 +1,11 @@
+import axios from "axios";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SavingsGoal } from "@/types/savings";
 import { differenceInDays, format } from "date-fns";
 import { Check, Pencil } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { EditGoalDialog } from "./EditGoalDialog";
 
 interface GoalCardProps {
   goal: SavingsGoal;
@@ -11,6 +14,8 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
   const progress = (goal.current_amount / goal.target_amount) * 100;
   const daysRemaining = differenceInDays(new Date(goal.deadline), new Date());
   const monthsRemaining = Math.ceil(daysRemaining / 30);
@@ -22,6 +27,24 @@ export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
   const isOnTrack =
     progress >= ((monthsRemaining > 0 ? 12 - monthsRemaining : 12) / 12) * 100;
 
+  const handleSave = async (editedGoal: SavingsGoal) => {
+    try {
+      const response = await axios.put(
+        `/api/savings-goals/${goal.goal_id}`,
+        editedGoal,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      onEdit(response.data);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating goal:", error);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
       <div className="flex justify-between items-start">
@@ -30,7 +53,11 @@ export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
           <p className="text-sm text-gray-500">{goal.category}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => onEdit(goal)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+          >
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
@@ -46,17 +73,11 @@ export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>
-            $
-            {goal.current_amount
-              ? parseFloat(goal.current_amount.toString()).toFixed(2)
-              : "0.00"}
+          <span className="flex items-center">
+            ${parseFloat(goal.current_amount.toString()).toFixed(2)}
           </span>
-          <span>
-            $
-            {goal.target_amount
-              ? parseFloat(goal.target_amount.toString()).toFixed(2)
-              : "0.00"}
+          <span className="flex items-center">
+            ${parseFloat(goal.target_amount.toString()).toFixed(2)}
           </span>
         </div>
         <Progress value={progress} />
@@ -95,6 +116,13 @@ export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
           <p>{goal.notes}</p>
         </div>
       )}
+
+      <EditGoalDialog
+        goal={goal}
+        open={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }

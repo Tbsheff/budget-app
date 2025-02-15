@@ -42,3 +42,31 @@ exports.getSavingsGoals = async (req, res) => {
     res.status(500).json({ message: "Error fetching savings goals" });
   }
 };
+
+exports.updateSavingsGoal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, target_amount, current_amount, deadline } = req.body;
+    const userId = req.user.id;
+
+    const goal = await SavingsGoals.findOne({
+      where: { goal_id: goal_id, user_id: userId },
+    });
+
+    if (!goal) {
+      return res.status(404).json({ message: "Savings goal not found" });
+    }
+
+    goal.name = name;
+    goal.target_amount = target_amount;
+    goal.current_amount = current_amount;
+    goal.deadline = deadline;
+
+    await goal.save();
+
+    res.status(200).json({ message: "Savings goal updated successfully" });
+  } catch (error) {
+    console.error("Error updating savings goal:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
