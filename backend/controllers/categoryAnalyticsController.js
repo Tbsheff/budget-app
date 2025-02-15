@@ -200,3 +200,127 @@ exports.getCategoryAnalytics = async (req, res) => {
     res.status(500).json({ message: "Error fetching category analytics." });
   }
 };
+
+exports.getDashboardData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const { timeRange = "3M" } = req.query;
+
+    // Define start date based on time range
+    let startOfRange;
+    switch (timeRange) {
+      case "3M":
+        startOfRange = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        break;
+      case "6M":
+        startOfRange = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+        break;
+      case "1Y":
+        startOfRange = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+        break;
+      default:
+        startOfRange = new Date(2000, 0, 1); // "ALL" time fetches everything
+    }
+
+    // Fetch user categories excluding "Earnings"
+    const categories = await UserCategories.findAll({
+      where: {
+        user_id: userId,
+        name: { [Op.ne]: "Earnings" }, // Excludes "Earnings" category
+      },
+      attributes: ["category_id", "monthly_budget"],
+      raw: true,
+    });
+
+    const categoryIds = categories.map((c) => c.category_id);
+
+    // Fetch transactions for all categories except "Earnings"
+    const transactions = await Transactions.findAll({
+      where: {
+        user_id: userId,
+        category_id: { [Op.in]: categoryIds }, // Only include non-Earnings categories
+        transaction_date: { [Op.between]: [startOfRange, endOfMonth] },
+      },
+      attributes: ["category_id", "amount", "transaction_date"],
+      raw: true,
+    });
+
+    // Compute total budget and spending
+    const totalSpent = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const totalBudget = categories.reduce((sum, c) => sum + parseFloat(c.monthly_budget), 0);
+    const remainingBudget = totalBudget - totalSpent;
+    const percentageUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+    // Aggregate spending by month for trend analysis
+    const spendingTrendsRaw = await Transactions.findAll({
+      where: {
+        user_id: userId,
+        category_id: { [Op.in]: categoryIds },
+        transaction_date: { [Op.between]: [startOfRange, endOfMonth] },
+      },
+      attributes: [
+        [
+          Sequelize.fn("DATE_FORMAT", Sequelize.col("transaction_date"), "%b"),
+          "month_label",
+        ],
+        [Sequelize.fn("SUM", Sequelize.col("amount")), "total_spent"],
+      ],
+      group: ["month_label"],
+      order: [["month_label", "ASC"]],
+      raw: true,
+    });
+
+    // Generate month labels for the time range
+    const monthLabels = Array.from({ length: (timeRange === "ALL" ? 12 : parseInt(timeRange)) }, (_, i) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return date.toLocaleDateString("en-US", { month: "short" });
+    }).reverse();
+
+    // Map spending data to month labels
+    const spendingMap = spendingTrendsRaw.reduce((acc, entry) => {
+      acc[entry.month_label] = parseFloat(entry.total_spent);
+      return acc;
+    }, {});
+
+    const spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
+    const budgets = monthLabels.map(() => totalBudget / monthLabels.length); // Spread budget over time range
+
+    // Calculate monthly trend (comparison to last month)
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const lastMonthTransactions = await Transactions.findAll({
+      where: {
+        user_id: userId,
+        category_id: { [Op.in]: categoryIds },
+        transaction_date: { [Op.between]: [lastMonthStart, lastMonthEnd] },
+      },
+      attributes: ["amount"],
+      raw: true,
+    });
+
+    const lastMonthSpent = lastMonthTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const monthlyTrend = lastMonthSpent > 0 ? ((totalSpent - lastMonthSpent) / lastMonthSpent) * 100 : 0;
+
+    res.json({
+      totalSpent,
+      budgetAmount: totalBudget,
+      remainingBudget,
+      percentageUsed,
+      monthlyTrend,
+      trendLabel: "Compared to last month",
+      spendingTrends: {
+        labels: monthLabels,
+        data: spendingTrends,
+        budget: budgets,
+      },
+      transactions,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching dashboard analytics:", error);
+    res.status(500).json({ message: "Error fetching dashboard analytics." });
+  }
+};

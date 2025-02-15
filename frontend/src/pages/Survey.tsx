@@ -49,7 +49,7 @@ const Survey: React.FC = () => {
         description: "Survey submitted successfully.",
       });
 
-      const budgetData = await generateBudget(formData, setIsLoading, setError);
+      const budgetData = await generateBudget(formData, setIsLoading, setError, setBudget);
       console.log(budgetData);
       navigate("/budget");
       setBudget(budgetData);
