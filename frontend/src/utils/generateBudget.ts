@@ -87,7 +87,9 @@ export const generateBudget = async (
   "MoreHorizontal",
   "Monitor"
 ]
- pick a color as well for each icon. For example, red, blue, green, yellow, etc. this will be the icon_color
+ pick a color as well for each icon. It should be in the format of a tailwindcss color class. For example, text-gray-500.
+ This is a list of colors to choose from. text-slate-500, text-gray-500, text-zinc-500, text-neutral-500, text-stone-500, text-red-500, text-orange-500, text-amber-500, text-yellow-500, text-lime-500, text-green-500, text-emerald-500, text-teal-500, text-cyan-500, text-sky-500, text-blue-500, text-indigo-500, text-violet-500, text-purple-500, text-fuchsia-500, text-pink-500, text-rose-500 
+  this will be the icon_color
 
  Next, identify if the user has any categories that are a high percentage of their income compared to what is usually recommended for similar categories. For example, if the user is spending 50% of their income on rent, this is higher than the recommended 30%.
 

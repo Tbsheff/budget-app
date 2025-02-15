@@ -39,7 +39,7 @@ interface CategorySectionProps {
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
   onBudgetUpdate: (categoryId: number, newBudget: number) => void;
-  onCategoryAdded: (budgetGroupId: number, newCategory: Category) => void; // ✅ New prop
+  onCategoryAdded: (budgetGroupId: number, newCategory: Category) => void;
 }
 
 export function CategorySection({
@@ -61,7 +61,7 @@ export function CategorySection({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "/api/user-categories/create", // ✅ Use this endpoint instead
+        "/api/user-categories/create",
         {
           name: newCategoryName.trim(),
           budget_group_id: budgetGroup.id,
@@ -71,13 +71,14 @@ export function CategorySection({
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
 
       const newCategory: Category = response.data;
+      onCategoryAdded(budgetGroup.id, newCategory);
 
-      onCategoryAdded(budgetGroup.id, newCategory); // ✅ Ensure it's added to the correct group
-
-      toast({ title: "Category Added", description: `"${newCategory.name}" has been created.` });
+      toast({
+        title: "Category Added",
+        description: `"${newCategory.name}" has been created.`,
+      });
       setNewCategoryName("");
       setIsCategoryDialogOpen(false);
     } catch (error) {
@@ -101,7 +102,10 @@ export function CategorySection({
           </Button>
         </div>
 
-        <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <Dialog
+          open={isCategoryDialogOpen}
+          onOpenChange={setIsCategoryDialogOpen}
+        >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>New Category</DialogTitle>
@@ -114,13 +118,22 @@ export function CategorySection({
               />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCategoryDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={addNewCategory}>OK</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <div className="grid grid-cols-[1fr_0.5fr_0.5fr] gap-2 text-sm font-medium mb-2 px-2">
+          <span className="text-left">Category</span>
+          <span className="text-right">Budget Amount</span>
+          <span className="text-right">Actual Amount</span>
+        </div>
 
         {budgetGroup.categories.map((category) => (
           <CategoryRow
