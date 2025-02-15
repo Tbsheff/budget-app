@@ -18,6 +18,7 @@ import TransactionsPage from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Survey from "./pages/Survey";
+import CategoryAnalytics from "./pages/CategoryAnalytics";
 import TranslationWidget from "@/components/Translation";
 
 const queryClient = new QueryClient();
@@ -34,13 +35,20 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-  
 );
 
 const AppRoutes = () => {
   const { user } = useUser();
   const location = useLocation();
-  const chatRoutes = ["/dashboard", "/incomes", "/transactions"];
+  const chatRoutes = [
+    "/dashboard",
+    "/income",
+    "/transactions",
+    "/spending",
+    "/profile",
+    "/category/analytics/:categoryId",
+    "/",
+  ];
 
   return (
     <>
@@ -54,6 +62,7 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/category/analytics/:categoryId" element={<CategoryAnalytics />} />
           <Route path="/spending" element={<SpendingPage />} />
           <Route path="/income" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />

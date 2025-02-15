@@ -166,7 +166,7 @@ const TransactionsPage = () => {
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const base64Content = reader.result.split(",")[1]; // Remove the data URL prefix
+      const base64Content = typeof reader.result === "string" ? reader.result.split(",")[1] : ""; // Remove the data URL prefix
 
       try {
         setIsUploading(true);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { RenderAmount } from "./RenderAmount";
 import { IconPicker } from "./IconPicker";
 import BudgetProgress from "./BudgetProgress";
@@ -29,6 +30,8 @@ export function CategoryRow({
   onIconChange,
   onBudgetUpdate,
 }: CategoryRowProps) {
+  const navigate = useNavigate();
+
   const IconComponent =
     (LucideIcons[
       category.icon_name as keyof typeof LucideIcons
@@ -43,9 +46,18 @@ export function CategoryRow({
   const isOverBudget = spentAmount > budgetAmount;
   const amountTextColor = isOverBudget ? "text-red-500" : "text-green-500";
 
+  const handleRowClick = () => {
+    const formattedDate = currentDate.toISOString(); 
+    navigate(`/category/analytics/${category.category_id}?selectedDate=${formattedDate}`);
+  };
+  
+
   return (
     <>
-      <div className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors">
+      <div
+        className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors cursor-pointer"
+        onClick={handleRowClick}
+      >
         {/* Left Section: Icon and Category Name */}
         <div className="flex items-center flex-1">
           <IconPicker
