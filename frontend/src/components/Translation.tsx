@@ -36,22 +36,30 @@ const TranslationWidget = () => {
 
         // ✅ Apply translation and continuously remove UI elements
         setTimeout(() => {
-          const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
+          const select = document.querySelector(
+            ".goog-te-combo"
+          ) as HTMLSelectElement;
           if (select) {
             select.value = browserLanguage;
             select.dispatchEvent(new Event("change"));
-            console.log(`✅ Successfully set translation to: ${browserLanguage}`);
+            console.log(
+              `✅ Successfully set translation to: ${browserLanguage}`
+            );
           } else {
             console.error("❌ Google Translate dropdown not found!");
           }
 
           // ✅ Function to remove Google Translate UI elements
           const removeGoogleTranslateUI = () => {
-            document.querySelectorAll(
-              ".goog-te-banner-frame, .goog-te-gadget, .goog-te-combo, .VIpgJd-ZVi9od-xl07Ob-lTBxed, .goog-te-spinner-pos"
-            ).forEach((el) => el.remove());
+            document
+              .querySelectorAll(
+                ".goog-te-banner-frame, .goog-te-gadget, .goog-te-combo, .VIpgJd-ZVi9od-xl07Ob-lTBxed, .goog-te-spinner-pos"
+              )
+              .forEach((el) => el.remove());
 
-            const googleFrame = document.querySelector("iframe.goog-te-banner-frame");
+            const googleFrame = document.querySelector(
+              "iframe.goog-te-banner-frame"
+            );
             if (googleFrame) googleFrame.remove();
 
             document.body.style.top = "0px"; // Prevents layout shift from banner
@@ -59,7 +67,9 @@ const TranslationWidget = () => {
           };
 
           // ✅ Use MutationObserver to continuously remove elements Google reinserts
-          const observer = new MutationObserver(() => removeGoogleTranslateUI());
+          const observer = new MutationObserver(() =>
+            removeGoogleTranslateUI()
+          );
           observer.observe(document.body, { childList: true, subtree: true });
 
           // Initial cleanup
@@ -76,7 +86,8 @@ const TranslationWidget = () => {
             "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
           script.async = true;
           script.defer = true;
-          script.onload = () => console.log("✅ Google Translate script loaded!");
+          script.onload = () =>
+            console.log("✅ Google Translate script loaded!");
           document.body.appendChild(script);
         }
       };
@@ -109,7 +120,14 @@ const TranslationWidget = () => {
   height: 0 !important;
   border-style: none;
   box-shadow: none;
-}
+        }
+  .VIpgJd-ZVi9od-ORHb-OEVmcd skiptranslate{
+  display: none !important;
+    height: 0 !important;
+  border-style: none;
+  box-shadow: none;
+  }
+
         `}
       </style>
       <div id="google_translate_element" style={{ display: "none" }}></div>
