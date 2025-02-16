@@ -105,14 +105,14 @@ const icons = [
 interface IconPickerProps {
   value: LucideIcon;
   onChange: (icon: LucideIcon) => void;
-  color?: string;
+  color: string;
   categoryId: number; // Add categoryId to props
 }
 
 export function IconPicker({
   value: Icon,
   onChange,
-  color = "text-gray-500",
+  color,
   categoryId, // Destructure categoryId from props
 }: IconPickerProps) {
   const handleIconChange = async (icon: LucideIcon) => {
@@ -161,12 +161,12 @@ export function IconPicker({
               key={IconOption.icon.displayName}
               className="p-3 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center touch-manipulation"
               onClick={() => {
-                handleIconChange(IconOption.icon);
-                onChange(IconOption.icon); // Update the icon immediately in the frontend
+              handleIconChange(IconOption.icon);
+              onChange(IconOption.icon); // Update the icon immediately in the frontend
               }}
               title={IconOption.icon.displayName}
             >
-              <IconOption.icon className="w-6 h-6 md:w-7 md:h-7 text-gray-600" />
+              <IconOption.icon className={`w-6 h-6 md:w-7 md:h-7 ${color}`} />
             </button>
           ))}
         </div>
