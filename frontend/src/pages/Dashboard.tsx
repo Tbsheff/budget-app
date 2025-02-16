@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { format, parseISO } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -11,25 +11,28 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { Line } from "react-chartjs-2";
 import { useQuery } from "@tanstack/react-query";
+import { Bar, Line } from "react-chartjs-2";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  BarElement,
   PointElement,
   LineElement,
   Title,
   Tooltip,
   Legend,
   Filler,
+  TooltipItem,
 } from "chart.js";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  BarElement,
   PointElement,
   LineElement,
   Title,
@@ -39,21 +42,22 @@ ChartJS.register(
 );
 
 const fetchDashboardAnalytics = async (timeRange) => {
-    try {
-      const token = localStorage.getItem("token");
-      const { data } = await axios.get(`/api/dashboard`, {
-        params: { timeRange },
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
-      return data;
-    } catch (error) {
-      console.error("API Error:", error);
-      throw error;
-    }
-  };
+  try {
+    const token = localStorage.getItem("token");
+    const { data } = await axios.get(`/api/dashboard`, {
+      params: { timeRange },
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
 
 type TimeRange = "3M" | "6M" | "1Y" | "ALL";
+type ViewType = "bar" | "line";
 
 export default function CategoryAnalytics() {
   const { categoryId } = useParams();
@@ -66,11 +70,14 @@ export default function CategoryAnalytics() {
   const [currentDate, setCurrentDate] = useState(initialDate);
 
   const [isTimeRangeOpen, setIsTimeRangeOpen] = useState(false);
+  const [activeView, setActiveView] = useState<ViewType>("bar");
+  const chartRef = useRef<HTMLDivElement>(null);
+  const startX = useRef<number | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboardAnalytics", timeRange], // Updated query key
     queryFn: () => fetchDashboardAnalytics(timeRange),
-  });  
+  });
 
   if (isLoading) return <p>Loading analytics...</p>;
   if (error) return <p>Error loading data</p>;
@@ -99,71 +106,222 @@ export default function CategoryAnalytics() {
     });
   };
 
-  const timeRangeButtons: { label: string; value: TimeRange }[] = [
-    { label: "3 Months", value: "3M" },
-    { label: "6 Months", value: "6M" },
-    { label: "1 Year", value: "1Y" },
-    { label: "All Time", value: "ALL" },
-  ];
-
-  const formatMonthYear = (date: Date) => {
-    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  };
-
-  if (!spendingTrends || !spendingTrends.labels || !spendingTrends.data || !spendingTrends.budget) {
-    console.error("🚨 Missing spendingTrends data!", spendingTrends);
-  }
-
-  const chartData =
-    spendingTrends && Array.isArray(spendingTrends.labels) && spendingTrends.labels.length > 0
-      ? {
-          labels: spendingTrends.labels,
-          datasets: [
-            {
-              label: "Spending",
-              data: Array.isArray(spendingTrends.data) ? spendingTrends.data : [],
-              borderColor: "rgb(99, 102, 241)",
-              backgroundColor: "rgba(99, 102, 241, 0.1)",
-              tension: 0.4,
-              fill: true,
+    const formatMonthYear = (date: Date) => {
+      return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+  
+    if (!spendingTrends || !spendingTrends.labels || !spendingTrends.data || !spendingTrends.budget) {
+      console.error("🚨 Missing spendingTrends data!", spendingTrends);
+    }
+  
+    const timeRangeButtons: { label: string; value: TimeRange }[] = [
+      { label: "3 Months", value: "3M" },
+      { label: "6 Months", value: "6M" },
+      { label: "1 Year", value: "1Y" },
+      { label: "All Time", value: "ALL" },
+    ];
+  
+    const monthlyChanges = spendingTrends.changes;
+  
+    const handleTouchStart = (e: React.TouchEvent) => {
+      startX.current = e.touches[0].clientX;
+    };
+  
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (!startX.current) return;
+  
+      const currentX = e.touches[0].clientX;
+      const diff = startX.current - currentX;
+  
+      if (Math.abs(diff) > 50) {
+        setActiveView(diff > 0 ? "line" : "bar");
+        startX.current = null;
+      }
+    };
+  
+    const handleTouchEnd = () => {
+      startX.current = null;
+    };
+  
+    const lineData =
+      spendingTrends && Array.isArray(spendingTrends.labels) && spendingTrends.labels.length > 0
+        ? {
+            labels: spendingTrends.labels,
+            datasets: [
+              {
+                label: "Monthly Expenses",
+                data: Array.isArray(spendingTrends.data) ? spendingTrends.data : [],
+                borderColor: "rgb(99, 102, 241)",
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Budget",
+                data: Array.isArray(spendingTrends.budget) ? spendingTrends.budget : [],
+                borderColor: "rgb(156, 163, 175)",
+                borderDash: [5, 5],
+                tension: 0,
+                fill: false,
+              },
+            ],
+          }
+        : null;
+  
+    const barData = {
+      labels: spendingTrends.labels,
+      datasets: [
+        {
+          data: spendingTrends.data,
+          label: "Monthly Expenses",
+          backgroundColor: "rgba(99, 102, 241, 0.8)",
+          borderColor: "rgb(99, 102, 241)",
+          borderWidth: 1,
+          borderRadius: 8,
+          barPercentage: 0.9,
+          categoryPercentage: 0.9,
+        },
+      ],
+    };
+  
+    const lineOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top" as const,
+        },
+        title: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<"line">[]) => {
+              if (!tooltipItems.length) return "";
+              const index = tooltipItems[0].dataIndex;
+  
+              // Use full date labels for parsing
+              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+  
+              if (!fullDateLabel) return "Unknown Date";
+  
+              try {
+                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+              } catch (error) {
+                console.error("Tooltip Date Parse Error:", error);
+                return fullDateLabel;
+              }
             },
-            {
-              label: "Budget",
-              data: Array.isArray(spendingTrends.budget) ? spendingTrends.budget : [],
-              borderColor: "rgb(156, 163, 175)",
-              borderDash: [5, 5],
-              tension: 0,
-              fill: false,
-            },
-          ],
-        }
-      : null;
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: false,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value: number) => `$${value.toFixed(2)}`, // Ensures currency formatting
+            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+          },
         },
       },
-    },
-  };
-
-  if (!chartData || !Array.isArray(chartData.datasets) || chartData.datasets.length === 0) {
-    console.error("🚨 Invalid chartData detected!", chartData);
-    return <p>Data is not available.</p>;
-  }
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          suggestedMax: Math.max(...spendingTrends.data) * 1.1, // Adds 20% extra space above the highest bar
+          ticks: {
+            callback: (value: number) => `$${value.toFixed(2)}`,
+          },
+          grid: {
+            display: false,
+          },
+        },
+      },
+      animation: {
+        duration: 500,
+      },
+    };
+  
+    const barOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top" as const,
+        },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<"bar">[]) => {
+              if (!tooltipItems.length) return "";
+              const index = tooltipItems[0].dataIndex;
+  
+              // Use full date labels for parsing
+              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+  
+              if (!fullDateLabel) return "Unknown Date";
+  
+              try {
+                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+              } catch (error) {
+                console.error("Tooltip Date Parse Error:", error);
+                return fullDateLabel;
+              }
+            },
+            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            padding: 10, // Add padding to prevent overlap with bar labels
+            font: {
+              size: 12,
+            },
+          },
+        },
+        y: {
+          display: false,
+          suggestedMax: Math.max(...spendingTrends.data) * 1.1,
+        },
+      },
+      animation: {
+        onComplete: function (animation: { chart: ChartJS }) {
+          const chart = animation.chart;
+          const ctx = chart.ctx;
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+  
+          ctx.save();
+          ctx.font = "12px Inter";
+          ctx.textAlign = "center";
+  
+          // Draw monthly amounts and changes
+          dataset.data.forEach((value: number, index: number) => {
+            const change = monthlyChanges[index];
+            const bar = meta.data[index];
+            const { x, y, width, height } = bar.getProps(["x", "y", "width", "height"]);
+  
+            // Draw monthly amount inside the bar, near the bottom
+            ctx.fillStyle = "#FFFFFF"; // White text for contrast
+            ctx.fillText(`$${value}`, x, y + height - 10); // Position just above x-axis
+  
+            // Draw change amount above the bar (skip first month)
+            if (index > 0) {
+              const formattedChange = `${change >= 0 ? "+" : ""}$${change}`;
+              ctx.fillStyle = change >= 0 ? "#10B981" : "#EF4444";
+              ctx.fillText(formattedChange, x, y - 10);
+            }
+          });
+  
+          ctx.restore();
+        },
+      },
+    };
+  
+    if (!lineData || !Array.isArray(lineData.datasets) || lineData.datasets.length === 0) {
+      console.error("🚨 Invalid lineData detected!", lineData);
+      return <p>Data is not available.</p>;
+    }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -291,12 +449,48 @@ export default function CategoryAnalytics() {
                 </div>
               </div>
             </div>
-            <div className="p-6" style={{ height: "400px" }}>
-              {chartData && Array.isArray(chartData.datasets) && chartData.datasets.length > 0 ? (
-                <Line options={chartOptions} data={chartData} />
-              ) : (
-                <p>Loading chart...</p>
-              )}
+
+            {/* Chart Container */}
+            <div
+              ref={chartRef}
+              className="relative p-6"
+              style={{ height: "400px" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                className={`transition-opacity duration-500 absolute inset-0 ${
+                  activeView === "bar" ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <Bar options={barOptions} data={barData} />
+              </div>
+              <div
+                className={`transition-opacity duration-500 absolute inset-0 ${
+                  activeView === "line" ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <Line options={lineOptions} data={lineData} />
+              </div>
+            </div>
+
+            {/* View Toggle Indicators */}
+            <div className="flex justify-center items-center gap-3 py-4">
+              <button
+                onClick={() => setActiveView("bar")}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  activeView === "bar" ? "bg-indigo-600" : "border-2 border-indigo-600"
+                }`}
+                aria-label="Show bar chart"
+              />
+              <button
+                onClick={() => setActiveView("line")}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  activeView === "line" ? "bg-indigo-600" : "border-2 border-indigo-600"
+                }`}
+                aria-label="Show line chart"
+              />
             </div>
           </div>
 

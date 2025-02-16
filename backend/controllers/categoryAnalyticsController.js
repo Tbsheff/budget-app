@@ -95,43 +95,37 @@ exports.getCategoryAnalytics = async (req, res) => {
           transaction_date: { [Op.between]: [startOfRange, endOfRange] },
         },
         attributes: [
-          [
-            Sequelize.fn(
-              "DATE_FORMAT",
-              Sequelize.col("transaction_date"),
-              "%b %Y" 
-            ),
-            "date_label",
-          ],
+          [Sequelize.fn("DATE_FORMAT", Sequelize.col("transaction_date"), "%b %Y"), "date_label"],
           [Sequelize.fn("SUM", Sequelize.col("amount")), "total_spent"],
         ],
         group: ["date_label"],
         order: [[Sequelize.fn("MIN", Sequelize.col("transaction_date")), "ASC"]], // ✅ Ensures chronological order
         raw: true,
-      });      
+      });
 
       // ✅ Generate labels from first transaction to today
       const firstDate = new Date(firstTransaction.transaction_date);
       const totalMonths =
         (selectedDate.getFullYear() - firstDate.getFullYear()) * 12 +
-        (selectedDate.getMonth() - firstDate.getMonth()) + 1;
-      
+        (selectedDate.getMonth() - firstDate.getMonth()) +
+        1;
+
       // ✅ Generate full list of months (ensures missing months get zero value)
       monthLabels = Array.from({ length: totalMonths }, (_, i) => {
         const date = new Date(firstDate.getFullYear(), firstDate.getMonth() + i, 1);
         return date.toLocaleDateString("en-US", { month: "short", year: "numeric" }); // ✅ "Nov 2023", "Dec 2023"
       });
 
-      graphLabels = monthLabels.map(label => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
+      graphLabels = monthLabels.map((label) => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
 
       spendingMap = spendingTrendsRaw.reduce((acc, entry) => {
         const dbKey = entry.date_label.trim(); // ✅ Ensures exact match
         acc[dbKey] = parseFloat(entry.total_spent);
         return acc;
       }, {});
-      
+
       // ✅ Ensure spending trends include all months, setting zero if missing
-      spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);      
+      spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
     } else {
       // ✅ Regular logic for "1M", "3M", "6M", "1Y"
       spendingTrendsRaw = await Transactions.findAll({
@@ -168,7 +162,7 @@ exports.getCategoryAnalytics = async (req, res) => {
         return acc;
       }, {});
 
-      graphLabels = monthLabels.map(label => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
+      graphLabels = monthLabels.map((label) => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
 
       // ✅ Ensure all months/days are included
       spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
@@ -287,32 +281,13 @@ exports.getCategoryAnalytics = async (req, res) => {
 exports.getDashboardData = async (req, res) => {
   try {
     const userId = req.user.id;
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const { timeRange = "3M" } = req.query;
-
-    // Define start date based on time range
-    let startOfRange;
-    switch (timeRange) {
-      case "3M":
-        startOfRange = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        break;
-      case "6M":
-        startOfRange = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-        break;
-      case "1Y":
-        startOfRange = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-        break;
-      default:
-        startOfRange = new Date(2000, 0, 1); // "ALL" time fetches everything
-    }
+    const { timeRange } = req.query;
 
     // Fetch user categories excluding "Earnings"
     const categories = await UserCategories.findAll({
       where: {
         user_id: userId,
-        name: { [Op.ne]: "Earnings" }, // Excludes "Earnings" category
+        name: { [Op.notIn]: ["Earnings", "Income"] }
       },
       attributes: ["category_id", "monthly_budget"],
       raw: true,
@@ -320,74 +295,222 @@ exports.getDashboardData = async (req, res) => {
 
     const categoryIds = categories.map((c) => c.category_id);
 
-    // Fetch transactions for all categories except "Earnings"
-    const transactions = await Transactions.findAll({
-      where: {
-        user_id: userId,
-        category_id: { [Op.in]: categoryIds }, // Only include non-Earnings categories
-        transaction_date: { [Op.between]: [startOfRange, endOfMonth] },
-      },
-      attributes: ["category_id", "amount", "transaction_date"],
-      raw: true,
+    // Determine date range based on selected time range
+    let dateFilter = {};
+    const selectedDate = req.query.selectedDate ? new Date(req.query.selectedDate) : new Date();
+    // If selected month is in the past, assume last day of the month
+    const now = new Date();
+    const isCurrentMonth =
+      selectedDate.getFullYear() === now.getFullYear() &&
+      selectedDate.getMonth() === now.getMonth();
+    const isPastMonth = selectedDate < new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const startOfThisMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const endOfThisMonth = isCurrentMonth
+      ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), now.getDate()) // Only up to today for current month
+      : new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0); // Last day of past months
+
+    const firstTransaction = await Transactions.findOne({
+      where: { user_id: userId },
+      order: [["transaction_date", "ASC"]],
+      attributes: ["transaction_date"],
     });
+
+    const getStartDate = (range, selectedDate) => {
+      switch (range) {
+        case "3M":
+          return new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 3, 1);
+        case "6M":
+          return new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 6, 1);
+        case "1Y":
+          return new Date(selectedDate.getFullYear() - 1, selectedDate.getMonth(), 1);
+        case "ALL":
+          return firstTransaction ? new Date(firstTransaction.transaction_date) : null;
+        default:
+          return null;
+      }
+    };
+
+    const numMonths = (() => {
+      switch (timeRange) {
+        case "3M":
+          return 3;
+        case "6M":
+          return 6;
+        case "1Y":
+          return 12;
+        case "ALL":
+          if (firstTransaction) {
+            const firstDate = new Date(firstTransaction.transaction_date);
+            return (
+              (selectedDate.getFullYear() - firstDate.getFullYear()) * 12 +
+              (selectedDate.getMonth() - firstDate.getMonth()) +
+              1
+            );
+          }
+          return 12;
+        default:
+          return 12;
+      }
+    })();
+
+    const startOfRange = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() - (numMonths - 1),
+      1
+    );
+    const endOfRange = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+
+    dateFilter = { [Op.between]: [startOfRange, endOfRange] };
+
+    let spendingTrendsRaw, monthLabels, spendingMap, spendingTrends;
+
+    if (timeRange === "ALL") {
+      // ✅ "ALL" → Group by both month & year (e.g., "Jan 2022", "Feb 2022", ...)
+      spendingTrendsRaw = await Transactions.findAll({
+        where: {
+          user_id: userId,
+          transaction_date: { [Op.between]: [startOfRange, endOfRange] },
+        },
+        attributes: [
+          [Sequelize.fn("DATE_FORMAT", Sequelize.col("transaction_date"), "%b %Y"), "date_label"],
+          [Sequelize.fn("SUM", Sequelize.col("amount")), "total_spent"],
+        ],
+        group: ["date_label"],
+        order: [[Sequelize.fn("MIN", Sequelize.col("transaction_date")), "ASC"]], // ✅ Ensures chronological order
+        raw: true,
+      });
+
+      // ✅ Generate labels from first transaction to today
+      const firstDate = new Date(firstTransaction.transaction_date);
+      const totalMonths =
+        (selectedDate.getFullYear() - firstDate.getFullYear()) * 12 +
+        (selectedDate.getMonth() - firstDate.getMonth()) +
+        1;
+
+      // ✅ Generate full list of months (ensures missing months get zero value)
+      monthLabels = Array.from({ length: totalMonths }, (_, i) => {
+        const date = new Date(firstDate.getFullYear(), firstDate.getMonth() + i, 1);
+        return date.toLocaleDateString("en-US", { month: "short", year: "numeric" }); // ✅ "Nov 2023", "Dec 2023"
+      });
+
+      graphLabels = monthLabels.map((label) => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
+
+      spendingMap = spendingTrendsRaw.reduce((acc, entry) => {
+        const dbKey = entry.date_label.trim(); // ✅ Ensures exact match
+        acc[dbKey] = parseFloat(entry.total_spent);
+        return acc;
+      }, {});
+
+      // ✅ Ensure spending trends include all months, setting zero if missing
+      spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
+    } else {
+      // ✅ Regular logic for "1M", "3M", "6M", "1Y"
+      spendingTrendsRaw = await Transactions.findAll({
+        where: {
+          user_id: userId,
+          transaction_date: { [Op.between]: [startOfRange, endOfRange] },
+        },
+        attributes: [
+          [
+            Sequelize.fn(
+              "DATE_FORMAT",
+              Sequelize.col("transaction_date"),
+              timeRange === "1M" ? "%d-%b" : "%b" // ✅ "07-Feb" for "1M", "Jan" for others
+            ),
+            "date_label",
+          ],
+          [Sequelize.fn("SUM", Sequelize.col("amount")), "total_spent"],
+        ],
+        group: ["date_label"],
+        order: [["date_label", "ASC"]],
+        raw: true,
+      });
+
+      // ✅ Generate labels based on selected time range
+      monthLabels = Array.from({ length: numMonths }, (_, i) => {
+        const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - i, 1);
+        return date.toLocaleDateString("en-US", { month: "short" }); // ✅ "Jan", "Feb", ...
+      }).reverse();
+
+      // ✅ Create lookup map for spending data
+      spendingMap = spendingTrendsRaw.reduce((acc, entry) => {
+        acc[entry.date_label.trim()] = parseFloat(entry.total_spent);
+        return acc;
+      }, {});
+
+      graphLabels = monthLabels.map((label) => label.split(" ")[0]); // ✅ Extract only "Jan", "Feb"
+
+      // ✅ Ensure all months/days are included
+      spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
+    }
+
+        // Fetch transactions for all categories except "Earnings"
+        const transactions = await Transactions.findAll({
+          where: {
+            user_id: userId,
+            transaction_date: {
+              [Op.between]: [startOfThisMonth, endOfThisMonth], // ✅ Uses selectedDate!
+            },
+          },
+          order: [["transaction_date", "ASC"]],
+          attributes: ["transaction_id", "description", "amount", "transaction_date"], // Ensure the necessary fields are fetched
+        });
 
     // Compute total budget and spending
     const totalSpent = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const totalBudget = categories.reduce((sum, c) => sum + parseFloat(c.monthly_budget), 0);
     const remainingBudget = totalBudget - totalSpent;
     const percentageUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+    const budgets = monthLabels.map(() => totalBudget / monthLabels.length);
 
-    // Aggregate spending by month for trend analysis
-    const spendingTrendsRaw = await Transactions.findAll({
+    // Calculate monthly spending trend (compared to previous period)
+    const startOfLastMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+    const endOfLastMonth = isCurrentMonth
+      ? new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, now.getDate()) // Compare only up to today for last month
+      : new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 0); // Compare full month for past months
+
+    const previousTransactions = await Transactions.findAll({
       where: {
         user_id: userId,
-        category_id: { [Op.in]: categoryIds },
-        transaction_date: { [Op.between]: [startOfRange, endOfMonth] },
+        transaction_date: {
+          [Op.between]: [startOfLastMonth, endOfLastMonth], // ✅ Uses selectedDate!
+        },
       },
-      attributes: [
-        [Sequelize.fn("DATE_FORMAT", Sequelize.col("transaction_date"), "%b"), "month_label"],
-        [Sequelize.fn("SUM", Sequelize.col("amount")), "total_spent"],
-      ],
-      group: ["month_label"],
-      order: [["month_label", "ASC"]],
-      raw: true,
     });
 
-    // Generate month labels for the time range
-    const monthLabels = Array.from(
-      { length: timeRange === "ALL" ? 12 : parseInt(timeRange) },
-      (_, i) => {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        return date.toLocaleDateString("en-US", { month: "short" });
-      }
-    ).reverse();
+    const previousTotalSpent = previousTransactions.reduce(
+      (sum, t) => sum + parseFloat(t.amount),
+      0
+    );
 
-    // Map spending data to month labels
-    const spendingMap = spendingTrendsRaw.reduce((acc, entry) => {
-      acc[entry.month_label] = parseFloat(entry.total_spent);
-      return acc;
-    }, {});
-
-    const spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
-    const budgets = monthLabels.map(() => totalBudget / monthLabels.length); // Spread budget over time range
-
-    // Calculate monthly trend (comparison to last month)
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-
-    const lastMonthTransactions = await Transactions.findAll({
-      where: {
-        user_id: userId,
-        category_id: { [Op.in]: categoryIds },
-        transaction_date: { [Op.between]: [lastMonthStart, lastMonthEnd] },
-      },
-      attributes: ["amount"],
-      raw: true,
-    });
-
-    const lastMonthSpent = lastMonthTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const monthlyTrend =
-      lastMonthSpent > 0 ? ((totalSpent - lastMonthSpent) / lastMonthSpent) * 100 : 0;
+      previousTotalSpent > 0
+        ? ((totalSpent - previousTotalSpent) / previousTotalSpent) * 100
+        : totalSpent > 0
+        ? 100
+        : 0;
+
+    const trendLabel = isCurrentMonth
+      ? "Compared to this time last month"
+      : "Compared to last month";
+
+    const calculateMonthlyChanges = (data) => {
+      return data.map((amount, index) => {
+        if (index === 0) return 0;
+        return amount - data[index - 1];
+      });
+    };
+
+    const monthlyChanges = calculateMonthlyChanges(spendingTrends);
+
+    // Generate full date labels for proper parsing in tooltips
+    const fullDateLabels = monthLabels
+      .map((label, i) => {
+        const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - i, 1);
+        return date.toISOString().split("T")[0]; // "YYYY-MM-DD" format
+      })
+      .reverse();
 
     res.json({
       totalSpent,
@@ -395,13 +518,15 @@ exports.getDashboardData = async (req, res) => {
       remainingBudget,
       percentageUsed,
       monthlyTrend,
-      trendLabel: "Compared to last month",
+      transactions,
+      trendLabel,
       spendingTrends: {
-        labels: monthLabels,
+        labels: graphLabels,
+        fullDateLabels,
         data: spendingTrends,
         budget: budgets,
+        changes: monthlyChanges,
       },
-      transactions,
     });
   } catch (error) {
     console.error("❌ Error fetching dashboard analytics:", error);

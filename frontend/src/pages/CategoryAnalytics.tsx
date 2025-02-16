@@ -478,13 +478,6 @@ export default function CategoryAnalytics() {
                 </div>
               </div>
             </div>
-            {/* <div className="p-6" style={{ height: "400px" }}>
-              {lineData && Array.isArray(lineData.datasets) && lineData.datasets.length > 0 ? (
-                <Line options={lineOptions} data={lineData} />
-              ) : (
-                <p>Loading chart...</p>
-              )}
-            </div> */}
 
             {/* Chart Container */}
             <div
