@@ -462,7 +462,7 @@ exports.getDashboardData = async (req, res) => {
     const totalBudget = categories.reduce((sum, c) => sum + parseFloat(c.monthly_budget), 0);
     const remainingBudget = totalBudget - totalSpent;
     const percentageUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
-    const budgets = monthLabels.map(() => totalBudget / monthLabels.length);
+    const budgets = monthLabels.map(() => totalBudget );
 
     // Calculate monthly spending trend (compared to previous period)
     const startOfLastMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
