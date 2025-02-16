@@ -27,3 +27,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+NewDashboardGraph.tsx
+NewDashboardGraph1.tsx
