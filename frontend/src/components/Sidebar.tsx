@@ -5,6 +5,7 @@ import {
   PiggyBank,
   Wallet,
   Search,
+  BadgeDollarSign ,
   LogOut, //  Logout Icon
   Target,
 } from "lucide-react";
@@ -16,7 +17,7 @@ const navItems = [
   { icon: PiggyBank, label: "Budgets", path: "/budget" },
   { icon: Target, label: "Savings Plan", path: "/savings" },
   { icon: Wallet, label: "Income", path: "/income" },
-  { icon: Search, label: "Transactions", path: "/transactions" },
+  { icon: BadgeDollarSign , label: "Transactions", path: "/transactions" },
 ];
 
 export function Sidebar() {
