@@ -35,7 +35,7 @@ const Login: React.FC = () => {
 
       // Redirect based on survey completion
       if (response.data.user.survey_completed) {
-        navigate("/dashboard");
+        navigate("/budget");
       } else {
         navigate("/survey");
       }

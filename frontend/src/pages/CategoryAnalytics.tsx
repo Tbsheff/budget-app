@@ -41,11 +41,11 @@ ChartJS.register(
   Filler
 );
 
-const fetchDashboardAnalytics = async (timeRange) => {
+const fetchCategoryAnalytics = async (categoryId, timeRange, selectedDate) => {
   try {
     const token = localStorage.getItem("token");
-    const { data } = await axios.get(`/api/dashboard`, {
-      params: { timeRange },
+    const { data } = await axios.get(`/api/category/${categoryId}/analytics`, {
+      params: { timeRange, selectedDate },
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
@@ -75,8 +75,8 @@ export default function CategoryAnalytics() {
   const startX = useRef<number | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["dashboardAnalytics", timeRange], // Updated query key
-    queryFn: () => fetchDashboardAnalytics(timeRange),
+    queryKey: ["categoryAnalytics", categoryId, timeRange, currentDate],
+    queryFn: () => fetchCategoryAnalytics(categoryId, timeRange, currentDate),
   });
 
   if (isLoading) return <p>Loading analytics...</p>;
@@ -106,222 +106,222 @@ export default function CategoryAnalytics() {
     });
   };
 
-    const formatMonthYear = (date: Date) => {
-      return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-    };
-  
-    if (!spendingTrends || !spendingTrends.labels || !spendingTrends.data || !spendingTrends.budget) {
-      console.error("🚨 Missing spendingTrends data!", spendingTrends);
-    }
-  
-    const timeRangeButtons: { label: string; value: TimeRange }[] = [
-      { label: "3 Months", value: "3M" },
-      { label: "6 Months", value: "6M" },
-      { label: "1 Year", value: "1Y" },
-      { label: "All Time", value: "ALL" },
-    ];
-  
-    const monthlyChanges = spendingTrends.changes;
-  
-    const handleTouchStart = (e: React.TouchEvent) => {
-      startX.current = e.touches[0].clientX;
-    };
-  
-    const handleTouchMove = (e: React.TouchEvent) => {
-      if (!startX.current) return;
-  
-      const currentX = e.touches[0].clientX;
-      const diff = startX.current - currentX;
-  
-      if (Math.abs(diff) > 50) {
-        setActiveView(diff > 0 ? "line" : "bar");
-        startX.current = null;
-      }
-    };
-  
-    const handleTouchEnd = () => {
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  };
+
+  if (!spendingTrends || !spendingTrends.labels || !spendingTrends.data || !spendingTrends.budget) {
+    console.error("🚨 Missing spendingTrends data!", spendingTrends);
+  }
+
+  const timeRangeButtons: { label: string; value: TimeRange }[] = [
+    { label: "3 Months", value: "3M" },
+    { label: "6 Months", value: "6M" },
+    { label: "1 Year", value: "1Y" },
+    { label: "All Time", value: "ALL" },
+  ];
+
+  const monthlyChanges = spendingTrends.changes;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!startX.current) return;
+
+    const currentX = e.touches[0].clientX;
+    const diff = startX.current - currentX;
+
+    if (Math.abs(diff) > 50) {
+      setActiveView(diff > 0 ? "line" : "bar");
       startX.current = null;
-    };
-  
-    const lineData =
-      spendingTrends && Array.isArray(spendingTrends.labels) && spendingTrends.labels.length > 0
-        ? {
-            labels: spendingTrends.labels,
-            datasets: [
-              {
-                label: "Monthly Expenses",
-                data: Array.isArray(spendingTrends.data) ? spendingTrends.data : [],
-                borderColor: "rgb(99, 102, 241)",
-                backgroundColor: "rgba(99, 102, 241, 0.1)",
-                tension: 0.4,
-                fill: true,
-              },
-              {
-                label: "Budget",
-                data: Array.isArray(spendingTrends.budget) ? spendingTrends.budget : [],
-                borderColor: "rgb(156, 163, 175)",
-                borderDash: [5, 5],
-                tension: 0,
-                fill: false,
-              },
-            ],
-          }
-        : null;
-  
-    const barData = {
-      labels: spendingTrends.labels,
-      datasets: [
-        {
-          data: spendingTrends.data,
-          label: "Monthly Expenses",
-          backgroundColor: "rgba(99, 102, 241, 0.8)",
-          borderColor: "rgb(99, 102, 241)",
-          borderWidth: 1,
-          borderRadius: 8,
-          barPercentage: 0.9,
-          categoryPercentage: 0.9,
-        },
-      ],
-    };
-  
-    const lineOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top" as const,
-        },
-        title: {
-          display: false,
-        },
-        tooltip: {
-          callbacks: {
-            title: (tooltipItems: TooltipItem<"line">[]) => {
-              if (!tooltipItems.length) return "";
-              const index = tooltipItems[0].dataIndex;
-  
-              // Use full date labels for parsing
-              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
-  
-              if (!fullDateLabel) return "Unknown Date";
-  
-              try {
-                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
-              } catch (error) {
-                console.error("Tooltip Date Parse Error:", error);
-                return fullDateLabel;
-              }
-            },
-            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-        },
-        y: {
-          beginAtZero: true,
-          suggestedMax: Math.max(...spendingTrends.data) * 1.1, // Adds 20% extra space above the highest bar
-          ticks: {
-            callback: (value: number) => `$${value.toFixed(2)}`,
-          },
-          grid: {
-            display: false,
-          },
-        },
-      },
-      animation: {
-        duration: 500,
-      },
-    };
-  
-    const barOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top" as const,
-        },
-        tooltip: {
-          callbacks: {
-            title: (tooltipItems: TooltipItem<"bar">[]) => {
-              if (!tooltipItems.length) return "";
-              const index = tooltipItems[0].dataIndex;
-  
-              // Use full date labels for parsing
-              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
-  
-              if (!fullDateLabel) return "Unknown Date";
-  
-              try {
-                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
-              } catch (error) {
-                console.error("Tooltip Date Parse Error:", error);
-                return fullDateLabel;
-              }
-            },
-            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            padding: 10, // Add padding to prevent overlap with bar labels
-            font: {
-              size: 12,
-            },
-          },
-        },
-        y: {
-          display: false,
-          suggestedMax: Math.max(...spendingTrends.data) * 1.1,
-        },
-      },
-      animation: {
-        onComplete: function (animation: { chart: ChartJS }) {
-          const chart = animation.chart;
-          const ctx = chart.ctx;
-          const dataset = chart.data.datasets[0];
-          const meta = chart.getDatasetMeta(0);
-  
-          ctx.save();
-          ctx.font = "12px Inter";
-          ctx.textAlign = "center";
-  
-          // Draw monthly amounts and changes
-          dataset.data.forEach((value: number, index: number) => {
-            const change = monthlyChanges[index];
-            const bar = meta.data[index];
-            const { x, y, width, height } = bar.getProps(["x", "y", "width", "height"]);
-  
-            // Draw monthly amount inside the bar, near the bottom
-            ctx.fillStyle = "#FFFFFF"; // White text for contrast
-            ctx.fillText(`$${value}`, x, y + height - 10); // Position just above x-axis
-  
-            // Draw change amount above the bar (skip first month)
-            if (index > 0) {
-              const formattedChange = `${change >= 0 ? "+" : ""}$${change}`;
-              ctx.fillStyle = change >= 0 ? "#10B981" : "#EF4444";
-              ctx.fillText(formattedChange, x, y - 10);
-            }
-          });
-  
-          ctx.restore();
-        },
-      },
-    };
-  
-    if (!lineData || !Array.isArray(lineData.datasets) || lineData.datasets.length === 0) {
-      console.error("🚨 Invalid lineData detected!", lineData);
-      return <p>Data is not available.</p>;
     }
+  };
+
+  const handleTouchEnd = () => {
+    startX.current = null;
+  };
+
+  const lineData =
+    spendingTrends && Array.isArray(spendingTrends.labels) && spendingTrends.labels.length > 0
+      ? {
+          labels: spendingTrends.labels,
+          datasets: [
+            {
+              label: "Monthly Expenses",
+              data: Array.isArray(spendingTrends.data) ? spendingTrends.data : [],
+              borderColor: "rgb(99, 102, 241)",
+              backgroundColor: "rgba(99, 102, 241, 0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Budget",
+              data: Array.isArray(spendingTrends.budget) ? spendingTrends.budget : [],
+              borderColor: "rgb(156, 163, 175)",
+              borderDash: [5, 5],
+              tension: 0,
+              fill: false,
+            },
+          ],
+        }
+      : null;
+
+  const barData = {
+    labels: spendingTrends.labels,
+    datasets: [
+      {
+        data: spendingTrends.data,
+        label: "Monthly Expenses",
+        backgroundColor: "rgba(99, 102, 241, 0.8)",
+        borderColor: "rgb(99, 102, 241)",
+        borderWidth: 1,
+        borderRadius: 8,
+        barPercentage: 0.9,
+        categoryPercentage: 0.9,
+      },
+    ],
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          title: (tooltipItems: TooltipItem<"line">[]) => {
+            if (!tooltipItems.length) return "";
+            const index = tooltipItems[0].dataIndex;
+
+            // Use full date labels for parsing
+            const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+
+            if (!fullDateLabel) return "Unknown Date";
+
+            try {
+              return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+            } catch (error) {
+              console.error("Tooltip Date Parse Error:", error);
+              return fullDateLabel;
+            }
+          },
+          label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        suggestedMax: Math.max(...spendingTrends.data) * 1.1, // Adds 20% extra space above the highest bar
+        ticks: {
+          callback: (value: number) => `$${value.toFixed(2)}`,
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+    animation: {
+      duration: 500,
+    },
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      tooltip: {
+        callbacks: {
+          title: (tooltipItems: TooltipItem<"bar">[]) => {
+            if (!tooltipItems.length) return "";
+            const index = tooltipItems[0].dataIndex;
+
+            // Use full date labels for parsing
+            const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+
+            if (!fullDateLabel) return "Unknown Date";
+
+            try {
+              return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+            } catch (error) {
+              console.error("Tooltip Date Parse Error:", error);
+              return fullDateLabel;
+            }
+          },
+          label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          padding: 10, // Add padding to prevent overlap with bar labels
+          font: {
+            size: 12,
+          },
+        },
+      },
+      y: {
+        display: false,
+        suggestedMax: Math.max(...spendingTrends.data) * 1.1,
+      },
+    },
+    animation: {
+      onComplete: function (animation: { chart: ChartJS }) {
+        const chart = animation.chart;
+        const ctx = chart.ctx;
+        const dataset = chart.data.datasets[0];
+        const meta = chart.getDatasetMeta(0);
+
+        ctx.save();
+        ctx.font = "12px Inter";
+        ctx.textAlign = "center";
+
+        // Draw monthly amounts and changes
+        dataset.data.forEach((value: number, index: number) => {
+          const change = monthlyChanges[index];
+          const bar = meta.data[index];
+          const { x, y, width, height } = bar.getProps(["x", "y", "width", "height"]);
+
+          // Draw monthly amount inside the bar, near the bottom
+          ctx.fillStyle = "#FFFFFF"; // White text for contrast
+          ctx.fillText(`$${value}`, x, y + height - 10); // Position just above x-axis
+
+          // Draw change amount above the bar (skip first month)
+          if (index > 0) {
+            const formattedChange = `${change >= 0 ? "+" : ""}$${change}`;
+            ctx.fillStyle = change >= 0 ? "#10B981" : "#EF4444";
+            ctx.fillText(formattedChange, x, y - 10);
+          }
+        });
+
+        ctx.restore();
+      },
+    },
+  };
+
+  if (!lineData || !Array.isArray(lineData.datasets) || lineData.datasets.length === 0) {
+    console.error("🚨 Invalid lineData detected!", lineData);
+    return <p>Data is not available.</p>;
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -330,9 +330,38 @@ export default function CategoryAnalytics() {
       </div>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-4"></div>
+            <div className="pb-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{category}</h1>
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => navigateMonth("prev")}
+                    className="p-2 hover:bg-white rounded-md"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <span className="px-4 font-medium text-gray-900">
+                    {formatMonthYear(currentDate)}
+                  </span>
+                  <div className="relative w-8 flex items-center justify-center">
+                    {currentDate < new Date(new Date().getFullYear(), new Date().getMonth(), 1) ? (
+                      <button
+                        onClick={() => navigateMonth("next")}
+                        className="p-2 hover:bg-white rounded-md"
+                      >
+                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                      </button>
+                    ) : (
+                      <div className="w-5 h-5" /> // Invisible placeholder to keep spacing
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Summary Cards */}
