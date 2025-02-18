@@ -19,6 +19,7 @@
     "lucide-react": "^0.469.0",
     "morgan": "^1.10.0",
     "mysql2": "^3.12.0",
+    "node-cron": "^3.0.3",
     "sequelize": "^6.37.5"
   },
   "devDependencies": {

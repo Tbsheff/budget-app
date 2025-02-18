@@ -1,5 +1,5 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js"; 
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
 const BudgetHistory = sequelize.define(
   "budget_history",
@@ -44,7 +44,9 @@ const BudgetHistory = sequelize.define(
   {
     tableName: "budget_history",
     timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 
-export default BudgetHistory;
+module.exports = BudgetHistory;
