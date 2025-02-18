@@ -32,6 +32,13 @@ export function CategoryRow({
 }: CategoryRowProps) {
   const navigate = useNavigate();
 
+  console.log(
+    "Category Budget: ",
+    category.name,
+    "Monthly Budget:",
+    category.monthly_budget
+  );  
+
   const IconComponent =
     (LucideIcons[
       category.icon_name as keyof typeof LucideIcons

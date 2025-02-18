@@ -1,7 +1,7 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js"; 
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const BudgetHistory = sequelize.define(
+const Budget_history = sequelize.define(
   "budget_history",
   {
     history_id: {
@@ -29,7 +29,7 @@ const BudgetHistory = sequelize.define(
     rolled_over_amount: {
       type: DataTypes.DECIMAL,
       allowNull: true,
-      defaultValue: 0.00,
+      defaultValue: 0.0,
     },
     created_at: {
       type: DataTypes.DATE,
@@ -44,7 +44,17 @@ const BudgetHistory = sequelize.define(
   {
     tableName: "budget_history",
     timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 
-export default BudgetHistory;
+// 🔹 Require UserCategories AFTER defining Budget_history to prevent circular dependency
+const UserCategories = require("./user_categories");
+
+Budget_history.belongsTo(UserCategories, {
+  foreignKey: "category_id",
+  as: "category",
+});
+
+module.exports = Budget_history;

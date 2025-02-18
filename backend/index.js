@@ -8,6 +8,16 @@ const { sequelize } = require("./config/db"); // Destructure the Sequelize insta
 
 const app = express();
 
+const { createMonthlyBudgetSnapshot } = require("./jobs/createMonthlyBudgetSnapshot");
+
+// Run the budget snapshot check on server startup (in case the scheduled job was missed)
+(async () => {
+  await createMonthlyBudgetSnapshot();
+})();
+
+// Import and run the cron job scheduler
+require("./jobs/cronJobs");
+
 // Test Sequelize Connection
 (async () => {
   try {
