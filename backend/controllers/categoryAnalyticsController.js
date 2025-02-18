@@ -1,5 +1,6 @@
 const Transactions = require("../models/transactions");
 const UserCategories = require("../models/user_categories");
+const BudgetHistory = require("../models/budget_history");
 const { Op, Sequelize } = require("sequelize");
 
 // Fetch analytics data for a specific category
@@ -168,8 +169,35 @@ exports.getCategoryAnalytics = async (req, res) => {
       spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
     }
 
-    // Assign budget values for all labels
-    const budgets = monthLabels.map(() => parseFloat(category.monthly_budget));
+    // Fetch budget for each month in the range
+    const budgets = await Promise.all(
+      [...monthLabels].reverse().map(async (label, index) => {
+        const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - index, 1);
+        const formattedMonthYear = date.toISOString().slice(0, 7); // Format YYYY-MM
+
+        if (
+          date.getFullYear() === new Date().getFullYear() &&
+          date.getMonth() === new Date().getMonth()
+        ) {
+          // ✅ Use user_categories for the current month
+          return parseFloat(category.monthly_budget) || 0;
+        } else {
+          // ✅ Use budget_history for past months
+          const pastBudget = await BudgetHistory.findOne({
+            where: {
+              category_id: categoryId,
+              user_id: userId,
+              month_year: formattedMonthYear,
+            },
+          });
+
+          return pastBudget ? parseFloat(pastBudget.monthly_budget) : 0;
+        }
+      })
+    );
+
+    // ✅ Reverse again to match the correct order of `monthLabels`
+    budgets.reverse();
 
     // Fetch transactions for the category within the selected time range
     const transactions = await Transactions.findAll({
@@ -189,7 +217,7 @@ exports.getCategoryAnalytics = async (req, res) => {
 
     // Compute analytics data
     const totalSpent = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    const budgetAmount = parseFloat(category.monthly_budget);
+    const budgetAmount = budgets[budgets.length - 1] || 0;
     const remainingBudget = budgetAmount - totalSpent;
     const percentageUsed = budgetAmount > 0 ? (totalSpent / budgetAmount) * 100 : 0;
 
@@ -287,7 +315,7 @@ exports.getDashboardData = async (req, res) => {
     const categories = await UserCategories.findAll({
       where: {
         user_id: userId,
-        name: { [Op.notIn]: ["Earnings", "Income"] }
+        name: { [Op.notIn]: ["Earnings", "Income"] },
       },
       attributes: ["category_id", "monthly_budget"],
       raw: true,
@@ -445,24 +473,60 @@ exports.getDashboardData = async (req, res) => {
       spendingTrends = monthLabels.map((label) => spendingMap[label] || 0);
     }
 
-        // Fetch transactions for all categories except "Earnings"
-        const transactions = await Transactions.findAll({
-          where: {
-            user_id: userId,
-            transaction_date: {
-              [Op.between]: [startOfThisMonth, endOfThisMonth], // ✅ Uses selectedDate!
-            },
-          },
-          order: [["transaction_date", "ASC"]],
-          attributes: ["transaction_id", "description", "amount", "transaction_date"], // Ensure the necessary fields are fetched
-        });
+    // Fetch transactions for all categories except "Earnings"
+    const transactions = await Transactions.findAll({
+      where: {
+        user_id: userId,
+        transaction_date: {
+          [Op.between]: [startOfThisMonth, endOfThisMonth], // ✅ Uses selectedDate!
+        },
+      },
+      order: [["transaction_date", "ASC"]],
+      attributes: ["transaction_id", "description", "amount", "transaction_date"], // Ensure the necessary fields are fetched
+    });
 
     // Compute total budget and spending
     const totalSpent = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    const totalBudget = categories.reduce((sum, c) => sum + parseFloat(c.monthly_budget), 0);
+    
+    // Fetch budget for all categories for each month in the range
+    const budgets = await Promise.all(
+      [...monthLabels].reverse().map(async (label, index) => {
+        const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - index, 1);
+        const formattedMonthYear = date.toISOString().slice(0, 7); // Format YYYY-MM
+
+        if (
+          date.getFullYear() === new Date().getFullYear() &&
+          date.getMonth() === new Date().getMonth()
+        ) {
+          // ✅ Use user_categories for the current month
+          const currentTotalBudget = categories.reduce(
+            (sum, c) => sum + parseFloat(c.monthly_budget || 0),
+            0
+          );
+          return currentTotalBudget;
+        } else {
+          // ✅ Use budget_history for past months
+          const pastBudgets = await BudgetHistory.findAll({
+            where: {
+              user_id: userId,
+              month_year: formattedMonthYear,
+            },
+            attributes: ["monthly_budget"],
+            raw: true,
+          });
+
+          return pastBudgets.reduce((sum, b) => sum + parseFloat(b.monthly_budget || 0), 0);
+        }
+      })
+    );
+
+    // ✅ Reverse again to match the correct order of `monthLabels`
+    budgets.reverse();
+
+    // ✅ Use the latest month's budget for calculations
+    const totalBudget = budgets[budgets.length - 1] || 0;
     const remainingBudget = totalBudget - totalSpent;
     const percentageUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
-    const budgets = monthLabels.map(() => totalBudget );
 
     // Calculate monthly spending trend (compared to previous period)
     const startOfLastMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
