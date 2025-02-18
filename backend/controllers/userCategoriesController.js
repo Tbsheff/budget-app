@@ -1,27 +1,71 @@
 const UserCategories = require("../models/user_categories");
+const BudgetHistory = require("../models/budget_history");
 const UserBudgetGroups = require("../models/user_budget_groups");
+const { Op } = require("sequelize");
 
-// Fetch all categories for a specific user and include budget group information
 exports.getUserCategories = async (req, res) => {
   try {
-    const userId = req.user.id; // Get user ID from the request
+    const userId = req.user.id;
+    const { current_date } = req.query; // Expecting YYYY-MM format
 
-    const categories = await UserCategories.findAll({
-      where: { user_id: userId },
-      include: [
-        {
-          model: UserBudgetGroups, // ✅ Correctly join budget groups
-          as: "budget_group",
-          attributes: ["budget_group_id", "group_name"], // ✅ Ensure group name is included
-        },
-      ],
-    });
+    if (!current_date) {
+      return res.status(400).json({ message: "current_date is required." });
+    }
+
+    const currentMonthYear = new Date().toISOString().slice(0, 7); // Format YYYY-MM
+
+    let categories;
+
+    if (current_date < currentMonthYear) {
+      // Fetch past budget data from budget_history
+      categories = await BudgetHistory.findAll({
+        where: { user_id: userId, month_year: current_date },
+        include: [
+          {
+            model: UserCategories,
+            as: "category",
+            include: [
+              {
+                model: UserBudgetGroups,
+                as: "budget_group",
+                attributes: ["budget_group_id", "group_name"],
+              },
+            ],
+          },
+        ],
+      });
+
+      // Transform data to match the user_categories format
+      categories = categories.map((record) => ({
+        category_id: record.category_id,
+        user_id: record.user_id,
+        name: record.category?.name || "Unknown",
+        monthly_budget: parseFloat(record.monthly_budget) || 0,
+        icon_name: record.category?.icon_name || "MoreHorizontal",
+        icon_color: record.category?.icon_color || "text-gray-500",
+        budget_group: record.category?.budget_group || null,
+      }));
+    } else {
+      // Fetch current budget from user_categories
+      categories = await UserCategories.findAll({
+        where: { user_id: userId },
+        include: [
+          {
+            model: UserBudgetGroups,
+            as: "budget_group",
+            attributes: ["budget_group_id", "group_name"],
+          },
+        ],
+      });
+    }
+
     res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
     res.status(500).json({ message: "Error fetching user categories." });
   }
 };
+
 
 
 // Fetch a single category by ID

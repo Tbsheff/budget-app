@@ -65,6 +65,13 @@ const User_categories = sequelize.define(
   }
 );
 
+// const BudgetHistory = require("./budget_history");
+
+// User_categories.hasMany(BudgetHistory, {
+//   foreignKey: "category_id",
+//   as: "budgetHistory",
+// });
+
 User_categories.belongsTo(User_budget_groups, {
     foreignKey: "budget_group_id",
     as: "budget_group",

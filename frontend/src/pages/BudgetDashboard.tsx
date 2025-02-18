@@ -107,7 +107,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {/* Show Summary First on Mobile */}
             <div className="md:hidden">
-              <BudgetSummary />
+              <BudgetSummary currentDate={currentDate} />
             </div>
 
             <div className="md:col-span-2">
@@ -116,7 +116,7 @@ const Dashboard = () => {
 
             {/* Hide Summary on Mobile (already shown above) */}
             <div className="hidden md:block">
-              <BudgetSummary />
+              <BudgetSummary currentDate={currentDate} />
             </div>
           </div>
         </div>
