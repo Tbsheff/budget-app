@@ -345,23 +345,27 @@ export default function CategoryAnalytics() {
     console.error("🚨 Invalid lineData detected!", lineData);
     return <p>Data is not available.</p>;
   }
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <MobileMenu />
-
+  
       <div className="hidden md:block">
         <Sidebar />
       </div>
-      <div className="min-h-screen bg-gray-50 mt-16 md:mt-0 px-4 sm:px-6 lg:px-8 mx-auto max-w-screen-sm md:max-w-7xl">
-        {/* Header */}
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  
+      {/* Main Layout Flex Container */}
+      <div className="min-h-screen bg-gray-50 mt-16 md:mt-0 px-4 sm:px-6 lg:px-8 mx-auto max-w-screen-lg md:max-w-7xl flex flex-col md:flex-row gap-6">
+        
+        {/* Left Side: Summary Cards & Spending Trends */}
+        <div className="flex-1 space-y-8">
+          
+          {/* Dashboard Title */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          </div>
+  
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -384,7 +388,7 @@ export default function CategoryAnalytics() {
                 </p>
               </div>
             </div>
-
+  
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -396,11 +400,10 @@ export default function CategoryAnalytics() {
                 <PieChart className="w-8 h-8 text-green-500" />
               </div>
               <p className="text-sm text-gray-600 mt-4">
-                {remainingBudget > 0 ? "On track" : "Over budget"} for this
-                month
+                {remainingBudget > 0 ? "On track" : "Over budget"} for this month
               </p>
             </div>
-
+  
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -420,76 +423,33 @@ export default function CategoryAnalytics() {
               <p className="text-sm text-gray-600 mt-4">{data.trendLabel}</p>
             </div>
           </div>
-
+  
           {/* Spending Trends Graph */}
-          <div className="bg-white rounded-lg shadow mb-8">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Spending Trends
-                </h2>
-
-                {/* Desktop Time Range Selection */}
-                <div className="hidden md:flex space-x-4">
-                  {timeRangeButtons.map(({ label, value }) => (
-                    <button
-                      key={value}
-                      onClick={() => setTimeRange(value)}
-                      className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-                        timeRange === value
-                          ? "bg-indigo-100 text-indigo-700 font-medium"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Mobile Time Range Dropdown */}
-                <div className="md:hidden w-full sm:w-48">
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Spending Trends
+              </h2>
+  
+              {/* Time Range Selection Buttons */}
+              <div className="hidden md:flex space-x-4">
+                {timeRangeButtons.map(({ label, value }) => (
                   <button
-                    onClick={() => setIsTimeRangeOpen(!isTimeRangeOpen)}
-                    className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 rounded-lg text-gray-700 font-medium text-sm"
+                    key={value}
+                    onClick={() => setTimeRange(value)}
+                    className={`px-4 py-2 rounded-lg transition-colors text-sm ${
+                      timeRange === value
+                        ? "bg-indigo-100 text-indigo-700 font-medium"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
                   >
-                    <span>
-                      {
-                        timeRangeButtons.find((b) => b.value === timeRange)
-                          ?.label
-                      }
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        isTimeRangeOpen ? "transform rotate-180" : ""
-                      }`}
-                    />
+                    {label}
                   </button>
-
-                  {isTimeRangeOpen && (
-                    <div className="absolute center w-40 sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    {timeRangeButtons.map(({ label, value }) => (
-                        <button
-                          key={value}
-                          onClick={() => {
-                            setTimeRange(value);
-                            setIsTimeRangeOpen(false);
-                          }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                            timeRange === value
-                              ? "text-indigo-600 bg-indigo-50"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
             </div>
-
-            {/* Chart Container */}
+  
+            {/* Chart Container (Toggleable Bar and Line Chart) */}
             <div
               ref={chartRef}
               className="relative p-6"
@@ -498,6 +458,7 @@ export default function CategoryAnalytics() {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
+              {/* Bar Chart (Toggles) */}
               <div
                 className={`transition-opacity duration-500 absolute inset-0 ${
                   activeView === "bar" ? "opacity-100 z-10" : "opacity-0 z-0"
@@ -505,6 +466,8 @@ export default function CategoryAnalytics() {
               >
                 <Bar options={barOptions} data={barData} />
               </div>
+  
+              {/* Line Chart (Toggles) */}
               <div
                 className={`transition-opacity duration-500 absolute inset-0 ${
                   activeView === "line" ? "opacity-100 z-10" : "opacity-0 z-0"
@@ -513,7 +476,7 @@ export default function CategoryAnalytics() {
                 <Line options={lineOptions} data={lineData} />
               </div>
             </div>
-
+  
             {/* View Toggle Indicators */}
             <div className="flex justify-center items-center gap-3 py-4">
               <button
@@ -536,8 +499,10 @@ export default function CategoryAnalytics() {
               />
             </div>
           </div>
-
-          {/* Transactions List */}
+        </div>
+  
+        {/* Right Side: Recent Transactions */}
+        <div className="w-full md:w-1/3 flex-shrink-0 mt-32">
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -546,7 +511,7 @@ export default function CategoryAnalytics() {
             </div>
             <div className="divide-y divide-gray-200">
               {transactions.map((t, index) => {
-                const amount = Number(t.amount) || 0; // Ensure it's a number
+                const amount = Number(t.amount) || 0;
                 return (
                   <div
                     key={index}
@@ -557,9 +522,7 @@ export default function CategoryAnalytics() {
                         {t.description}
                       </p>
                       <p className="text-sm text-gray-500">
-                        <p className="text-sm text-gray-500">
-                          {format(parseISO(t.transaction_date), "M/d/yyyy")}
-                        </p>
+                        {format(parseISO(t.transaction_date), "M/d/yyyy")}
                       </p>
                     </div>
                     <p className="font-semibold text-gray-900">
@@ -574,4 +537,5 @@ export default function CategoryAnalytics() {
       </div>
     </div>
   );
+
 }
