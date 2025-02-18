@@ -13,11 +13,11 @@ import { useUser } from "../context/userContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: CreditCard, label: "Spending", path: "/spending" },
+  { icon: CreditCard, label: "Transactions", path: "/spending" },
   { icon: PiggyBank, label: "Budgets", path: "/budget" },
   { icon: Target, label: "Savings Plan", path: "/savings" },
-  { icon: Wallet, label: "Income", path: "/income" },
-  { icon: BadgeDollarSign , label: "Transactions", path: "/transactions" },
+  { icon: Wallet, label: "Add Income", path: "/income" },
+  { icon: BadgeDollarSign , label: "Add Transactions", path: "/transactions" },
 ];
 
 export function Sidebar() {

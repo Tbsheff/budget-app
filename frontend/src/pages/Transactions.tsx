@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MobileMenu } from "@/components/mobilemenu";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 
@@ -267,6 +268,7 @@ const TransactionsPage = () => {
       <div className="hidden md:block">
         <Sidebar />
       </div>
+      <MobileMenu />
 
       <main className="flex-1 p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
