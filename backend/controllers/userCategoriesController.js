@@ -8,9 +8,9 @@ exports.getUserCategories = async (req, res) => {
     const userId = req.user.id;
     const { current_date } = req.query; // Expecting YYYY-MM format
 
-    if (!current_date) {
-      return res.status(400).json({ message: "current_date is required." });
-    }
+    // if (!current_date) {
+    //   return res.status(400).json({ message: "current_date is required." });
+    // }
 
     const currentMonthYear = new Date().toISOString().slice(0, 7); // Format YYYY-MM
 
