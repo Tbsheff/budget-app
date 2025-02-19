@@ -30,3 +30,6 @@ dist-ssr
 *.sw?
 NewDashboardGraph.tsx
 NewDashboardGraph1.tsx
+backend/.env
+backend/.env
+frontend/.env

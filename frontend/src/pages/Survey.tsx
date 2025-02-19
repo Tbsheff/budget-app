@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { ProgressBar } from "../components/Survey/ProgressBar";
-import { NavigationButtons } from "../components/Survey/NavigationButtons";
+import NavigationButtons from "../components/Survey/NavigationButtons";
 import { SurveyForm } from "../components/Survey/SurveyForm";
 import { SurveyHeader } from "../components/Survey/SurveyHeader";
 import { generateBudget } from "../utils/generateBudget";
@@ -63,12 +63,17 @@ const Survey: React.FC = () => {
     }
   };
 
-  const handleNextPage = async () => {
+  const handleNextPage = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (currentPage === TOTAL_PAGES) {
       await handleSubmitSurvey();
     } else {
       setCurrentPage((prev) => prev + 1);
     }
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => prev - 1);
   };
 
   return (
@@ -77,6 +82,7 @@ const Survey: React.FC = () => {
         <SurveyHeader />
         <div className="bg-white rounded-xl shadow-lg p-8">
           <ProgressBar currentPage={currentPage} totalPages={TOTAL_PAGES} />
+
           <SurveyForm
             currentPage={currentPage}
             formData={formData}
@@ -94,11 +100,6 @@ const Survey: React.FC = () => {
               </pre>
             </div>
           )}
-          <NavigationButtons
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
-            handleNextPage={handleNextPage}
-          />
         </div>
       </div>
     </div>

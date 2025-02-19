@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationButtons } from "./NavigationButtons";
+import NavigationButtons from "./NavigationButtons";
 import { SurveyPages } from "./SurveyPages";
 import { SurveyData } from "../../types";
 

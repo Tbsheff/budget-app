@@ -1,42 +1,47 @@
+import React from "react";
+
 interface NavigationButtonsProps {
   currentPage: number;
   totalPages: number;
-  onPrevious: () => void;
-  onNext: () => void;
-  isValid: boolean;
+  handleNextPage: (e: React.FormEvent) => Promise<void>;
+  handlePreviousPage: () => void;
 }
 
-export function NavigationButtons({
+const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   currentPage,
   totalPages,
-  onPrevious,
-  onNext,
-  isValid
-}: NavigationButtonsProps) {
+  handleNextPage,
+  handlePreviousPage,
+}) => {
   return (
-    <div className="flex justify-between mt-8">
-      <button
-        onClick={onPrevious}
-        disabled={currentPage === 1}
-        className={`px-6 py-2 rounded-lg font-medium transition-colors
-          ${currentPage === 1
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-      >
-        Previous
-      </button>
-      <button
-        onClick={onNext}
-        disabled={!isValid}
-        className={`px-6 py-2 rounded-lg font-medium transition-colors
-          ${!isValid
-            ? 'bg-blue-200 text-blue-400 cursor-not-allowed'
-            : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-      >
-        {currentPage === totalPages ? 'Submit' : 'Next'}
-      </button>
+    <div className="flex justify-between mt-4">
+      {currentPage > 1 && (
+        <button
+          type="button"
+          className="px-4 py-2 bg-gray-200 rounded"
+          onClick={handlePreviousPage}
+        >
+          Previous
+        </button>
+      )}
+      {currentPage < totalPages && (
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      )}
+      {currentPage === totalPages && (
+        <button
+          type="submit"
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          Submit
+        </button>
+      )}
     </div>
   );
-}
+};
+
+export default NavigationButtons;
