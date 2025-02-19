@@ -55,42 +55,36 @@ export function CategoryRow({
   return (
     <>
       <div
-        className="flex flex-col items-start justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none cursor-pointer"
+        className="grid grid-cols-[1fr_0.5fr_0.5fr] gap-2 items-center px-2 py-2 border-b cursor-pointer"
         onClick={handleRowClick}
       >
-        <div className="flex items-center gap-2 w-full">
-          {/* Left Section: Icon and Category Name */}
-          <div className="flex items-center flex-1">
-            <IconPicker
-              categoryId={category.category_id}
-              value={
-                (LucideIcons[
-                  category.icon_name as keyof typeof LucideIcons
-                ] as LucideIcons.LucideIcon) ||
-                (LucideIcons.MoreHorizontal as LucideIcons.LucideIcon)
-              }
-              onChange={(icon) => onIconChange(category.category_id, icon.name)}
-              color={category.icon_color}
-              onClick={stopPropagation} // Pass stopPropagation to IconPicker
-            />
-            <span className="font-medium text-sm md:text-base ml-3">{category.name}</span>
-          </div>
-
-          {/* Right Section: Budget, Spent Amount */}
-          <div className="flex items-center space-x-4 md:space-x-8">
-            <RenderAmount
-              category={category}
-              currentDate={currentDate}
-              onBudgetUpdate={onBudgetUpdate}
-              onClick={stopPropagation} // Pass stopPropagation to RenderAmount
-            />
-            <span className={`${amountTextColor} text-sm md:text-base`} onClick={stopPropagation}>
-              ${spentAmount.toFixed(2)}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <IconPicker
+            categoryId={category.category_id}
+            value={
+              (LucideIcons[
+                category.icon_name as keyof typeof LucideIcons
+              ] as LucideIcons.LucideIcon) || (LucideIcons.MoreHorizontal as LucideIcons.LucideIcon)
+            }
+            onChange={(icon) => onIconChange(category.category_id, icon.name)}
+            color={category.icon_color}
+            onClick={stopPropagation} // Pass stopPropagation to IconPicker
+          />
+          <span className="text-sm">{category.name}</span>
         </div>
-        <BudgetProgress actual={spentAmount} budgeted={budgetAmount} />
+        <span className="text-center text-sm">
+          <RenderAmount
+            category={category}
+            currentDate={currentDate}
+            onBudgetUpdate={onBudgetUpdate}
+            onClick={stopPropagation} // Pass stopPropagation to RenderAmount
+          />
+        </span>
+        <span className={`text-right text-sm ${amountTextColor}`} onClick={stopPropagation}>
+          ${spentAmount.toFixed(2)}
+        </span>
       </div>
+      <BudgetProgress actual={spentAmount} budgeted={budgetAmount} />
     </>
   );
 }
