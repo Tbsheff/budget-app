@@ -108,3 +108,20 @@ iframe.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate {
   width: 0 !important;
   pointer-events: none !important;
 }
+
+
+.colorblind-deuteranopia {
+  filter: hue-rotate(30deg) contrast(1.2);
+}
+
+.colorblind-protanopia {
+  filter: hue-rotate(-30deg) contrast(1.2);
+}
+
+.colorblind-tritanopia {
+  filter: hue-rotate(180deg) contrast(1.2);
+}
+
+.colorblind-grayscale {
+  filter: grayscale(100%) contrast(1.2);
+}

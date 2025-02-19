@@ -416,8 +416,8 @@ const TransactionsPage = () => {
                       variant="outline"
                       className="mx-auto"
                       onClick={handleFileUpload}
-                      aria-label="Analyze a receipt using the camera" // ✅ Screen reader-friendly
-                      title="Analyze a receipt using the camera" // ✅ Tooltip for sighted users
+                      aria-label="Analyze a receipt using the camera"
+                      title="Analyze a receipt using the camera"
                     >
                       Analyze Receipt
                       <Camera className="ml-2 h-4 w-4" aria-hidden="true" />
@@ -438,10 +438,23 @@ const TransactionsPage = () => {
                   className="w-full animate-fade-in"
                   onClick={handleFileUpload}
                   disabled={isUploading}
+                  aria-label={
+                    isUploading
+                      ? "Processing receipt, please wait"
+                      : "Submit a receipt"
+                  }
+                  title={
+                    isUploading
+                      ? "Processing receipt, please wait"
+                      : "Submit Receipt"
+                  }
                 >
                   {isUploading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2
+                        className="mr-2 h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
                       Processing Receipt...
                     </>
                   ) : (
@@ -543,10 +556,19 @@ const TransactionsPage = () => {
             <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
+              aria-label="Cancel and close the confirmation dialog" 
+              title="Cancel and close the confirmation dialog" 
             >
               Cancel
             </Button>
-            <Button onClick={handleConfirmTransaction}>Save Transaction</Button>
+
+            <Button
+              onClick={handleConfirmTransaction}
+              aria-label="Save the transaction" 
+              title="Save the transaction" 
+            >
+              Save Transaction
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
