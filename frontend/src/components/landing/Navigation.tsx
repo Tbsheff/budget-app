@@ -23,7 +23,7 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* <div className="hidden md:flex items-center gap-8">
             <a
               href="#features"
               className="text-neutral-600 hover:text-primary transition-colors font-medium"
@@ -42,7 +42,7 @@ const Navigation = () => {
             >
               About
             </a>
-          </div>
+          </div> */}
 
           <div className="hidden md:flex items-center gap-4">
             <button
@@ -51,7 +51,7 @@ const Navigation = () => {
             >
               Log in
             </button>
-            <button className="button-secondary">Start Free Trial</button>
+            <button className="button-secondary">Create Account</button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -73,7 +73,7 @@ const Navigation = () => {
           transition={{ duration: 0.2 }}
         >
           <div className="container-padding py-4 flex flex-col gap-4">
-            <a
+            {/* <a
               href="#features"
               className="text-neutral-600 hover:text-primary transition-colors font-medium px-4 py-2 hover:bg-neutral-200/50 rounded-lg"
             >
@@ -90,14 +90,12 @@ const Navigation = () => {
               className="text-neutral-600 hover:text-primary transition-colors font-medium px-4 py-2 hover:bg-neutral-200/50 rounded-lg"
             >
               About
-            </a>
+            </a> */}
             <hr className="border-neutral-200" />
             <button className="text-primary hover:text-primary/80 transition-colors font-medium px-4 py-2 hover:bg-neutral-200/50 rounded-lg text-left">
               Log in
             </button>
-            <button className="button-secondary w-full">
-              Start Free Trial
-            </button>
+            <button className="button-secondary w-full">Create Account</button>
           </div>
         </motion.div>
       )}

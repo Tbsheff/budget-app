@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/landing/Navigation";
 import axios from "axios";
+import { useToast } from "../components/ui/use-toast";
+import { supabase } from "../config/supabaseClient"; // Import Supabase instance
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +15,13 @@ const Register: React.FC = () => {
   const [passwordError, setPasswordError] = useState("");
 
   const navigate = useNavigate();
+  const { toast, dismiss } = useToast();
+
+  useEffect(() => {
+    return () => {
+      dismiss(); // Dismiss all active toasts when component unmounts
+    };
+  }, [dismiss]);
 
   const validatePassword = (password: string) => {
     const lengthCheck = password.length >= 12;
@@ -21,8 +30,14 @@ const Register: React.FC = () => {
     const numberCheck = /[0-9]/.test(password);
     const specialCharCheck = (password.match(/[!@#$%^&*]/g) || []).length >= 2;
 
-    if (!lengthCheck || !uppercaseCheck || !lowercaseCheck || !numberCheck || !specialCharCheck) {
-      return "Password must contain at least 8 characters, including uppercase, lowercase, a number, and a special character.";
+    if (
+      !lengthCheck ||
+      !uppercaseCheck ||
+      !lowercaseCheck ||
+      !numberCheck ||
+      !specialCharCheck
+    ) {
+      return "Password must contain at least 12 characters, including uppercase, lowercase, a number, and two special characters.";
     }
     return "";
   };
@@ -39,11 +54,36 @@ const Register: React.FC = () => {
 
     if (passwordError) {
       setError("Please fix password requirements before submitting.");
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description:
+          "Please ensure your password meets the security requirements.",
+      });
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "The passwords entered do not match. Please try again.",
+      });
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message,
+      });
       return;
     }
 
@@ -52,12 +92,26 @@ const Register: React.FC = () => {
         first_name: firstName,
         last_name: lastName,
         email,
-        password,
+        password, // Ensure password is included in the request payload
+        supabase_id: data.user?.id, // Store UID instead of handling passwords
       });
-      alert("Registration successful! Please login.");
-      navigate("/login");
+
+      toast({
+        variant: "default",
+        title: "Registration Successful",
+        description:
+          "Your account has been created. Redirecting to email confirmation...",
+      });
+
+      setTimeout(() => {
+        navigate("/email-confirmation");
+      }, 2000);
     } catch (err) {
-      alert(err.response?.data?.message || "Error registering user");
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: err.response?.data?.message || "Error registering user",
+      });
     }
   };
 
@@ -69,7 +123,10 @@ const Register: React.FC = () => {
           <h2 className="text-2xl font-bold text-center">Register</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 First Name
               </label>
               <input
@@ -83,7 +140,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Last Name
               </label>
               <input
@@ -97,7 +157,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -111,7 +174,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -128,7 +194,10 @@ const Register: React.FC = () => {
               )}
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -142,8 +211,9 @@ const Register: React.FC = () => {
               />
             </div>
             <p className="mt-1 text-xs italic text-gray-500">
-                *Passwords must contain at least 12 characters, including uppercase, lowercase, a number, and two special characters
-              </p>
+              *Passwords must contain at least 12 characters, including
+              uppercase, lowercase, a number, and two special characters
+            </p>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div>
               <button

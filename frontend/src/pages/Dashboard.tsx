@@ -1,128 +1,525 @@
-import { ChevronLeft, ChevronRight, HelpCircle, Menu } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { format, parseISO } from "date-fns";
+import { useSearchParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  DollarSign,
+  PieChart,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Bar, Line } from "react-chartjs-2";
+import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
-import { BudgetCategories } from "@/components/BudgetCategories";
-import { BudgetSummary } from "@/components/BudgetSummary";
-import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  TooltipItem,
+} from "chart.js";
 
-const Dashboard = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date()); // Added state to manage the current date
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
-  // Handlers for navigating months
-  const handleDateChange = (direction: "prev" | "next") => {
+const fetchDashboardAnalytics = async (timeRange) => {
+  try {
+    const token = localStorage.getItem("token");
+    const { data } = await axios.get(`/api/dashboard`, {
+      params: { timeRange },
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+type TimeRange = "3M" | "6M" | "1Y" | "ALL";
+type ViewType = "bar" | "line";
+
+export default function CategoryAnalytics() {
+  const { categoryId } = useParams();
+  const [timeRange, setTimeRange] = useState<TimeRange>("3M");
+  const [searchParams] = useSearchParams();
+  const initialDate = searchParams.get("selectedDate")
+    ? new Date(searchParams.get("selectedDate")!)
+    : new Date();
+
+  const [currentDate, setCurrentDate] = useState(initialDate);
+
+  const [isTimeRangeOpen, setIsTimeRangeOpen] = useState(false);
+  const [activeView, setActiveView] = useState<ViewType>("bar");
+  const chartRef = useRef<HTMLDivElement>(null);
+  const startX = useRef<number | null>(null);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["dashboardAnalytics", timeRange], // Updated query key
+    queryFn: () => fetchDashboardAnalytics(timeRange),
+  });
+
+  if (isLoading) return <p>Loading analytics...</p>;
+  if (error) return <p>Error loading data</p>;
+
+  const {
+    category,
+    totalSpent,
+    budgetAmount,
+    remainingBudget,
+    percentageUsed,
+    monthlyTrend,
+    transactions,
+    trendLabel,
+    spendingTrends,
+  } = data || {};
+
+  const navigateMonth = (direction: "prev" | "next") => {
     setCurrentDate((prevDate) => {
       const newDate = new Date(prevDate);
-      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1));
+      if (direction === "prev") {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
       return newDate;
     });
   };
 
+    const formatMonthYear = (date: Date) => {
+      return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+  
+    if (!spendingTrends || !spendingTrends.labels || !spendingTrends.data || !spendingTrends.budget) {
+      console.error("🚨 Missing spendingTrends data!", spendingTrends);
+    }
+  
+    const timeRangeButtons: { label: string; value: TimeRange }[] = [
+      { label: "3 Months", value: "3M" },
+      { label: "6 Months", value: "6M" },
+      { label: "1 Year", value: "1Y" },
+      { label: "All Time", value: "ALL" },
+    ];
+  
+    const monthlyChanges = spendingTrends.changes;
+  
+    const handleTouchStart = (e: React.TouchEvent) => {
+      startX.current = e.touches[0].clientX;
+    };
+  
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (!startX.current) return;
+  
+      const currentX = e.touches[0].clientX;
+      const diff = startX.current - currentX;
+  
+      if (Math.abs(diff) > 50) {
+        setActiveView(diff > 0 ? "line" : "bar");
+        startX.current = null;
+      }
+    };
+  
+    const handleTouchEnd = () => {
+      startX.current = null;
+    };
+  
+    const lineData =
+      spendingTrends && Array.isArray(spendingTrends.labels) && spendingTrends.labels.length > 0
+        ? {
+            labels: spendingTrends.labels,
+            datasets: [
+              {
+                label: "Monthly Expenses",
+                data: Array.isArray(spendingTrends.data) ? spendingTrends.data : [],
+                borderColor: "rgb(99, 102, 241)",
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Budget",
+                data: Array.isArray(spendingTrends.budget) ? spendingTrends.budget : [],
+                borderColor: "rgb(156, 163, 175)",
+                borderDash: [5, 5],
+                tension: 0,
+                fill: false,
+              },
+            ],
+          }
+        : null;
+  
+    const barData = {
+      labels: spendingTrends.labels,
+      datasets: [
+        {
+          data: spendingTrends.data,
+          label: "Monthly Expenses",
+          backgroundColor: "rgba(99, 102, 241, 0.8)",
+          borderColor: "rgb(99, 102, 241)",
+          borderWidth: 1,
+          borderRadius: 8,
+          barPercentage: 0.9,
+          categoryPercentage: 0.9,
+        },
+      ],
+    };
+  
+    const lineOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top" as const,
+        },
+        title: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<"line">[]) => {
+              if (!tooltipItems.length) return "";
+              const index = tooltipItems[0].dataIndex;
+  
+              // Use full date labels for parsing
+              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+  
+              if (!fullDateLabel) return "Unknown Date";
+  
+              try {
+                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+              } catch (error) {
+                console.error("Tooltip Date Parse Error:", error);
+                return fullDateLabel;
+              }
+            },
+            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          suggestedMax: Math.max(...spendingTrends.data) * 1.1, // Adds 20% extra space above the highest bar
+          ticks: {
+            callback: (value: number) => `$${value.toFixed(2)}`,
+          },
+          grid: {
+            display: false,
+          },
+        },
+      },
+      animation: {
+        duration: 500,
+      },
+    };
+  
+    const barOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top" as const,
+        },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<"bar">[]) => {
+              if (!tooltipItems.length) return "";
+              const index = tooltipItems[0].dataIndex;
+  
+              // Use full date labels for parsing
+              const fullDateLabel = spendingTrends.fullDateLabels?.[index];
+  
+              if (!fullDateLabel) return "Unknown Date";
+  
+              try {
+                return format(parseISO(fullDateLabel), "MMM yyyy"); // Example: "Jan 2024"
+              } catch (error) {
+                console.error("Tooltip Date Parse Error:", error);
+                return fullDateLabel;
+              }
+            },
+            label: (context: { parsed: { y: number } }) => `$${context.parsed.y.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            padding: 10, // Add padding to prevent overlap with bar labels
+            font: {
+              size: 12,
+            },
+          },
+        },
+        y: {
+          display: false,
+          suggestedMax: Math.max(...spendingTrends.data) * 1.1,
+        },
+      },
+      animation: {
+        onComplete: function (animation: { chart: ChartJS }) {
+          const chart = animation.chart;
+          const ctx = chart.ctx;
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+  
+          ctx.save();
+          ctx.font = "12px Inter";
+          ctx.textAlign = "center";
+  
+          // Draw monthly amounts and changes
+          dataset.data.forEach((value: number, index: number) => {
+            const change = monthlyChanges[index];
+            const bar = meta.data[index];
+            const { x, y, width, height } = bar.getProps(["x", "y", "width", "height"]);
+  
+            // Draw monthly amount inside the bar, near the bottom
+            ctx.fillStyle = "#FFFFFF"; // White text for contrast
+            ctx.fillText(`$${value}`, x, y + height - 10); // Position just above x-axis
+  
+            // Draw change amount above the bar (skip first month)
+            if (index > 0) {
+              const formattedChange = `${change >= 0 ? "+" : ""}$${change}`;
+              ctx.fillStyle = change >= 0 ? "#10B981" : "#EF4444";
+              ctx.fillText(formattedChange, x, y - 10);
+            }
+          });
+  
+          ctx.restore();
+        },
+      },
+    };
+  
+    if (!lineData || !Array.isArray(lineData.datasets) || lineData.datasets.length === 0) {
+      console.error("🚨 Invalid lineData detected!", lineData);
+      return <p>Data is not available.</p>;
+    }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
       </div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
 
-      {/* Mobile Menu */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Sheet>
-            <SheetTrigger>
-              <Menu className="w-6 h-6 text-gray-600" />
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
-          <h1 className="text-lg font-semibold">{`${currentDate.toLocaleString("default", {
-            month: "long",
-          })} ${currentDate.getFullYear()} Budget`}</h1>
-          <HelpCircle className="w-6 h-6 text-gray-500" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Spent</p>
+                  <p className="text-2xl font-bold text-gray-900">${totalSpent.toFixed(2)}</p>
+                </div>
+                <DollarSign className="w-8 h-8 text-purple-500" />
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-purple-500 rounded-full h-2"
+                    style={{ width: `${percentageUsed}%` }}
+                  />
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  {percentageUsed.toFixed(1)}% of budget used
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Remaining Budget</p>
+                  <p className="text-2xl font-bold text-gray-900">${remainingBudget.toFixed(2)}</p>
+                </div>
+                <PieChart className="w-8 h-8 text-green-500" />
+              </div>
+              <p className="text-sm text-gray-600 mt-4">
+                {remainingBudget > 0 ? "On track" : "Over budget"} for this month
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Monthly Trend</p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      monthlyTrend <= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {monthlyTrend > 0
+                      ? `+${monthlyTrend.toFixed(1)}%`
+                      : `${monthlyTrend.toFixed(1)}%`}
+                  </p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-blue-500" />
+              </div>
+              <p className="text-sm text-gray-600 mt-4">{data.trendLabel}</p>
+            </div>
+          </div>
+
+          {/* Spending Trends Graph */}
+          <div className="bg-white rounded-lg shadow mb-8">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h2 className="text-xl font-semibold text-gray-900">Spending Trends</h2>
+
+                {/* Desktop Time Range Selection */}
+                <div className="hidden md:flex space-x-4">
+                  {timeRangeButtons.map(({ label, value }) => (
+                    <button
+                      key={value}
+                      onClick={() => setTimeRange(value)}
+                      className={`px-4 py-2 rounded-lg transition-colors text-sm ${
+                        timeRange === value
+                          ? "bg-indigo-100 text-indigo-700 font-medium"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile Time Range Dropdown */}
+                <div className="md:hidden w-full sm:w-48">
+                  <button
+                    onClick={() => setIsTimeRangeOpen(!isTimeRangeOpen)}
+                    className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 rounded-lg text-gray-700 font-medium text-sm"
+                  >
+                    <span>{timeRangeButtons.find((b) => b.value === timeRange)?.label}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${
+                        isTimeRangeOpen ? "transform rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isTimeRangeOpen && (
+                    <div className="absolute right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                      {timeRangeButtons.map(({ label, value }) => (
+                        <button
+                          key={value}
+                          onClick={() => {
+                            setTimeRange(value);
+                            setIsTimeRangeOpen(false);
+                          }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                            timeRange === value ? "text-indigo-600 bg-indigo-50" : "text-gray-700"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Chart Container */}
+            <div
+              ref={chartRef}
+              className="relative p-6"
+              style={{ height: "400px" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                className={`transition-opacity duration-500 absolute inset-0 ${
+                  activeView === "bar" ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <Bar options={barOptions} data={barData} />
+              </div>
+              <div
+                className={`transition-opacity duration-500 absolute inset-0 ${
+                  activeView === "line" ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <Line options={lineOptions} data={lineData} />
+              </div>
+            </div>
+
+            {/* View Toggle Indicators */}
+            <div className="flex justify-center items-center gap-3 py-4">
+              <button
+                onClick={() => setActiveView("bar")}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  activeView === "bar" ? "bg-indigo-600" : "border-2 border-indigo-600"
+                }`}
+                aria-label="Show bar chart"
+              />
+              <button
+                onClick={() => setActiveView("line")}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  activeView === "line" ? "bg-indigo-600" : "border-2 border-indigo-600"
+                }`}
+                aria-label="Show line chart"
+              />
+            </div>
+          </div>
+
+          {/* Transactions List */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Transactions</h2>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {transactions.map((t, index) => {
+                const amount = Number(t.amount) || 0; // Ensure it's a number
+                return (
+                  <div key={index} className="p-6 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{t.description}</p>
+                      <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500">
+                          {format(parseISO(t.transaction_date), "M/d/yyyy")}
+                        </p>
+                      </p>
+                    </div>
+                    <p className="font-semibold text-gray-900">${amount.toFixed(2)}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
-
-      <main className="flex-1 p-4 md:p-8 w-full md:mt-0 mt-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Desktop Header */}
-          <div className="hidden md:flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">{`${currentDate.toLocaleString("default", {
-              month: "long",
-            })} ${currentDate.getFullYear()} Budget`}</h1>
-
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => handleDateChange("prev")}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                {new Intl.DateTimeFormat("default", {
-                  month: "long", // Use "long" for full month names or "short" if you want abbreviations.
-                  year: "numeric", // Display the full year
-                }).format(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-              </button>
-
-              <button
-                onClick={() => handleDateChange("next")}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
-              >
-                {new Intl.DateTimeFormat("default", {
-                  month: "long", // Full month names
-                  year: "numeric", // Include year
-                }).format(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-
-              <button className="text-gray-500 hover:text-gray-700">
-                <HelpCircle className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Month Navigation */}
-          <div className="md:hidden flex justify-between items-center mb-6 mt-2">
-            <button
-              onClick={() => handleDateChange("prev")}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
-            >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toLocaleString(
-                "default",
-                { month: "short" }
-              )}`}
-            </button>
-            <button
-              onClick={() => handleDateChange("next")}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
-            >
-              {`${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1).toLocaleString(
-                "default",
-                { month: "short" }
-              )}`}
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
-            {/* Show Summary First on Mobile */}
-            <div className="md:hidden">
-              <BudgetSummary />
-            </div>
-
-            <div className="md:col-span-2">
-              <BudgetCategories currentDate={currentDate} />
-            </div>
-
-            {/* Hide Summary on Mobile (already shown above) */}
-            <div className="hidden md:block">
-              <BudgetSummary />
-            </div>
-          </div>
-        </div>
-      </main>
     </div>
   );
-};
-
-export default Dashboard;
+}

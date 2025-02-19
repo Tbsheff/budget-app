@@ -24,6 +24,10 @@ const Default_categories = sequelize.define(
       allowNull: false,
       defaultValue: "text-gray-500", // Default color if none is assigned
     },
+    budget_group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     tableName: "default_categories",

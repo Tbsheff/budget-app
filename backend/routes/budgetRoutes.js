@@ -1,18 +1,11 @@
-import express from "express";
-import BudgetHistory from "../models/budget_history.js"; // Only used in backend
-
+const express = require('express');
 const router = express.Router();
+const auth = require("../middleware/authMiddleware");
+const { saveBudget } = require("../controllers/budgetGroupController");
+const { getUserCategories, getBudgetSummary } = require("../controllers/budgetController");
 
-// API endpoint to save budget data
-router.post("/budget-history", async (req, res) => {
-  try {
-    const { budgetEntries } = req.body;
-    const data = await BudgetHistory.bulkCreate(budgetEntries);
-    res.status(201).json(data);
-  } catch (error) {
-    console.error("Error saving budget:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+router.post("/save", auth, saveBudget);
+router.get("/categories", auth, getUserCategories);
+router.get("/budget-summary", auth, getBudgetSummary);
 
-export default router;
+module.exports = router;

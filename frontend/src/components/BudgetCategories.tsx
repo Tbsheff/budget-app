@@ -2,6 +2,16 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useToast } from "./ui/use-toast";
 import { CategorySection } from "./Categories/CategorySection";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface Category {
   category_id: number;
@@ -34,55 +44,63 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
   const [aggregatedTotals, setAggregatedTotals] = useState<Record<number, number>>({});
   const [aggregatedEarnings, setAggregatedEarnings] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
 
   useEffect(() => {
-    const fetchBudgetGroups = async () => {
+    const fetchBudgetGroupsAndCategories = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Fetch User Categories
-        const userCategoriesResponse = await axios.get<Category[]>("/api/user-categories", {
+        // ✅ Fetch user-specific budget groups
+        const budgetGroupsResponse = await axios.get("/api/budget-groups", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (
-          userCategoriesResponse.headers["content-type"]?.includes("application/json")
-        ) {
-          console.log("User Categories:", userCategoriesResponse.data);
+        const userBudgetGroups = budgetGroupsResponse.data;
 
-          // Group categories by budget group
-          const groupedCategories = userCategoriesResponse.data.reduce(
-            (acc, category) => {
-              const groupId = category.budget_group.id;
-              if (!acc[groupId]) {
-                acc[groupId] = {
-                  id: groupId,
-                  group_name: category.budget_group.group_name,
-                  categories: [],
-                };
-              }
-              acc[groupId].categories.push(category);
-              return acc;
-            },
-            {} as Record<number, BudgetGroup>
-          );
+        // ✅ Fetch user categories separately
+        const userCategoriesResponse = await axios.get("/api/user-categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-          setBudgetGroups(Object.values(groupedCategories));
-        } else {
-          throw new Error("Invalid response format");
-        }
+        const userCategories = userCategoriesResponse.data;
+
+        // ✅ Ensure all budget groups exist, even if empty
+        const groupedCategories: Record<number, BudgetGroup> = {};
+        userBudgetGroups.forEach((group) => {
+          groupedCategories[group.budget_group_id] = {
+            id: group.budget_group_id,
+            group_name: group.group_name,
+            categories: [],
+          };
+        });
+
+        // ✅ Assign categories to the correct budget groups
+        userCategories.forEach((category) => {
+          const groupId = category.budget_group?.budget_group_id; 
+          if (!groupId) return; 
+
+          if (groupedCategories[groupId]) {
+            groupedCategories[groupId].categories.push(category); 
+          } else {
+            console.warn("Category has an invalid budget group:", category); 
+          }
+        });
+
+        setBudgetGroups(Object.values(groupedCategories)); // ✅ Set state properly
       } catch (error) {
-        console.error("Error fetching user categories:", error);
+        console.error("Error fetching budget groups and categories:", error);
         toast({
           title: "Error",
-          description: "Could not fetch user categories.",
+          description: "Could not fetch budget groups and categories.",
         });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBudgetGroups();
+    fetchBudgetGroupsAndCategories();
   }, []);
 
   useEffect(() => {
@@ -135,10 +153,58 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     fetchAggregatedTotalsAndEarnings();
   }, [currentDate]);
 
+  const addNewBudgetGroup = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "/api/budget-groups/create",
+        { group_name: newGroupName.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setBudgetGroups((prev) => [...prev, { ...response.data, categories: [] }]); // Add new group to UI
+      setNewGroupName(""); // Clear input field
+      setIsGroupDialogOpen(false); // Close dialog
+
+      toast({ title: "Success", description: "New budget group created!" });
+    } catch (error) {
+      console.error("Error creating budget group:", error);
+      toast({ title: "Error", description: "Could not create budget group." });
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-6">
+      <Button onClick={() => setIsGroupDialogOpen(true)} variant="outline" className="mb-4 w-full">
+        <Plus className="w-4 h-4 mr-2" />
+        Add New Budget Group
+      </Button>
+
+      <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>New Category Group</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="Enter group name"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={addNewBudgetGroup}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {budgetGroups.map((budgetGroup) => (
         <CategorySection
           key={budgetGroup.id}
@@ -174,6 +240,15 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
                           : category
                       ),
                     }
+                  : group
+              )
+            );
+          }}
+          onCategoryAdded={(budgetGroupId, newCategory) => {
+            setBudgetGroups((prevGroups) =>
+              prevGroups.map((group) =>
+                group.id === budgetGroupId
+                  ? { ...group, categories: [...group.categories, newCategory] }
                   : group
               )
             );

@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Income from "./pages/Income";
 import Expense from "./pages/Expense";
+import Budget from "./pages/BudgetDashboard";
 import Dashboard from "./pages/Dashboard";
 import SpendingPage from "./pages/Spending";
 import { ChatButton } from "./components/Chat/ChatButton";
@@ -18,7 +19,9 @@ import TransactionsPage from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Survey from "./pages/Survey";
+import CategoryAnalytics from "./pages/CategoryAnalytics";
 import TranslationWidget from "@/components/Translation";
+import SavingsPlan from "./pages/SavingsPlan";
 
 const queryClient = new QueryClient();
 
@@ -34,13 +37,21 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-  
 );
 
 const AppRoutes = () => {
   const { user } = useUser();
   const location = useLocation();
-  const chatRoutes = ["/dashboard", "/incomes", "/transactions"];
+  const chatRoutes = [
+    "/budget",
+    "/income",
+    "/transactions",
+    "/spending",
+    "/profile",
+    "/category/analytics/:categoryId",
+    "/",
+    "/dashboard",
+  ];
 
   return (
     <>
@@ -54,6 +65,8 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/category/analytics/:categoryId" element={<CategoryAnalytics />} />
           <Route path="/spending" element={<SpendingPage />} />
           <Route path="/income" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />
@@ -61,6 +74,7 @@ const AppRoutes = () => {
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/savings" element={<SavingsPlan />} />
         </Route>
       </Routes>
 

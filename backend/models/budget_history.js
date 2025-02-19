@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js"; // Ensure you use the correct import path and add .js extension
+import { sequelize } from "../config/db.js"; 
 
 const BudgetHistory = sequelize.define(
   "budget_history",
@@ -19,16 +19,17 @@ const BudgetHistory = sequelize.define(
       allowNull: false,
     },
     month_year: {
-      type: DataTypes.STRING, // 'YYYY-MM' format for simplicity and efficiency
+      type: DataTypes.STRING, 
       allowNull: false,
     },
     monthly_budget: {
       type: DataTypes.DECIMAL,
       allowNull: false,
     },
-    total_spent: {
+    rolled_over_amount: {
       type: DataTypes.DECIMAL,
       allowNull: true,
+      defaultValue: 0.00,
     },
     created_at: {
       type: DataTypes.DATE,

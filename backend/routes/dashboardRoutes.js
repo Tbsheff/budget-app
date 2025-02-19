@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const { getUserCategories, getBudgetSummary } = require("../controllers/dashboardController");
+const { getDashboardData } = require("../controllers/categoryAnalyticsController");
 
-router.get("/categories", auth, getUserCategories);
-router.get("/budget-summary", auth, getBudgetSummary);
+router.get("/", auth, getDashboardData);
 
 module.exports = router;

@@ -24,6 +24,10 @@ const Users = sequelize.define(
     },
     password_hash: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    supabase_id: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     created_at: {

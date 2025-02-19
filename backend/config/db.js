@@ -26,7 +26,7 @@ const sequelize = new Sequelize(
     logging: false,
     dialectModule: false, // Disable logging; set to true for debugging
   },
-   
+
 );
 
 module.exports = {

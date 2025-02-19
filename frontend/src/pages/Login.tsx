@@ -13,34 +13,42 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+
+      const { token, user } = response.data;
 
       // Save token in localStorage
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("token", token);
 
       // Update the global user context
       setUser({
-        id: response.data.user.id,
-        first_name: response.data.user.first_name,
-        last_name: response.data.user.last_name,
-        email: response.data.user.email,
-        survey_completed: response.data.user.survey_completed,
-        phone_number: response.data.user.phone_number || null,
-        language: response.data.user.language || "English",
-        currency: response.data.user.currency || "USD",
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        survey_completed: user.survey_completed,
+        phone_number: user.phone_number || null,
+        language: user.language || "English",
+        currency: user.currency || "USD",
       });
 
       // Redirect based on survey completion
-      if (response.data.user.survey_completed) {
-        navigate("/dashboard");
+      if (user.survey_completed) {
+        navigate("/budget");
       } else {
         navigate("/survey");
       }
     } catch (error) {
-      alert("Login failed. Please check your credentials and try again.");
+      console.log(error.message);
+      alert(
+        `Login failed: ${error.message}. Please check your credentials and try again.`
+      );
     }
   };
 
@@ -52,7 +60,10 @@ const Login: React.FC = () => {
           <h2 className="text-2xl font-bold text-center">Log In</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -66,7 +77,10 @@ const Login: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input

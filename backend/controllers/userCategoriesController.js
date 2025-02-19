@@ -1,17 +1,18 @@
 const UserCategories = require("../models/user_categories");
-const BudgetGroup = require("../models/budget_groups");
+const UserBudgetGroups = require("../models/user_budget_groups");
 
 // Fetch all categories for a specific user and include budget group information
 exports.getUserCategories = async (req, res) => {
   try {
-    const userId = req.user.id; // Assumes `authMiddleware` sets `req.user`
+    const userId = req.user.id; // Get user ID from the request
+
     const categories = await UserCategories.findAll({
       where: { user_id: userId },
       include: [
         {
-          model: BudgetGroup,
-          as: 'budget_group',
-          attributes: ['id', 'group_name'],
+          model: UserBudgetGroups, // ✅ Correctly join budget groups
+          as: "budget_group",
+          attributes: ["budget_group_id", "group_name"], // ✅ Ensure group name is included
         },
       ],
     });
@@ -21,6 +22,7 @@ exports.getUserCategories = async (req, res) => {
     res.status(500).json({ message: "Error fetching user categories." });
   }
 };
+
 
 // Fetch a single category by ID
 exports.getUserCategoryById = async (req, res) => {
@@ -113,5 +115,31 @@ exports.deleteUserCategory = async (req, res) => {
   } catch (error) {
     console.error("Error deleting category:", error);
     res.status(500).json({ message: "Error deleting user category." });
+  }
+};
+
+// Create a new user category within an existing budget group
+exports.createUserCategory = async (req, res) => {
+  try {
+      const { name, budget_group_id, monthly_budget, icon_name, icon_color } = req.body;
+      const userId = req.user.id;
+
+      if (!name || !budget_group_id) {
+          return res.status(400).json({ message: "Category name and budget group ID are required." });
+      }
+
+      const newCategory = await UserCategories.create({
+          user_id: userId,
+          name,
+          budget_group_id, // ✅ Ensure this is being saved
+          monthly_budget: monthly_budget || 0,
+          icon_name: icon_name || "MoreHorizontal",
+          icon_color: icon_color || "text-gray-500",
+      });
+
+      res.status(201).json(newCategory); // ✅ Return budget_group_id in response
+  } catch (error) {
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category." });
   }
 };
