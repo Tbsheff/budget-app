@@ -22,6 +22,7 @@ import Survey from "./pages/Survey";
 import CategoryAnalytics from "./pages/CategoryAnalytics";
 import TranslationWidget from "@/components/Translation";
 import SavingsPlan from "./pages/SavingsPlan";
+import EmailConfirmation from "./pages/EmailConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -60,13 +61,17 @@ const AppRoutes = () => {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/email-confirmation" element={<EmailConfirmation />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/survey" element={<Survey />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/budget" element={<Budget />} />
-          <Route path="/category/analytics/:categoryId" element={<CategoryAnalytics />} />
+          <Route
+            path="/category/analytics/:categoryId"
+            element={<CategoryAnalytics />}
+          />
           <Route path="/spending" element={<SpendingPage />} />
           <Route path="/income" element={<Income />} />
           <Route path="/income/edit/:id" element={<Income />} />
