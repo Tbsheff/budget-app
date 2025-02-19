@@ -23,21 +23,21 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
 }) => {
   const TOTAL_PAGES = 10;
 
-  const handleNext = async () => {
+  const handleNextPage = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (currentPage === TOTAL_PAGES) {
       await handleSubmitSurvey();
     } else {
-      setCurrentPage((prev) => prev + 1);
+      setCurrentPage(currentPage + 1);
     }
   };
 
+  const handlePreviousPage = () => {
+    setCurrentPage(Math.max(1, currentPage - 1));
+  };
+
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        await handleNext();
-      }}
-    >
+    <form onSubmit={handleNextPage}>
       <SurveyPages
         currentPage={currentPage}
         formData={formData}
@@ -46,9 +46,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
       <NavigationButtons
         currentPage={currentPage}
         totalPages={TOTAL_PAGES}
-        onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-        onNext={handleNext}
-        isValid={true} // Placeholder, can add validation logic
+        handlePreviousPage={handlePreviousPage}
+        handleNextPage={handleNextPage}
       />
     </form>
   );
