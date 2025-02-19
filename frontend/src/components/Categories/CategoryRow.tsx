@@ -4,6 +4,7 @@ import { RenderAmount } from "./RenderAmount";
 import { IconPicker } from "./IconPicker";
 import BudgetProgress from "./BudgetProgress";
 import * as LucideIcons from "lucide-react";
+import { Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Category {
@@ -21,6 +22,7 @@ interface CategoryRowProps {
   currentDate: Date;
   onIconChange: (categoryId: number, newIconName: string) => void;
   onBudgetUpdate: (categoryId: number, newBudget: number) => void;
+  onDeleteCategory: (categoryId: number) => void;
 }
 
 export function CategoryRow({
@@ -30,6 +32,7 @@ export function CategoryRow({
   currentDate,
   onIconChange,
   onBudgetUpdate,
+  onDeleteCategory,
 }: CategoryRowProps) {
   const IconComponent =
     (LucideIcons[category.icon_name as keyof typeof LucideIcons] as React.ElementType) ||
@@ -55,7 +58,7 @@ export function CategoryRow({
   return (
     <>
       <div
-        className="grid grid-cols-[1fr_0.5fr_0.5fr] gap-2 items-center px-2 py-2 border-b cursor-pointer"
+        className="flex items-center justify-between group p-3 md:p-0 md:py-2 hover:bg-gray-50 rounded-lg md:rounded-none transition-colors"
         onClick={handleRowClick}
       >
         <div className="flex items-center gap-2">
@@ -70,7 +73,7 @@ export function CategoryRow({
             color={category.icon_color}
             onClick={stopPropagation} // Pass stopPropagation to IconPicker
           />
-          <span className="text-sm">{category.name}</span>
+          <span className="font-medium text-sm md:text-base ml-3">{category.name}</span>
         </div>
         <span className="text-center text-sm">
           <RenderAmount
@@ -80,9 +83,18 @@ export function CategoryRow({
             onClick={stopPropagation} // Pass stopPropagation to RenderAmount
           />
         </span>
-        <span className={`text-right text-sm ${amountTextColor}`} onClick={stopPropagation}>
+        <span className={`text-right text-sm  ${amountTextColor}`} onClick={stopPropagation}>
           ${spentAmount.toFixed(2)}
         </span>
+        <button
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click
+              onDeleteCategory(category.category_id);
+            }}
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1"
+        >
+          <Trash className="w-4 h-4" />
+        </button>
       </div>
       <BudgetProgress actual={spentAmount} budgeted={budgetAmount} />
     </>

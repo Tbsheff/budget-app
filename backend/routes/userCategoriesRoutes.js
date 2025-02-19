@@ -7,7 +7,7 @@ const {
   addUserCategory,
   updateUserCategory,
   deleteUserCategory,
-  createUserCategory
+  createUserCategory,
 } = require("../controllers/userCategoriesController");
 
 // Get all user categories (GET /api/user-categories)

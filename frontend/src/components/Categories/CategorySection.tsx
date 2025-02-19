@@ -10,6 +10,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
 import { useToast } from "../ui/use-toast";
@@ -87,6 +96,29 @@ export function CategorySection({
     }
   };
 
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<number | null>(null);
+
+  const handleDeleteCategory = (categoryId: number) => {
+    setShowDeleteConfirmation(categoryId);
+  };
+
+  const confirmDeleteCategory = async (categoryId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/user-categories/${categoryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast({ title: "Category Deleted", description: "Category has been removed." });
+      window.location.reload(); // Reload the page after deletion
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast({ title: "Error", description: "Failed to delete category." });
+    } finally {
+      setShowDeleteConfirmation(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-4 md:p-6">
@@ -102,10 +134,7 @@ export function CategorySection({
           </Button>
         </div>
 
-        <Dialog
-          open={isCategoryDialogOpen}
-          onOpenChange={setIsCategoryDialogOpen}
-        >
+        <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>New Category</DialogTitle>
@@ -118,10 +147,7 @@ export function CategorySection({
               />
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCategoryDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={addNewCategory}>OK</Button>
@@ -144,9 +170,29 @@ export function CategorySection({
             currentDate={currentDate}
             onIconChange={onIconChange}
             onBudgetUpdate={onBudgetUpdate}
+            onDeleteCategory={handleDeleteCategory}
           />
         ))}
       </div>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={showDeleteConfirmation !== null}
+        onOpenChange={() => setShowDeleteConfirmation(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>Are you sure?</AlertDialogHeader>
+          <p className="text-sm text-gray-500">This action cannot be undone.</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteConfirmation(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmDeleteCategory(showDeleteConfirmation!)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      ;
     </div>
   );
 }
