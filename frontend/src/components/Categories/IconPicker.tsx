@@ -46,11 +46,7 @@ import {
   MoreHorizontal,
   Monitor,
 } from "lucide-react";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@radix-ui/react-popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import axios from "axios";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +103,7 @@ interface IconPickerProps {
   onChange: (icon: LucideIcon) => void;
   color: string;
   categoryId: number; // Add categoryId to props
+  onClick?: (e: React.MouseEvent) => void; // Add onClick to props
 }
 
 export function IconPicker({
@@ -114,6 +111,7 @@ export function IconPicker({
   onChange,
   color,
   categoryId, // Destructure categoryId from props
+  onClick, // Destructure onClick from props
 }: IconPickerProps) {
   const handleIconChange = async (icon: LucideIcon) => {
     try {
@@ -145,7 +143,10 @@ export function IconPicker({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation">
+        <button
+          className="p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+          onClick={onClick} // Use onClick prop
+        >
           <Icon className={cn("w-5 h-5 md:w-6 md:h-6", color)} />
         </button>
       </PopoverTrigger>
@@ -161,8 +162,8 @@ export function IconPicker({
               key={IconOption.icon.displayName}
               className="p-3 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center touch-manipulation"
               onClick={() => {
-              handleIconChange(IconOption.icon);
-              onChange(IconOption.icon); // Update the icon immediately in the frontend
+                handleIconChange(IconOption.icon);
+                onChange(IconOption.icon); // Update the icon immediately in the frontend
               }}
               title={IconOption.icon.displayName}
             >
