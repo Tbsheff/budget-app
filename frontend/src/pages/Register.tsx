@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/landing/Navigation";
 import axios from "axios";
 import { useToast } from "../components/ui/use-toast";
+import { supabase } from "../config/supabaseClient"; // Import Supabase instance
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -20,7 +21,7 @@ const Register: React.FC = () => {
     return () => {
       dismiss(); // Dismiss all active toasts when component unmounts
     };
-  }, []);
+  }, [dismiss]);
 
   const validatePassword = (password: string) => {
     const lengthCheck = password.length >= 12;
@@ -29,7 +30,13 @@ const Register: React.FC = () => {
     const numberCheck = /[0-9]/.test(password);
     const specialCharCheck = (password.match(/[!@#$%^&*]/g) || []).length >= 2;
 
-    if (!lengthCheck || !uppercaseCheck || !lowercaseCheck || !numberCheck || !specialCharCheck) {
+    if (
+      !lengthCheck ||
+      !uppercaseCheck ||
+      !lowercaseCheck ||
+      !numberCheck ||
+      !specialCharCheck
+    ) {
       return "Password must contain at least 12 characters, including uppercase, lowercase, a number, and two special characters.";
     }
     return "";
@@ -50,7 +57,8 @@ const Register: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Invalid Password",
-        description: "Please ensure your password meets the security requirements.",
+        description:
+          "Please ensure your password meets the security requirements.",
       });
       return;
     }
@@ -65,22 +73,38 @@ const Register: React.FC = () => {
       return;
     }
 
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message,
+      });
+      return;
+    }
+
     try {
       await axios.post("http://localhost:5000/api/auth/register", {
         first_name: firstName,
         last_name: lastName,
         email,
-        password,
+        password, // Ensure password is included in the request payload
+        supabase_id: data.user?.id, // Store UID instead of handling passwords
       });
 
       toast({
         variant: "default",
         title: "Registration Successful",
-        description: "Your account has been created. Redirecting to login...",
+        description:
+          "Your account has been created. Redirecting to email confirmation...",
       });
 
       setTimeout(() => {
-        navigate("/login");
+        navigate("/email-confirmation");
       }, 2000);
     } catch (err) {
       toast({
@@ -99,7 +123,10 @@ const Register: React.FC = () => {
           <h2 className="text-2xl font-bold text-center">Register</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 First Name
               </label>
               <input
@@ -113,7 +140,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Last Name
               </label>
               <input
@@ -127,7 +157,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -141,7 +174,10 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -153,10 +189,15 @@ const Register: React.FC = () => {
                 onChange={handlePasswordChange}
                 className="w-full px-3 py-2 mt-1 border rounded shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
               />
-              {passwordError && <p className="mt-1 text-sm text-red-500">{passwordError}</p>}
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-500">{passwordError}</p>
+              )}
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -170,8 +211,8 @@ const Register: React.FC = () => {
               />
             </div>
             <p className="mt-1 text-xs italic text-gray-500">
-              *Passwords must contain at least 12 characters, including uppercase, lowercase, a
-              number, and two special characters
+              *Passwords must contain at least 12 characters, including
+              uppercase, lowercase, a number, and two special characters
             </p>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div>
