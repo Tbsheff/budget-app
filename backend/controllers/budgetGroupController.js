@@ -50,9 +50,11 @@ exports.getUserBudgetGroups = async (req, res) => {
 exports.saveBudget = async (req, res) => {
   try {
     const { budgetGroups } = req.body;
+    console.log("BudgetGroups:", budgetGroups);
     const userId = req.user.id;
 
     for (const group of budgetGroups) {
+      console.log(group);
       const newGroup = await UserBudgetGroup.create({
         group_name: group.group_name,
         user_id: userId,

@@ -1,6 +1,6 @@
-import React from 'react';
-import { MessageCircle, X } from 'lucide-react';
-import { useChatStore } from '../../store/chatStore';
+import React from "react";
+import { MessageCircle } from "lucide-react";
+import { useChatStore } from "../../store/chatStore";
 
 export const ChatButton: React.FC = () => {
   const { isOpen, toggleChat } = useChatStore();

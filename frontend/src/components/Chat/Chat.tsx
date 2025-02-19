@@ -1,63 +1,237 @@
 import React, { useState, useRef, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import {
-  Send,
-  Loader2,
-  Pause,
-  Bot,
-  DollarSign,
-  PiggyBank,
-  TrendingUp,
-} from "lucide-react";
+import { Send, Loader2, Pause } from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 import { streamCompletion } from "../../lib/openai";
 import {
   generateDefaultBudget,
   formatCurrency,
   saveBudgetToDatabase,
-  type BudgetPlan,
 } from "../../lib/budget";
 import { UserProvider, useUser } from "../../context/userContext";
+import { SavingsGoalsList } from "../savings/SavingsGoalsList";
+import { CreateSavingsGoalFlow } from "../savings/CreateSavingsGoalFlow";
+import type { SavingsGoal } from "@/types/savings";
+import type { Budget, BudgetChange } from "@/types/budget";
+import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
+import { BudgetFlow } from "@/components/budget/BudgetFlow";
+import { QuickstartOptions } from "./QuickstartOptions";
+import { ChatMessage } from "./ChatMessage";
+import { generateSQLQuery, executeSQLQuery } from "../../lib/sqlGenerator";
+
+interface QuickstartOption {
+  id: string;
+  text: string;
+  next?: QuickstartOption[];
+}
 
 export const Chat: React.FC = () => {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const { messages, isLoading, addMessage, updateLastMessage, setLoading } =
-    useChatStore();
+  const [budget, setBudget] = useState<Budget>({
+    totalIncome: 0,
+    groups: [],
+  });
+  const {
+    messages,
+    isLoading,
+    addMessage,
+    updateLastMessage,
+    setLoading,
+    isOpen,
+    quickstartOptions,
+    setQuickstartOptions,
+    currentFlow,
+    setCurrentFlow,
+  } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useUser();
+  const { toast } = useToast();
+
+  const [showingSavingsGoals, setShowingSavingsGoals] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
+
+  const budgetFlow: QuickstartOption[] = [
+    {
+      id: "income",
+      text: "What's your monthly income? (e.g., $5000)",
+    },
+  ];
+
+  const savingsFlow: QuickstartOption[] = [
+    {
+      id: "manage-savings",
+      text: "Would you like to create a new savings goal or edit an existing one?",
+      next: [
+        { id: "create-new", text: "Create a New Savings Goal" },
+        { id: "edit-existing", text: "Edit an Existing Goal" },
+      ],
+    },
+  ];
+
+  const spendingFlow: QuickstartOption[] = [
+    {
+      id: "spending-categories",
+      text: "Which spending categories would you like to analyze?",
+      next: [
+        { id: "all", text: "All Categories" },
+        { id: "housing", text: "Housing & Utilities" },
+        { id: "transportation", text: "Transportation" },
+        { id: "food", text: "Food & Dining" },
+        { id: "entertainment", text: "Entertainment" },
+        { id: "shopping", text: "Shopping" },
+      ],
+    },
+  ];
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isOpen || messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [isOpen, messages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+      const newHeight = Math.min(textarea.scrollHeight, 150);
+      textarea.style.height = `${newHeight}px`;
+
+      // Enable scrolling only when content exceeds max height
+      textarea.style.overflowY =
+        textarea.scrollHeight > 150 ? "auto" : "hidden";
     }
   }, [input]);
 
-  // Focus the textarea when the component mounts
   useEffect(() => {
-    if (textareaRef.current) {
+    if (textareaRef.current && isOpen) {
       textareaRef.current.focus();
     }
-  }, []);
+  }, [isOpen]);
 
-  // Focus the textarea whenever isStreaming or isLoading changes
   useEffect(() => {
     if (!isStreaming && !isLoading && textareaRef.current) {
       textareaRef.current.focus();
     }
   }, [isStreaming, isLoading]);
+
+  useEffect(() => {
+    if (!isStreaming && !isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isStreaming, isLoading]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentFlow(null);
+      setQuickstartOptions([]);
+    }
+  }, [isOpen, setQuickstartOptions, setCurrentFlow]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const handleNewSavingsGoal = async (type: string) => {
+    setCurrentFlow({ type });
+    addMessage({
+      role: "assistant",
+      content: "What would you like to name this savings goal?",
+    });
+    setQuickstartOptions([]);
+  };
+
+  const handleSavingsGoalInput = async (input: string) => {
+    if (!currentFlow) return;
+
+    // Handle validation errors
+    if (input.startsWith("ERROR:")) {
+      addMessage({
+        role: "assistant",
+        content: input.replace("ERROR:", "").trim(),
+      });
+      return;
+    }
+
+    if (!currentFlow.name) {
+      setCurrentFlow({ ...currentFlow, name: input });
+      addMessage({ role: "user", content: input });
+      addMessage({
+        role: "assistant",
+        content: `How much do you need to save for ${input}? (Please enter an amount in dollars)`,
+      });
+    } else if (!currentFlow.targetAmount) {
+      const amount = parseFloat(input.replace(/[^0-9.]/g, ""));
+      setCurrentFlow({ ...currentFlow, targetAmount: amount });
+      addMessage({ role: "user", content: input });
+      addMessage({
+        role: "assistant",
+        content:
+          "When do you need to have this amount saved by? Please select a date.",
+      });
+    } else if (!currentFlow.deadline) {
+      setCurrentFlow({ ...currentFlow, deadline: input });
+      addMessage({ role: "user", content: input });
+      addMessage({
+        role: "assistant",
+        content:
+          "How much would you like to deposit initially? (Enter 0 if none)",
+      });
+    } else if (!currentFlow.initialDeposit) {
+      const deposit = parseFloat(input.replace(/[^0-9.]/g, ""));
+      const goalData = {
+        ...currentFlow,
+        initialDeposit: deposit,
+      };
+
+      try {
+        const token = localStorage.getItem("token");
+        await axios.post(
+          "/api/savings-goals/create",
+          {
+            user_id: user?.id,
+            name: goalData.name,
+            target_amount: goalData.targetAmount,
+            current_amount: goalData.initialDeposit,
+            deadline: new Date(goalData.deadline),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        toast({
+          title: "Success",
+          description: "Savings goal created successfully!",
+        });
+
+        addMessage({ role: "user", content: input });
+        addMessage({
+          role: "assistant",
+          content: `Great! I've created a savings goal for ${goalData.name} with a target of $${goalData.targetAmount} by ${goalData.deadline} and an initial deposit of $${deposit}.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create savings goal. Please try again.",
+          variant: "destructive",
+        });
+      }
+
+      setCurrentFlow(null);
+    }
+  };
 
   const handleBudgetRequest = async (income: number) => {
     const budget = generateDefaultBudget(income);
@@ -97,8 +271,371 @@ export const Chat: React.FC = () => {
     return response;
   };
 
-  const handleQuickstartPrompt = (prompt: string) => {
-    setInput(prompt);
+  const handleSavingsPlanRequest = async (command: string, args: string[]) => {
+    if (!user) {
+      return "Please log in to manage your savings plans.";
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+
+      if (command === "create") {
+        const [name, targetAmount, targetDate] = args;
+        const response = await axios.post(
+          "/api/savings-goals/create",
+          {
+            user_id: user.id,
+            name,
+            target_amount: parseFloat(targetAmount),
+            current_amount: 0,
+            deadline: new Date(targetDate),
+          },
+          { headers }
+        );
+        return `Savings plan "${name}" created successfully.`;
+      } else if (command === "edit") {
+        const [id, name, targetAmount, targetDate] = args;
+        const response = await axios.put(
+          `/api/savings-goals/${id}`,
+          {
+            name,
+            target_amount: parseFloat(targetAmount),
+            deadline: new Date(targetDate),
+          },
+          { headers }
+        );
+        return `Savings plan "${name}" updated successfully.`;
+      } else if (command === "delete") {
+        const [id] = args;
+        await axios.delete(`/api/savings-goals/${id}`, { headers });
+        return `Savings plan with ID ${id} deleted successfully.`;
+      } else {
+        return "Unknown command. Please use create, edit, or delete.";
+      }
+    } catch (error) {
+      console.error("Error managing savings plan:", error);
+      return "An error occurred while managing the savings plan.";
+    }
+  };
+
+  const handleSQLQuery = async (userMessage: string) => {
+    const dataQueryKeywords = [
+      "show me",
+      "what is",
+      "how much",
+      "tell me about",
+      "find",
+      "search",
+      "query",
+      "get",
+      "display",
+      "list",
+    ];
+
+    const mightBeDataQuery = dataQueryKeywords.some((keyword) =>
+      userMessage.toLowerCase().includes(keyword)
+    );
+
+    if (!mightBeDataQuery) {
+      return false;
+    }
+
+    addMessage({ role: "assistant", content: "", isStreaming: true });
+    let assistantResponse = "Let me query the database for you.\n\n";
+    updateLastMessage(assistantResponse);
+
+    try {
+      // Mock schema for now - in production, you'd fetch this from your database
+      const schema = {
+        tables: [
+          {
+            name: "transactions",
+            columns: ["id", "amount", "date", "category", "description"],
+          },
+          {
+            name: "budgets",
+            columns: ["id", "category", "amount", "period"],
+          },
+        ],
+      };
+
+      const sqlData = await generateSQLQuery(
+        userMessage,
+        (token) => {
+          assistantResponse = token;
+          updateLastMessage(assistantResponse);
+        },
+        schema
+      );
+
+      if (!sqlData) {
+        updateLastMessage(
+          "I couldn't generate a valid SQL query for your request."
+        );
+        return true;
+      }
+
+      updateLastMessage(assistantResponse + "\nExecuting query...");
+
+      const result = await executeSQLQuery(sqlData);
+
+      const formattedResult =
+        typeof result === "object"
+          ? "```json\n" + JSON.stringify(result, null, 2) + "\n```"
+          : result;
+
+      updateLastMessage(
+        assistantResponse + "\nHere's what I found:\n\n" + formattedResult
+      );
+    } catch (error) {
+      console.error("Error in SQL query handling:", error);
+      updateLastMessage(
+        "I encountered an error while trying to query the database: " +
+          error.message
+      );
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput("");
+
+    if (currentFlow) {
+      await handleSavingsGoalInput(userMessage);
+      return;
+    }
+
+    addMessage({ role: "user", content: userMessage });
+    setLoading(true);
+    setIsStreaming(true);
+
+    try {
+      // First, try to handle as SQL query
+      const wasDataQuery = await handleSQLQuery(userMessage);
+
+      // If it wasn't a data query, proceed with normal chat
+      if (!wasDataQuery) {
+        addMessage({ role: "assistant", content: "", isStreaming: true });
+        let streamResponse = "";
+
+        abortControllerRef.current = new AbortController();
+        await streamCompletion(
+          userMessage,
+          (token) => {
+            streamResponse += token;
+            updateLastMessage(streamResponse);
+          },
+          abortControllerRef.current.signal
+        );
+
+        if (abortControllerRef.current.signal.aborted) {
+          updateLastMessage(
+            streamResponse + "\n\n*Message streaming was stopped*"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error in chat:", error);
+      updateLastMessage(
+        "I encountered an error while processing your message. Please try again."
+      );
+    }
+
+    setLoading(false);
+    setIsStreaming(false);
+  };
+
+  const handleOptionClick = async (option: QuickstartOption) => {
+    addMessage({ role: "user", content: option.text });
+
+    if (option.id === "create-new") {
+      addMessage({
+        role: "assistant",
+        content: "What type of savings goal would you like to create?",
+      });
+      setQuickstartOptions([
+        { id: "emergency-fund", text: "Emergency Fund" },
+        { id: "retirement", text: "Retirement Savings" },
+        { id: "major-purchase", text: "Major Purchase (e.g., car, house)" },
+        { id: "vacation", text: "Vacation Fund" },
+        { id: "education", text: "Education Savings" },
+        { id: "custom", text: "Custom Goal" },
+      ]);
+      return;
+    }
+
+    if (option.id === "edit-existing") {
+      setShowingSavingsGoals(true);
+      setQuickstartOptions([]);
+      addMessage({
+        role: "assistant",
+        content:
+          "Please select a savings goal from the list on the right to edit it.",
+      });
+      return;
+    }
+
+    if (
+      [
+        "all",
+        "housing",
+        "transportation",
+        "food",
+        "entertainment",
+        "shopping",
+      ].includes(option.id)
+    ) {
+      setCurrentFlow({ type: "spending", category: option.id });
+      addMessage({
+        role: "assistant",
+        content: `For what time period would you like to analyze your ${
+          option.id === "all"
+            ? "overall spending"
+            : `spending in the ${option.id} category`
+        }?`,
+      });
+      setQuickstartOptions([
+        { id: "last-month", text: "Last Month" },
+        { id: "last-3-months", text: "Last 3 Months" },
+        { id: "last-6-months", text: "Last 6 Months" },
+        { id: "last-year", text: "Last Year" },
+        { id: "custom", text: "Custom Period" },
+      ]);
+      return;
+    }
+
+    if (
+      [
+        "last-month",
+        "last-3-months",
+        "last-6-months",
+        "last-year",
+        "custom",
+      ].includes(option.id)
+    ) {
+      if (currentFlow?.type === "spending") {
+        const timePeriod = option.text.toLowerCase();
+        const category = currentFlow.category;
+
+        addMessage({ role: "user", content: `Analyze for ${timePeriod}` });
+        addMessage({ role: "assistant", content: "", isStreaming: true });
+
+        let assistantResponse = "";
+        const analysisPrompt = `Analyze ${category === "all" ? "overall spending" : `spending in the ${category} category`} for ${timePeriod}. Consider patterns, trends, and potential areas for improvement.`;
+
+        try {
+          abortControllerRef.current = new AbortController();
+          await streamCompletion(
+            analysisPrompt,
+            (token) => {
+              assistantResponse += token;
+              updateLastMessage(assistantResponse);
+            },
+            abortControllerRef.current.signal
+          );
+        } catch (error) {
+          if (error.name === "AbortError") {
+            updateLastMessage(
+              assistantResponse + "\n\n*Message streaming was stopped*"
+            );
+          } else {
+            throw error;
+          }
+        }
+
+        setCurrentFlow(null);
+        setQuickstartOptions([]);
+        return;
+      }
+    }
+
+    if (
+      [
+        "major-purchase",
+        "custom",
+        "emergency-fund",
+        "retirement",
+        "vacation",
+        "education",
+      ].includes(option.id)
+    ) {
+      await handleNewSavingsGoal(option.id);
+      return;
+    }
+
+    if (option.next) {
+      addMessage({
+        role: "assistant",
+        content: option.next[0].text,
+      });
+      setQuickstartOptions(option.next);
+    } else {
+      setQuickstartOptions([]);
+
+      let prompt = "";
+      switch (option.id) {
+        case "emergency-fund":
+          prompt =
+            "Create a savings goal for an emergency fund that covers 3-6 months of expenses";
+          break;
+        case "retirement":
+          prompt =
+            "Create a retirement savings plan with monthly contribution targets";
+          break;
+        case "major-purchase":
+          prompt =
+            "Help me create a savings plan for a major purchase with a specific target amount and deadline";
+          break;
+        case "vacation":
+          prompt = "Set up a vacation fund with a target amount and timeline";
+          break;
+        case "education":
+          prompt = "Create an education savings plan with long-term goals";
+          break;
+        case "custom":
+          prompt =
+            "Help me set up a custom savings goal with specific parameters";
+          break;
+        default:
+          prompt = option.text;
+      }
+
+      addMessage({ role: "assistant", content: "", isStreaming: true });
+      let assistantResponse = "";
+
+      try {
+        abortControllerRef.current = new AbortController();
+        await streamCompletion(
+          prompt,
+          (token) => {
+            assistantResponse += token;
+            updateLastMessage(assistantResponse);
+          },
+          abortControllerRef.current.signal
+        );
+      } catch (error) {
+        if (error.name === "AbortError") {
+          updateLastMessage(
+            assistantResponse + "\n\n*Message streaming was stopped*"
+          );
+        } else {
+          throw error;
+        }
+      }
+    }
+  };
+
+  const handleGoalSelection = (goal: SavingsGoal) => {
+    setSelectedGoal(goal);
+    setInput(
+      `I'd like to edit my savings goal "${goal.name}". The current target is $${goal.target_amount} by ${new Date(goal.deadline).toLocaleDateString()}. What would you like to modify?`
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSubmit(new Event("submit") as any);
   };
@@ -120,218 +657,182 @@ export const Chat: React.FC = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput("");
-    addMessage({ role: "user", content: userMessage });
-    setLoading(true);
-    setIsStreaming(true);
-
-    addMessage({ role: "assistant", content: "", isStreaming: true });
-    let assistantResponse = "";
-
-    const incomeMatch = userMessage.match(/budget.*?(\d+)k?/i);
-    if (incomeMatch) {
-      const income =
-        parseInt(incomeMatch[1]) *
-        (userMessage.toLowerCase().includes("k") ? 1000 : 1);
-      assistantResponse = await handleBudgetRequest(income);
-      updateLastMessage(assistantResponse);
-    } else {
-      abortControllerRef.current = new AbortController();
-      try {
-        await streamCompletion(
-          userMessage,
-          (token) => {
-            assistantResponse += token;
-            updateLastMessage(assistantResponse);
-          },
-          abortControllerRef.current.signal
-        );
-      } catch (error) {
-        if (error.name === "AbortError") {
-          updateLastMessage(
-            assistantResponse + "\n\n*Message streaming was stopped*"
-          );
-        } else {
-          throw error;
-        }
-      }
+  const handleQuickstartPrompt = async (prompt: string) => {
+    switch (prompt) {
+      case "I need help adjusting my budget":
+        addMessage({
+          role: "assistant",
+          content:
+            "Got it! You want to adjust your budget. What would you like to change?",
+        });
+        setCurrentFlow({ type: "budget" });
+        break;
+      case "I want to create a savings plan":
+        addMessage({
+          role: "assistant",
+          content:
+            "Would you like to create a new savings goal or edit an existing one?",
+        });
+        setQuickstartOptions([
+          { id: "create-new", text: "Create a New Savings Goal" },
+          { id: "edit-existing", text: "Edit an Existing Goal" },
+        ]);
+        break;
+      case "Analyze my spending patterns":
+        addMessage({
+          role: "assistant",
+          content:
+            "I'll help you analyze your spending patterns. First, let's identify which areas to focus on:",
+        });
+        setQuickstartOptions([
+          { id: "all", text: "All Categories" },
+          { id: "housing", text: "Housing & Utilities" },
+          { id: "transportation", text: "Transportation" },
+          { id: "food", text: "Food & Dining" },
+          { id: "entertainment", text: "Entertainment" },
+          { id: "shopping", text: "Shopping" },
+        ]);
+        break;
     }
-
-    setLoading(false);
-    setIsStreaming(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+  const handleBudgetChanges = async (changes: BudgetChange[]) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "/api/budget/update",
+        { changes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast({
+        title: "Success",
+        description: "Budget updated successfully!",
+      });
+
+      addMessage({
+        role: "assistant",
+        content:
+          "Your budget has been updated successfully! Need anything else?",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update budget. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-6 px-4 text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full">
-              <Bot className="w-8 h-8 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Welcome to Your Financial Assistant
-              </h3>
-              <p className="text-gray-600 mb-6">
-                How can I help you with your financial planning today?
-              </p>
-            </div>
-            <div className="grid gap-3 w-full max-w-sm">
-              <button
-                onClick={() =>
-                  handleQuickstartPrompt(
-                    "Create a budget for $5000 monthly income"
-                  )
-                }
-                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
-                  rounded-lg text-left transition-colors duration-200"
-              >
-                <span className="flex items-center">
-                  <DollarSign className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-gray-700">Create a monthly budget</span>
-                </span>
-              </button>
-              <button
-                onClick={() =>
-                  handleQuickstartPrompt("What's the 50/30/20 budgeting rule?")
-                }
-                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
-                  rounded-lg text-left transition-colors duration-200"
-              >
-                <span className="flex items-center">
-                  <PiggyBank className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-gray-700">
-                    Learn about 50/30/20 rule
-                  </span>
-                </span>
-              </button>
-              <button
-                onClick={() =>
-                  handleQuickstartPrompt(
-                    "How can I start investing with little money?"
-                  )
-                }
-                className="flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 
-                  rounded-lg text-left transition-colors duration-200"
-              >
-                <span className="flex items-center">
-                  <TrendingUp className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-gray-700">
-                    Investment tips for beginners
-                  </span>
-                </span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={message.id}
-              className={`flex items-end gap-2 ${
-                message.role === "user" ? "flex-row-reverse" : "flex-row"
-              }`}
-            >
-              {message.role === "user" ? (
-                <div className="user-avatar hidden sm:block" />
-              ) : (
-                <div className="assistant-avatar hidden sm:flex">
-                  <Bot className="w-5 h-5" />
+    <div
+      className={`flex ${showingSavingsGoals ? "flex-row" : "flex-col"} h-full min-h-0`}
+    >
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
+          {messages.length === 0 ? (
+            <QuickstartOptions onOptionSelect={handleQuickstartPrompt} />
+          ) : (
+            <>
+              {messages.map((message, index) => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  isStreaming={
+                    message.isStreaming &&
+                    isStreaming &&
+                    index === messages.length - 1
+                  }
+                  timestamp={formatTime()}
+                />
+              ))}
+              {currentFlow?.type === "budget" && (
+                <BudgetFlow
+                  budget={budget}
+                  onBudgetChange={handleBudgetChanges}
+                  onComplete={() => setCurrentFlow(null)}
+                />
+              )}
+              {currentFlow?.type === "savings" && (
+                <CreateSavingsGoalFlow
+                  currentFlow={currentFlow}
+                  onInputSubmit={handleSavingsGoalInput}
+                />
+              )}
+              {quickstartOptions.length > 0 && (
+                <div className="ml-12 mt-2">
+                  {quickstartOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => handleOptionClick(option)}
+                      className="block w-full text-left px-4 py-3 mb-2 bg-purple-50 hover:bg-purple-100 
+                        rounded-lg transition-colors duration-200 text-gray-700"
+                    >
+                      {option.text}
+                    </button>
+                  ))}
                 </div>
               )}
-              <div
-                className={`group relative max-w-[85%] sm:max-w-[80%] ${
-                  message.role === "user" ? "items-end" : "items-start"
-                }`}
-              >
-                <div
-                  className={`rounded-2xl p-3 sm:p-4 ${
-                    message.role === "user"
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-100 shadow-lg"
-                  } ${
-                    message.isStreaming && isStreaming ? "animate-pulse" : ""
-                  }`}
-                >
-                  <ReactMarkdown className="prose prose-sm sm:prose-base max-w-none dark:prose-invert break-words">
-                    {message.content || " "}
-                  </ReactMarkdown>
-                  {message.isStreaming &&
-                    isStreaming &&
-                    index === messages.length - 1 && (
-                      <span className="inline-block w-2 h-4 ml-1 bg-gray-400 animate-pulse" />
-                    )}
-                </div>
-                <div
-                  className={`message-time mt-1 text-[10px] sm:text-xs ${
-                    message.role === "user" ? "text-right" : "text-left"
-                  }`}
-                >
-                  {formatTime()}
-                </div>
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </div>
+
+        <div className="flex-none border-t border-gray-200 bg-white p-2 sm:p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="max-w-4xl mx-auto flex items-end gap-2"
+          >
+            <div className="flex-1 relative">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type your message..."
+                className="w-full py-2 px-3 sm:p-3 text-sm sm:text-base rounded-2xl border-2 
+                  border-purple-300/20 bg-white resize-none
+                  focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent
+                  min-h-[44px] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                disabled={isLoading}
+                rows={1}
+              />
+              <div className="absolute right-3 bottom-2 text-xs text-gray-400 select-none">
+                ⏎ to send
               </div>
             </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
+            <button
+              type="button"
+              onClick={isStreaming ? stopStreaming : handleSubmit}
+              disabled={!isStreaming && (isLoading || !input.trim())}
+              className="p-2 sm:p-3 rounded-full bg-purple-600 text-white hover:bg-purple-700 
+                disabled:opacity-50 disabled:hover:bg-purple-600 transition-colors duration-200
+                flex-shrink-0"
+            >
+              {isLoading ? (
+                isStreaming ? (
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
+                ) : (
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                )
+              ) : (
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
+          </form>
+        </div>
       </div>
 
-      <div className="border-t border-gray-200 bg-white p-2 sm:p-4">
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-4xl mx-auto flex items-end gap-2"
-        >
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              className={`w-full py-2 px-3 sm:p-3 text-sm sm:text-base rounded-2xl border-2 
-                border-purple-300/20 bg-white resize-none overflow-hidden
-                focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent
-                ${isLoading ? "bg-gray-100" : ""}`}
-              disabled={isLoading}
-              rows={1}
-              style={{ minHeight: "44px", maxHeight: "150px" }}
-            />
-            <div className="absolute right-3 bottom-2 text-xs text-gray-400 select-none">
-              ⏎ to send
-            </div>
+      {showingSavingsGoals && (
+        <div className="w-1/2 h-full overflow-y-auto border-l border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold">Your Savings Goals</h2>
+            <p className="text-sm text-gray-500">Click on a goal to edit it</p>
           </div>
-          <button
-            type="button"
-            onClick={isStreaming ? stopStreaming : handleSubmit}
-            disabled={!isStreaming && (isLoading || !input.trim())}
-            className="p-2 sm:p-3 rounded-full bg-purple-600 text-white hover:bg-purple-700 
-              disabled:opacity-50 disabled:hover:bg-purple-600 transition-colors duration-200
-              flex-shrink-0"
-          >
-            {isLoading ? (
-              isStreaming ? (
-                <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
-              ) : (
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-              )
-            ) : (
-              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </button>
-        </form>
-      </div>
+          <SavingsGoalsList onSelectGoal={handleGoalSelection} />
+        </div>
+      )}
     </div>
   );
 };

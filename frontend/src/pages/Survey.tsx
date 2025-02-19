@@ -49,10 +49,14 @@ const Survey: React.FC = () => {
         description: "Survey submitted successfully.",
       });
 
-      const budgetData = await generateBudget(formData, setIsLoading, setError, setBudget);
-      console.log(budgetData);
-      navigate("/budget");
+      const budgetData = await generateBudget(
+        formData,
+        setIsLoading,
+        setError,
+        setBudget
+      );
       setBudget(budgetData);
+      navigate("/budget");
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast({ title: "Error", description: "Failed to submit the survey." });
@@ -90,6 +94,11 @@ const Survey: React.FC = () => {
               </pre>
             </div>
           )}
+          <NavigationButtons
+            currentPage={currentPage}
+            totalPages={TOTAL_PAGES}
+            handleNextPage={handleNextPage}
+          />
         </div>
       </div>
     </div>

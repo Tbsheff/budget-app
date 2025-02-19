@@ -122,7 +122,7 @@ export const generateBudget = async (
     });
 
     const response = JSON.parse(completion.choices[0].message.content);
-    console.log(response);
+    console.log("Response:", response);
     // Save the budget to the database
     const token = localStorage.getItem("token");
     await axios.post("/api/budget/save", response, {
