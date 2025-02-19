@@ -45,6 +45,8 @@ export function CategoryRow({
   const isOverBudget = spentAmount > budgetAmount;
   const amountTextColor = isOverBudget ? "text-red-500" : "text-green-500";
   const navigate = useNavigate();
+  const isCurrentMonth =
+    new Date().toISOString().slice(0, 7) === currentDate.toISOString().slice(0, 7);
 
   const handleRowClick = () => {
     const formattedDate = currentDate.toISOString();
@@ -69,7 +71,9 @@ export function CategoryRow({
                 category.icon_name as keyof typeof LucideIcons
               ] as LucideIcons.LucideIcon) || (LucideIcons.MoreHorizontal as LucideIcons.LucideIcon)
             }
-            onChange={(icon) => onIconChange(category.category_id, icon.name)}
+            onChange={
+              isCurrentMonth ? (icon) => onIconChange(category.category_id, icon.name) : undefined
+            }
             color={category.icon_color}
             onClick={stopPropagation} // Pass stopPropagation to IconPicker
           />
@@ -87,11 +91,13 @@ export function CategoryRow({
           ${spentAmount.toFixed(2)}
         </span>
         <button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent row click
-              onDeleteCategory(category.category_id);
-            }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isCurrentMonth) onDeleteCategory(category.category_id);
+          }}
+          disabled={!isCurrentMonth} // Disable button if not the current month
+          className={`opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+    text-gray-400 hover:text-red-500 p-1 ${!isCurrentMonth ? "cursor-not-allowed opacity-50" : ""}`}
         >
           <Trash className="w-4 h-4" />
         </button>
