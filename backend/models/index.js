@@ -1,42 +1,181 @@
 "use strict";
 
-const fs = require("fs");
-const path = require("path");
 const Sequelize = require("sequelize");
-const process = require("process");
-const basename = path.basename(__filename);
+const path = require("path");
 const env = process.env.NODE_ENV || "development";
-const config = require(__dirname + "/../config/config.json")[env];
-const db = {};
+const config = require(path.join(__dirname, "../config/config.json"))[env];
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+// Initialize Sequelize connection
+const sequelize = config.use_env_variable
+  ? new Sequelize(process.env[config.use_env_variable], config)
+  : new Sequelize(config.database, config.username, config.password, config);
 
-fs.readdirSync(__dirname)
-  .filter((file) => {
-    return (
-      file.indexOf(".") !== 0 &&
-      file !== basename &&
-      file.slice(-3) === ".js" &&
-      file.indexOf(".test.js") === -1
-    );
-  })
-  .forEach((file) => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+// ✅ Explicitly import all models
+const Users = require("./users");
+const UserSettings = require("./user_settings");
+const Currencies = require("./currencies");
+const Languages = require("./languages");
+const DefaultCategories = require("./default_categories");
+const BudgetGroups = require("./budget_groups");
+const UserBudgetGroups = require("./user_budget_groups");
+const UserCategories = require("./user_categories"); // ✅ Import UserCategories FIRST
+const BudgetHistory = require("./budget_history"); // ✅ Import AFTER UserCategories
+const UserSubcategories = require("./user_subcategories");
+const Transactions = require("./transactions");
+const RecurringTransactions = require("./recurring_transactions");
+const Income = require("./Income");
+const SavingsGoals = require("./savings_goals");
+const Survey = require("./survey");
+const Notifications = require("./notifications");
 
-Object.keys(db).forEach((modelName) => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
+
+// ✅ Attach models to Sequelize instance
+const db = {
+  sequelize,
+  Sequelize,
+  BudgetGroups,
+  BudgetHistory,
+  Currencies,
+  DefaultCategories,
+  Income,
+  Languages,
+  Notifications,
+  RecurringTransactions,
+  SavingsGoals,
+  Survey,
+  Transactions,
+  UserBudgetGroups,
+  UserCategories,
+  UserSettings,
+  UserSubcategories,
+  Users,
+};
+
+// ✅ Define Associations
+
+// 🔹 Users -> UserSettings (One-to-One)
+Users.hasOne(UserSettings, {
+  foreignKey: "user_id",
+  as: "settings",
+});
+UserSettings.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+// 🔹 Users -> BudgetGroups (One-to-Many)
+Users.hasMany(UserBudgetGroups, {
+  foreignKey: "user_id",
+  as: "budgetGroups",
+});
+UserBudgetGroups.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
 
+// 🔹 BudgetGroups -> UserCategories (One-to-Many)
+UserBudgetGroups.hasMany(UserCategories, {
+  foreignKey: "budget_group_id",
+  as: "categories",
+});
+UserCategories.belongsTo(UserBudgetGroups, {
+  foreignKey: "budget_group_id",
+  as: "budget_group",
+});
+
+// 🔹 UserCategories -> BudgetHistory (One-to-Many)
+UserCategories.hasMany(BudgetHistory, {
+  foreignKey: "category_id",
+  as: "budgetHistory",
+});
+BudgetHistory.belongsTo(UserCategories, {
+  foreignKey: "category_id",
+  as: "category",
+});
+
+
+// 🔹 UserCategories -> UserSubcategories (One-to-Many)
+UserCategories.hasMany(UserSubcategories, {
+  foreignKey: "category_id",
+  as: "subcategories",
+});
+UserSubcategories.belongsTo(UserCategories, {
+  foreignKey: "category_id",
+  as: "category",
+});
+
+// 🔹 UserCategories -> Transactions (One-to-Many)
+UserCategories.hasMany(Transactions, {
+  foreignKey: "category_id",
+  as: "transactions",
+});
+Transactions.belongsTo(UserCategories, {
+  foreignKey: "category_id",
+  as: "category",
+});
+
+// 🔹 Users -> Transactions (One-to-Many)
+Users.hasMany(Transactions, {
+  foreignKey: "user_id",
+  as: "transactions",
+});
+Transactions.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> RecurringTransactions (One-to-Many)
+Users.hasMany(RecurringTransactions, {
+  foreignKey: "user_id",
+  as: "recurringTransactions",
+});
+RecurringTransactions.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> Income (One-to-Many)
+Users.hasMany(Income, {
+  foreignKey: "user_id",
+  as: "incomes",
+});
+Income.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> SavingsGoals (One-to-Many)
+Users.hasMany(SavingsGoals, {
+  foreignKey: "user_id",
+  as: "savingsGoals",
+});
+SavingsGoals.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> Survey (One-to-One)
+Users.hasOne(Survey, {
+  foreignKey: "user_id",
+  as: "survey",
+});
+Survey.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> Notifications (One-to-Many)
+Users.hasMany(Notifications, {
+  foreignKey: "user_id",
+  as: "notifications",
+});
+Notifications.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Currencies and Languages are independent tables
+// No direct associations defined for them
+
+// ✅ Export the database object
 module.exports = db;

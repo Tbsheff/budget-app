@@ -4,7 +4,7 @@ import { BudgetCategories } from "@/components/BudgetCategories";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-
+import { MobileMenu } from "@/components/mobilemenu";
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date()); // Added state to manage the current date
@@ -20,28 +20,13 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <MobileMenu />
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
       </div>
 
-      {/* Mobile Menu */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Sheet>
-            <SheetTrigger>
-              <Menu className="w-6 h-6 text-gray-600" />
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
-          <h1 className="text-lg font-semibold">{`${currentDate.toLocaleString("default", {
-            month: "long",
-          })} ${currentDate.getFullYear()} Budget`}</h1>
-          <HelpCircle className="w-6 h-6 text-gray-500" />
-        </div>
-      </div>
+    
 
       <main className="flex-1 p-4 md:p-8 w-full md:mt-0 mt-16">
         <div className="max-w-6xl mx-auto">
@@ -107,7 +92,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {/* Show Summary First on Mobile */}
             <div className="md:hidden">
-              <BudgetSummary />
+              <BudgetSummary currentDate={currentDate} />
             </div>
 
             <div className="md:col-span-2">
@@ -116,7 +101,7 @@ const Dashboard = () => {
 
             {/* Hide Summary on Mobile (already shown above) */}
             <div className="hidden md:block">
-              <BudgetSummary />
+              <BudgetSummary currentDate={currentDate} />
             </div>
           </div>
         </div>

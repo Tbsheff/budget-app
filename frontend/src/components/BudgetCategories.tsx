@@ -59,12 +59,18 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
         const userBudgetGroups = budgetGroupsResponse.data;
 
-        // ✅ Fetch user categories separately
+        // Format currentDate as YYYY-MM
+        const formattedDate = currentDate.toISOString().slice(0, 7);
+
+        // Fetch user categories with the appropriate month
         const userCategoriesResponse = await axios.get("/api/user-categories", {
           headers: { Authorization: `Bearer ${token}` },
+          params: { current_date: formattedDate },
         });
 
         const userCategories = userCategoriesResponse.data;
+        console.log("Current Date", formattedDate)
+        console.log("Fetched User Categories:", userCategories);
 
         // ✅ Ensure all budget groups exist, even if empty
         const groupedCategories: Record<number, BudgetGroup> = {};
@@ -78,17 +84,19 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
         // ✅ Assign categories to the correct budget groups
         userCategories.forEach((category) => {
-          const groupId = category.budget_group?.budget_group_id; 
-          if (!groupId) return; 
+          const groupId = category.budget_group?.budget_group_id;
+          if (!groupId) return;
 
           if (groupedCategories[groupId]) {
-            groupedCategories[groupId].categories.push(category); 
+            groupedCategories[groupId].categories.push(category);
           } else {
-            console.warn("Category has an invalid budget group:", category); 
+            console.warn("Category has an invalid budget group:", category);
           }
         });
 
-        setBudgetGroups(Object.values(groupedCategories)); // ✅ Set state properly
+        setBudgetGroups(Object.values(groupedCategories));
+        console.log("Updated Budget Groups State:", Object.values(groupedCategories));
+
       } catch (error) {
         console.error("Error fetching budget groups and categories:", error);
         toast({
@@ -101,7 +109,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
     };
 
     fetchBudgetGroupsAndCategories();
-  }, []);
+  }, [currentDate]);
 
   useEffect(() => {
     const fetchAggregatedTotalsAndEarnings = async () => {

@@ -45,6 +45,15 @@ const User_categories = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    is_deleted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -55,6 +64,13 @@ const User_categories = sequelize.define(
     timestamps: false,
   }
 );
+
+// const BudgetHistory = require("./budget_history");
+
+// User_categories.hasMany(BudgetHistory, {
+//   foreignKey: "category_id",
+//   as: "budgetHistory",
+// });
 
 User_categories.belongsTo(User_budget_groups, {
     foreignKey: "budget_group_id",

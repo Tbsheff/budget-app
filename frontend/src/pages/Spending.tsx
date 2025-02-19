@@ -17,6 +17,7 @@ import {
 import { Transaction } from "../types/transaction";
 import { TransactionFilters } from "../components/transactions/TransactionFilters";
 import { TransactionsTable } from "../components/transactions/TransactionsTable";
+import { MobileMenu } from "@/components/mobilemenu";
 
 // Define API response types
 interface Category {
@@ -274,10 +275,13 @@ const SpendingPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+        <MobileMenu />
+
       <div className="hidden md:block">
         <Sidebar />
       </div>
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 mt-16 md:mt-0 w-full max-w-6xl mx-auto">
+
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>

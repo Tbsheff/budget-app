@@ -9,6 +9,7 @@ import { Preferences } from "@/components/profile/Preferences";
 import { useToast } from "../components/ui/use-toast";
 import { useUser } from "../context/userContext";
 import { User } from "../context/userContext"; // Adjust the path as necessary
+import { MobileMenu } from "@/components/mobilemenu";
 
 const EditProfile = () => {
   const [profileData, setProfileData] = useState({
@@ -112,8 +113,13 @@ const EditProfile = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 p-4 md:p-8 w-full">
+       <MobileMenu />
+
+{/* Sidebar should remain for larger screens */}
+<div className="hidden md:block">
+  <Sidebar />
+</div>
+      <main className="flex-1 p-4 md:p-8 w-full pt-16">
         <MobileHeader />
         <div className="max-w-4xl mx-auto">
           <DesktopHeader
@@ -130,7 +136,7 @@ const EditProfile = () => {
             />
             <Preferences
               currency={profileData.currency}
-              language={profileData.language}
+
               isEditing={true}
               onInputChange={handleInputChange}
             />

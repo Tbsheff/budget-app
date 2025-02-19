@@ -12,6 +12,7 @@ import {
 import { Sidebar } from "@/components/Sidebar";
 import axios from "axios";
 import { useToast } from "../components/ui/use-toast";
+import { MobileMenu } from "@/components/mobilemenu";
 
 const IncomePage = () => {
   const [name, setName] = useState("");
@@ -61,14 +62,18 @@ const IncomePage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile Menu */}
+      <MobileMenu />
+  
+      {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
       </div>
-
-      <main className="flex-1 p-4 md:p-8">
+  
+      <main className="flex-1 p-4 md:p-8 mt-16 md:mt-0">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-8">Add Income</h1>
-
+  
           <Tabs defaultValue="manual" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="manual">
@@ -80,7 +85,7 @@ const IncomePage = () => {
                 Upload Receipt
               </TabsTrigger>
             </TabsList>
-
+  
             <TabsContent value="manual">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
@@ -93,7 +98,7 @@ const IncomePage = () => {
                     required
                   />
                 </div>
-
+  
                 <div className="space-y-2">
                   <Label htmlFor="amount">Amount</Label>
                   <div className="relative">
@@ -110,7 +115,7 @@ const IncomePage = () => {
                     />
                   </div>
                 </div>
-
+  
                 <div className="space-y-2">
                   <Label htmlFor="frequency">Frequency</Label>
                   <select
@@ -128,7 +133,7 @@ const IncomePage = () => {
                     <option value="Yearly">Yearly</option>
                   </select>
                 </div>
-
+  
                 <div className="space-y-2">
                   <Label htmlFor="payDate">Pay Date</Label>
                   <div className="relative">
@@ -143,61 +148,18 @@ const IncomePage = () => {
                     />
                   </div>
                 </div>
-
+  
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Adding..." : "Add Income"}
                 </Button>
               </form>
-            </TabsContent>
-
-            <TabsContent value="receipt" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative border-2 border-dashed rounded-lg p-8 text-center space-y-4">
-                  <div className="flex justify-center">
-                    <Upload className="h-12 w-12 text-gray-400" />
-                  </div>
-                  <div>
-                    <Button
-                      variant="outline"
-                      className="mx-auto cursor-not-allowed opacity-50"
-                      disabled
-                    >
-                      Upload Receipt
-                      <Upload className="ml-2 h-4 w-4" />
-                    </Button>
-                    <p className="text-sm text-indigo-600 mt-2">Coming Soon</p>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Drag and drop or click to upload (feature under development)
-                  </p>
-                </div>
-
-                <div className="relative border-2 border-dashed rounded-lg p-8 text-center space-y-4">
-                  <div className="flex justify-center">
-                    <Camera className="h-12 w-12 text-gray-400" />
-                  </div>
-                  <div>
-                    <Button
-                      variant="outline"
-                      className="mx-auto cursor-not-allowed opacity-50"
-                      disabled
-                    >
-                      Take Photo
-                      <Camera className="ml-2 h-4 w-4" />
-                    </Button>
-                    <p className="text-sm text-indigo-600 mt-2">Coming Soon</p>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Use your camera to capture receipt (feature under development)
-                  </p>
-                </div>
-              </div>
             </TabsContent>
           </Tabs>
         </div>
       </main>
     </div>
   );
+  
 };
 
 export default IncomePage;

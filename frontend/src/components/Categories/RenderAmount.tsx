@@ -13,9 +13,15 @@ interface RenderAmountProps {
   category: Category;
   currentDate: Date;
   onBudgetUpdate: (categoryId: number, newBudget: number) => void;
+  onClick?: (e: React.MouseEvent) => void; // Add onClick to props
 }
 
-export function RenderAmount({ category, currentDate, onBudgetUpdate }: RenderAmountProps) {
+export function RenderAmount({
+  category,
+  currentDate,
+  onBudgetUpdate,
+  onClick,
+}: RenderAmountProps) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState(category.monthly_budget.toFixed(2));
@@ -74,11 +80,15 @@ export function RenderAmount({ category, currentDate, onBudgetUpdate }: RenderAm
         onKeyDown={(e) => e.key === "Enter" && handleBlur()}
         className="w-20 h-8 text-right"
         autoFocus
+        onClick={onClick} // Use onClick prop
       />
     ) : (
       <span
         className="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
-        onClick={() => setEditing(true)}
+        onClick={(e) => {
+          setEditing(true);
+          if (onClick) onClick(e); // Call onClick prop
+        }}
       >
         ${category.monthly_budget.toFixed(2)}
       </span>

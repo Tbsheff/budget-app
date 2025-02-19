@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MobileMenu } from "@/components/mobilemenu";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 
@@ -169,7 +170,8 @@ const TransactionsPage = () => {
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const base64Content = typeof reader.result === "string" ? reader.result.split(",")[1] : ""; // Remove the data URL prefix
+      const base64Content =
+        typeof reader.result === "string" ? reader.result.split(",")[1] : ""; // Remove the data URL prefix
 
       try {
         setIsUploading(true);
@@ -267,6 +269,7 @@ const TransactionsPage = () => {
       <div className="hidden md:block">
         <Sidebar />
       </div>
+      <MobileMenu />
 
       <main className="flex-1 p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
@@ -356,6 +359,16 @@ const TransactionsPage = () => {
                   type="submit"
                   className="w-full"
                   disabled={isSubmitting}
+                  aria-label={
+                    isSubmitting
+                      ? "Adding transaction, please wait"
+                      : "Submit new transaction"
+                  } // ✅ Screen reader-friendly
+                  title={
+                    isSubmitting
+                      ? "Adding transaction, please wait"
+                      : "Add Transaction"
+                  } // ✅ Tooltip for visual users
                 >
                   {isSubmitting ? "Adding..." : "Add Transaction"}
                 </Button>
@@ -374,9 +387,11 @@ const TransactionsPage = () => {
                         variant="outline"
                         className="mx-auto"
                         onClick={handleFileClick}
+                        aria-label="Upload a receipt" // ✅ Screen reader-friendly
+                        title="Upload a receipt" // ✅ Tooltip for sighted users
                       >
                         Upload Receipt
-                        <Upload className="ml-2 h-4 w-4" />
+                        <Upload className="ml-2 h-4 w-4" aria-hidden="true" />
                       </Button>
                     </label>
                     <input
@@ -401,9 +416,11 @@ const TransactionsPage = () => {
                       variant="outline"
                       className="mx-auto"
                       onClick={handleFileUpload}
+                      aria-label="Analyze a receipt using the camera" // ✅ Screen reader-friendly
+                      title="Analyze a receipt using the camera" // ✅ Tooltip for sighted users
                     >
                       Analyze Receipt
-                      <Camera className="ml-2 h-4 w-4" />
+                      <Camera className="ml-2 h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                   <p className="text-sm text-gray-500">
