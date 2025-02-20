@@ -31,7 +31,7 @@ require("./jobs/cronJobs");
 
 // Middleware
 app.use(cors({
-  origin: ["https://budget-app-production-2188.up.railway.app", "https://app.walit.live"],
+  origin: ["https://budget-app-production-2188.up.railway.app", "https://app.walit.live", "http://localhost:8080"],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   credentials: true

@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
   base: mode === "development" ? "/" : "/",
   server: {
     host: "::",
-    port: 4173, // Match the port exposed in Docker
+    port: 8080, // Match the port exposed in Docker
     proxy: {
       "/api": {
         target: apiBaseUrl,
