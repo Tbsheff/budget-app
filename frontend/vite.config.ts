@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 const apiBaseUrl =
-  import.meta.env.MODE === "development"
+  process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
     : import.meta.env.VITE_API_BASE_URL;
 
