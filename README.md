@@ -60,6 +60,7 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **Data Protection:** HTTPS, encrypted database fields, and secure API keys
 - **Access Control:** Middleware for route protection, role-based access control (RBAC)
 - **Privacy Compliance:** GDPR and FERPA-compliant data storage and management
+- **Passwords:** BCrypt is used to hash and store passwords. Passwords are required to be complex (at least 12 characters with a capital letter, a number, and two special characters)
 
 ---
 
