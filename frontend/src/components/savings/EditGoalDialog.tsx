@@ -29,11 +29,36 @@ export function EditGoalDialog({
     const { name, value } = e.target;
     setEditedGoal({ ...editedGoal, [name]: value });
   };
-
-  const handleSave = () => {
-    onSave(editedGoal);
-    onClose();
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/savings-goals/${editedGoal.goal_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(editedGoal),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update goal");
+      }
+  
+      const updatedGoal = await response.json();
+      onSave(updatedGoal); 
+      onClose();
+  
+      // ✅ Force a full page refresh after saving
+      setTimeout(() => {
+        window.location.reload();
+      }, 500); // Delay to ensure UI updates smoothly
+    } catch (error) {
+      console.error("Error updating savings goal:", error);
+    }
   };
+  
+  
+  
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

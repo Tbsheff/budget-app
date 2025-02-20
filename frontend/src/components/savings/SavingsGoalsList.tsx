@@ -31,9 +31,24 @@ export function SavingsGoalsList({ onSelectGoal }: SavingsGoalsListProps) {
     }
   }, [user]);
 
-  const handleEdit = (updatedGoal: SavingsGoal) => {
-    setGoals(goals.map((g) => (g.id === updatedGoal.id ? updatedGoal : g)));
+  const handleEdit = async (updatedGoal: SavingsGoal) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`/api/savings-goals/${updatedGoal.id}`, updatedGoal, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      // Fetch the updated goals list instead of just replacing one item
+      const response = await axios.get("/api/savings-goals", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      setGoals(response.data); // Ensure UI updates with latest data
+    } catch (error) {
+      console.error("Error updating savings goal:", error);
+    }
   };
+  
 
   const handleComplete = async (goal: SavingsGoal) => {
     try {
