@@ -17,6 +17,7 @@ COPY backend/ ./
 
 # Copy built React frontend files from Stage 1
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+RUN ls -l ./frontend/dist
 
 # Environment variables
 ENV NODE_ENV=production
