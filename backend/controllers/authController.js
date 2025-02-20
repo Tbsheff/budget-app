@@ -104,6 +104,7 @@ exports.loginUser = async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         survey_completed: user.survey_completed,
+        created_at: user.created_at,
       },
     });
   } catch (err) {

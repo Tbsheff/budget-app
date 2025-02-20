@@ -11,6 +11,7 @@ export interface User {
   language: string;
   currency: string;
   survey_completed: boolean;
+  created_at: string;
 }
 
 // Define the context type

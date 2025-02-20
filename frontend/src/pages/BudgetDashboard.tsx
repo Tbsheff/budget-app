@@ -5,9 +5,13 @@ import { BudgetSummary } from "@/components/BudgetSummary";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileMenu } from "@/components/mobilemenu";
+import { useUser } from "@/context/userContext";
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date()); // Added state to manage the current date
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const { user } = useUser();
+  const userCreatedAt = new Date(user.created_at);
 
   // Handlers for navigating months
   const handleDateChange = (direction: "prev" | "next") => {
@@ -26,8 +30,6 @@ const Dashboard = () => {
         <Sidebar />
       </div>
 
-    
-
       <main className="flex-1 p-4 md:p-8 w-full md:mt-0 mt-16">
         <div className="max-w-6xl mx-auto">
           {/* Desktop Header */}
@@ -37,17 +39,27 @@ const Dashboard = () => {
             })} ${currentDate.getFullYear()} Budget`}</h1>
 
             <div className="flex items-center space-x-4">
+              {/* Left Navigation Button */}
               <button
                 onClick={() => handleDateChange("prev")}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"
+                disabled={
+                  new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) >=
+                  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+                }
+                className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2 ${new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) >= new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <ChevronLeft className="w-4 h-4 mr-1" />
+                {/* Conditionally render ChevronLeft only if userCreatedAt allows */}
+                {new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) <
+                  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) && (
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                )}
                 {new Intl.DateTimeFormat("default", {
-                  month: "long", // Use "long" for full month names or "short" if you want abbreviations.
+                  month: "long", // Use "long" for full month names
                   year: "numeric", // Display the full year
                 }).format(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
               </button>
 
+              {/* Right Navigation Button */}
               <button
                 onClick={() => handleDateChange("next")}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-gray-900 shadow hover:bg-gray-100 px-4 py-2"

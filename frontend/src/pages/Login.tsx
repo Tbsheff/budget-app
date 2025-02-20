@@ -36,6 +36,7 @@ const Login: React.FC = () => {
         phone_number: user.phone_number || null,
         language: user.language || "English",
         currency: user.currency || "USD",
+        created_at: user.created_at,
       });
 
       // Redirect based on survey completion
