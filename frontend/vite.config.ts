@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 const apiBaseUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : import.meta.env.VITE_API_BASE_URL;
+    : process.env.VITE_API_BASE_URL;
 
 export default defineConfig(({ mode }) => ({
   base: mode === "development" ? "/" : "/",
