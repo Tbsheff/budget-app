@@ -24,7 +24,14 @@
 ---
 
 ## Project Overview
-Walit is an an AI-Powered Budgeting App specifically designed to help students create and track their budgets no matter where they are at in their savings journey. This application is a comprehensive budgeting and expense-tracking system designed to provide users with AI-powered insights into their financial habits. It allows users to track income, expenses, savings goals, and budgeting analytics while maintaining high security and compliance with privacy regulations. The ease of use and AI integrations make this app perfect for students that are constantly on the go but want to make progress toward their financial goals.
+Managing finances is a major challenge for students, with many struggling to track their income, expenses, and savings effectively. **Financial stress** is one of the biggest contributors to overall student well-being, affecting **mental health, academic performance, and long-term financial stability.** Many students lack financial literacy, do not know how to manage their money, or struggle with accountability when setting financial goals.
+
+Walit is **an AI-powered budgeting and expense-tracking application** specifically designed to help students gain control over their finances. It provides **real-time, AI-driven insights** to help users understand their spending habits, create personalized budgets, and develop better financial behaviors.
+
+- **Smart Budgeting Assistance:** Personalized budget recommendations based on student income, expenses, and financial goals.
+- **AI-Powered Expense Tracking:** Automatically categorizes transactions and identifies spending trends.
+- **Accountability & Habit Formation:** Encourages consistent financial tracking through AI-driven reminders and insights.
+- **Actionable Financial Insights:** Uses machine learning to suggest savings strategies, spending adjustments, and alerts for unusual expenses.
 
 ---
 
@@ -62,7 +69,7 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **Authentication:** OAuth and JWT-based authentication
 - **Data Protection:** Secure data transmission (HTTPS), encrypted database fields, and secure API keys
 - **Integrity:** Database is SQL injection and app is XSS proof
-- **Access Control:** Middleware for route protection, role-based access control (RBAC)
+- **Access Control:** Route protection through role-based access control (RBAC)
 - **Privacy Compliance:** Privacy regulation compliant with data storage and management
 - **Passwords:** BCrypt is used to hash and store passwords. Passwords are required to be complex (at least 12 characters with a capital letter, a number, and two special characters)
 
@@ -97,7 +104,6 @@ Using Google's Lighthouse tool we were able to measure scores for our website's,
 
 - **Budget Assistance:** Adjusting budgets, suggesting savings plans, and analyzing spending habits.
 - **Database Modifications:** The chatbot can edit financial data, such as updating transactions, adjusting budgets, and creating new savings goals.
-- **UI Customization:** It can modify UI elements dynamically based on user requests.
 - **Quick Action Recommendations:** Users can select predefined actions such as "Adjust My Budget," "Create a Savings Plan," or "Analyze My Spending Patterns."
 
 ### Chatbot Components
