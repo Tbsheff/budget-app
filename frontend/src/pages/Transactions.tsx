@@ -30,6 +30,10 @@ import {
 import { MobileMenu } from "@/components/mobilemenu";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
+const apiBaseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000"
+    : import.meta.env.VITE_API_BASE_URL;
 
 const TransactionsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -54,7 +58,7 @@ const TransactionsPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("/api/user-categories", {
+        const response = await axios.get(`${apiBaseUrl}/api/user-categories`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -93,7 +97,7 @@ const TransactionsPage = () => {
         transaction_date: transactionDate,
       };
 
-      await axios.post("/api/expenses", transactionData, {
+      await axios.post(`${apiBaseUrl}/api/expenses`, transactionData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -126,7 +130,7 @@ const TransactionsPage = () => {
 
     const saveTransaction = async () => {
       try {
-        await axios.post("/api/expenses", extractedData, {
+        await axios.post(`${apiBaseUrl}/api/expenses`, extractedData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -176,7 +180,7 @@ const TransactionsPage = () => {
       try {
         setIsUploading(true);
         const response = await axios.post(
-          "/api/receipts/analyze",
+          `${apiBaseUrl}/api/receipts/analyze`,
           { base64Content },
           {
             headers: {
