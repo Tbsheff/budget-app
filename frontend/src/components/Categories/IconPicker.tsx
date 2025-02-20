@@ -103,7 +103,8 @@ interface IconPickerProps {
   onChange: (icon: LucideIcon) => void;
   color: string;
   categoryId: number; // Add categoryId to props
-  onClick?: (e: React.MouseEvent) => void; // Add onClick to props
+  onClick?: (e: React.MouseEvent) => void;
+  currentDate: Date;
 }
 
 export function IconPicker({
@@ -111,7 +112,8 @@ export function IconPicker({
   onChange,
   color,
   categoryId, // Destructure categoryId from props
-  onClick, // Destructure onClick from props
+  onClick,
+  currentDate, // Destructure onClick from props
 }: IconPickerProps) {
   const handleIconChange = async (icon: LucideIcon) => {
     try {
@@ -132,6 +134,16 @@ export function IconPicker({
           },
         }
       );
+
+      // Determine if editing is allowed based on date
+      const isEditable = () => {
+        const today = new Date();
+        return (
+          currentDate.getFullYear() > today.getFullYear() ||
+          (currentDate.getFullYear() === today.getFullYear() &&
+            currentDate.getMonth() == today.getMonth())
+        );
+      };
 
       // Call the onChange prop to update the icon in the frontend
       onChange(icon);

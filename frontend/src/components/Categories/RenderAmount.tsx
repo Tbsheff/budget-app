@@ -32,7 +32,7 @@ export function RenderAmount({
     return (
       currentDate.getFullYear() > today.getFullYear() ||
       (currentDate.getFullYear() === today.getFullYear() &&
-        currentDate.getMonth() >= today.getMonth())
+        currentDate.getMonth() == today.getMonth())
     );
   };
 

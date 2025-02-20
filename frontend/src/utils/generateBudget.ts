@@ -91,6 +91,16 @@ export const generateBudget = async (
  This is a list of colors to choose from. text-slate-500, text-gray-500, text-zinc-500, text-neutral-500, text-stone-500, text-red-500, text-orange-500, text-amber-500, text-yellow-500, text-lime-500, text-green-500, text-emerald-500, text-teal-500, text-cyan-500, text-sky-500, text-blue-500, text-indigo-500, text-violet-500, text-purple-500, text-fuchsia-500, text-pink-500, text-rose-500 
   this will be the icon_color
 
+  Ensure the following six categories are always included in the "Want" budget group:
+  - Charitable Donations (icon: HeartHandshake, color: text-red-500)
+  - Dining (icon: Coffee, color: text-yellow-500)
+  - Entertainment (icon: Film, color: text-green-500)
+  - Health & Wellness (icon: HeartPulse, color: text-purple-500)
+  - Shopping (icon: Tag, color: text-orange-500)
+  - Miscellaneous (icon: MoreHorizontal, color: text-gray-400)
+  These six categories in the Want buget group should have a monthly budget default of 0.
+
+
  Next, identify if the user has any categories that are a high percentage of their income compared to what is usually recommended for similar categories. For example, if the user is spending 50% of their income on rent, this is higher than the recommended 30%.
 
     Please provide:

@@ -78,13 +78,10 @@ export function CategoryRow({
               ] as LucideIcons.LucideIcon) ||
               (LucideIcons.MoreHorizontal as LucideIcons.LucideIcon)
             }
-            onChange={
-              isCurrentMonth
-                ? (icon) => onIconChange(category.category_id, icon.name)
-                : undefined
-            }
+            onChange={(icon) => onIconChange(category.category_id, icon.name)}
             color={category.icon_color}
-            onClick={stopPropagation} // Pass stopPropagation to IconPicker
+            onClick={stopPropagation}
+            currentDate={currentDate}
           />
           <span className="font-medium text-sm md:text-base ml-3">
             {category.name}
