@@ -81,9 +81,9 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 ## Google Lighthouse 
 
 Using Google's Lighthouse tool we were able to measure scores for our website's, accessibility, SEO, and practices. 
--![image](https://github.com/user-attachments/assets/4ae1cb7e-8050-4a0e-8aa9-51db2e0d9deb)
--![image](https://github.com/user-attachments/assets/fecad24e-6f46-4e04-be9b-c47b11d4f663)
--![image](https://github.com/user-attachments/assets/976d4bfa-51ca-435f-b7d9-25d5cfd7b586)
+- ![image](https://github.com/user-attachments/assets/4ae1cb7e-8050-4a0e-8aa9-51db2e0d9deb)
+- ![image](https://github.com/user-attachments/assets/fecad24e-6f46-4e04-be9b-c47b11d4f663)
+- ![image](https://github.com/user-attachments/assets/976d4bfa-51ca-435f-b7d9-25d5cfd7b586)
 
 
 
