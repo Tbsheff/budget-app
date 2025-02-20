@@ -127,7 +127,7 @@ export default function CategoryAnalytics() {
     { label: "All Time", value: "ALL" },
   ];
 
-  const monthlyChanges = spendingTrends.changes;
+  const monthlyChanges = spendingTrends.changes.map((change: number) => change.toFixed(0));
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -225,7 +225,7 @@ export default function CategoryAnalytics() {
             }
           },
           label: (context: { parsed: { y: number } }) =>
-            `$${context.parsed.y.toFixed(2)}`,
+            `$${context.parsed.y.toFixed(0)}`,
         },
       },
     },
@@ -239,7 +239,7 @@ export default function CategoryAnalytics() {
         beginAtZero: true,
         suggestedMax: Math.max(...spendingTrends.data) * 1.1, // Adds 20% extra space above the highest bar
         ticks: {
-          callback: (value: number) => `$${value.toFixed(2)}`,
+          callback: (value: number) => `$${value.toFixed(0)}`,
         },
         grid: {
           display: false,
@@ -277,7 +277,7 @@ export default function CategoryAnalytics() {
             }
           },
           label: (context: { parsed: { y: number } }) =>
-            `$${context.parsed.y.toFixed(2)}`,
+            `$${context.parsed.y.toFixed(0)}`,
         },
       },
     },
@@ -322,7 +322,7 @@ export default function CategoryAnalytics() {
 
           // Draw monthly amount inside the bar, near the bottom
           ctx.fillStyle = "#FFFFFF"; // White text for contrast
-          ctx.fillText(`$${value}`, x, y + height - 10); // Position just above x-axis
+          ctx.fillText(`$${Math.round(value)}`, x, y + height - 10); // Position just above x-axis
 
           // Draw change amount above the bar (skip first month)
           if (index > 0) {
@@ -510,7 +510,7 @@ export default function CategoryAnalytics() {
               </h2>
             </div>
             <div className="divide-y divide-gray-200">
-              {transactions.map((t, index) => {
+            {transactions.slice(0, 6).map((t, index) => {
                 const amount = Number(t.amount) || 0;
                 return (
                   <div
