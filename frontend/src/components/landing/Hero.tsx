@@ -20,36 +20,33 @@ const Hero = () => {
     },
   };
 
-  // REFS for tracking in-view state
+  // Refs for tracking in-view state
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
   const imageRef = useRef(null);
   const buttonRef = useRef(null);
 
-  // CHECKS if each section is in view
+  // Checks if each section is in view
   const heroInView = useInView(heroRef, { once: false, margin: "-20%" });
-  const featuresInView = useInView(featuresRef, {
-    once: false,
-    margin: "-20%",
-  });
+  const featuresInView = useInView(featuresRef, { once: false, margin: "-20%" });
   const imageInView = useInView(imageRef, { once: false, margin: "-20%" });
   const buttonInView = useInView(buttonRef, { once: false, margin: "-20%" });
 
   return (
     <header className="container-padding relative overflow-hidden">
-      {/* Desktop Layout */}
+      {/* Responsive Layout: Stacked on Mobile, Side-by-Side on Desktop */}
       <div className="max-w-7xl mx-auto relative z-10 pt-32 pb-16">
-        <div className="grid grid-cols-2 gap-12 items-center">
-          {/* LEFT TEXT SECTION */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          {/* LEFT TEXT SECTION (Appears First on Mobile) */}
           <motion.div
             ref={heroRef}
-            className="text-left"
+            className="text-center md:text-left order-1"
             variants={fadeInUp}
             initial="hidden"
             animate={heroInView ? "visible" : "hidden"}
           >
             <motion.h1
-              className="text-6xl font-bold leading-[1.1] mb-12 tracking-tight"
+              className="text-4xl md:text-6xl font-bold leading-[1.1] mb-12 tracking-tight"
               variants={fadeInUp}
             >
               Smart budgeting,
@@ -58,10 +55,10 @@ const Hero = () => {
             </motion.h1>
           </motion.div>
 
-          {/* RIGHT IMAGE SECTION */}
+          {/* RIGHT IMAGE SECTION (Appears Below on Mobile) */}
           <motion.div
             ref={imageRef}
-            className="relative flex justify-center"
+            className="relative flex justify-center order-2 md:order-1"
             variants={fadeInUp}
             initial="hidden"
             animate={imageInView ? "visible" : "hidden"}
