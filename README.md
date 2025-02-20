@@ -36,9 +36,8 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **State Management:** React Query for API state management
 - **Routing:** React Router for navigation
 - **UI Components:** Custom UI components with accessibility features
-- **Chatbot Integration:** AI-powered chatbot using OpenAI API
 - **User Language Detection:** The app identifies the browser's language and translates the interface accordingly and automatically.
-- **Colorblind Mode:** In profile settings, users can change the view mode to account for color blindness.
+- **Accessible Design:** In profile settings, users can change the view mode to account for color blindness. Accessible for screen readers.
 
 ### Back-End
 
@@ -46,27 +45,47 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **Authentication:** JWT-based authentication with Supabase authentication integration
 - **Data Processing:** AI-driven receipt scanning with Azure AI Document Intelligence
 - **Middleware:** Morgan for logging, CORS for security, Express JSON for request parsing
+- **Chatbot Integration:** AI-powered chatbot using OpenAI API and NLP integration
+- **Deployment:** App is fully deployed and scalable
 
 ### Database
 
 - **Database Type:** MySQL (via Sequelize ORM)
 - **Configuration:** Defined in `db.js` with connection pooling
 - **Entities:** Users, Transactions, Budget Categories, Income, Expenses, Savings Goals
+- **Encryption:** Data is encrypted through Supabase to protect sensitive information
 
 ---
 
 ## Security Measures
 
 - **Authentication:** OAuth and JWT-based authentication
-- **Data Protection:** HTTPS, encrypted database fields, and secure API keys
+- **Data Protection:** Secure data transmission (HTTPS), encrypted database fields, and secure API keys
+- **Integrity:** Database is SQL injection and app is XSS proof
 - **Access Control:** Middleware for route protection, role-based access control (RBAC)
-- **Privacy Compliance:** GDPR and FERPA-compliant data storage and management
+- **Privacy Compliance:** Privacy regulation compliant with data storage and management
 - **Passwords:** BCrypt is used to hash and store passwords. Passwords are required to be complex (at least 12 characters with a capital letter, a number, and two special characters)
 
----
 
-## Accessability
-In order to make Walit available to as many people as possible, we included the following features:
+## Responsiveness
+
+- **Real-Time AI-Powered Responses:** The chatbot and AI-driven financial assistant provide instant insights using streaming responses, minimizing latency.
+- **Scalability:** Docker Compose to manage and deploy both the Node.js backend and React TypeScript frontend. It simplifies deployment, ensures consistency, and enables easy scaling
+- **Impact on User Needs:** AI-driven budget recommendations help students make informed financial decisions with minimal effort. Helping students to learn finances in an easy, applied manner
+- **User Experience:**  The UI dynamically adjusts to user preferences, offering personalized insights and an intuitive navigation experience
+- **Technical Excellence:** AI optimizations, database indexing, and caching reduce processing time, ensuring smooth and efficient interactions
+- **Creativity and Innovation:** Features like AI-powered receipt scanning and expense categorization enhance budgeting efficiency with minimal manual input. Multilingual ability expands the solution to different demographics
+- **Security and Privacy:** All AI-generated insights and financial data are encrypted, ensuring compliance with industry privacy standards.
+
+
+## Google Lighthouse 
+
+Using Google's Lighthouse tool we were able to measure scores for our website's, accessibility, SEO, and practices. 
+-![image](https://github.com/user-attachments/assets/4ae1cb7e-8050-4a0e-8aa9-51db2e0d9deb)
+-![image](https://github.com/user-attachments/assets/fecad24e-6f46-4e04-be9b-c47b11d4f663)
+-![image](https://github.com/user-attachments/assets/976d4bfa-51ca-435f-b7d9-25d5cfd7b586)
+
+
 
 
 
