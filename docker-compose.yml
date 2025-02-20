@@ -5,6 +5,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_JWT_SECRET: ${VITE_JWT_SECRET}
+        VITE_OPENAI_API_KEY: ${VITE_OPENAI_API_KEY}
+        VITE_PORT: ${VITE_PORT}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     ports:
       - "80:4173"
     environment:

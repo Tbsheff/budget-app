@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => ({
     //   },
     // },
   },
+  preview: {
+    port: 4173,
+    allowedHosts: ["app.walit.live"], // Add allowed hosts
+  },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean
   ),
