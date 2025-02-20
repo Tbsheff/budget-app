@@ -28,8 +28,15 @@ async function createMonthlyBudgetSnapshot() {
     const categories = await UserCategories.findAll({
       where: {
         [Op.or]: [
-          { is_deleted: false }, // Active categories
-          { deleted_at: { [Op.gte]: `${lastMonthYear}-01` } }, // Deleted after last month started
+          { is_deleted: false,
+            created_at: { [Op.lte]: new Date(`${lastMonthYear}-01T00:00:00.000Z`) }, // Created on or before the month
+          },
+           // Include active categories
+          {
+            is_deleted: true,
+            deleted_at: { [Op.gt]: new Date(`${lastMonthYear}-01T00:00:00.000Z`) }, // Include only if deleted AFTER the month
+            created_at: { [Op.lte]: new Date(`${lastMonthYear}-01T00:00:00.000Z`) }, // Created on or before the month
+          },
         ],
       },
       attributes: ["user_id", "category_id", "monthly_budget"],
