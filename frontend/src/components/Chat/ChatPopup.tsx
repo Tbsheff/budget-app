@@ -1,10 +1,11 @@
 import React from "react";
 import { Chat } from "./Chat";
 import { useChatStore } from "../../store/chatStore";
-import { X, Maximize2, Minimize2 } from "lucide-react";
+import { X, Maximize2, Minimize2, RotateCcw } from "lucide-react";
 
 export const ChatPopup: React.FC = () => {
-  const { isOpen, isFullscreen, toggleChat, toggleFullscreen } = useChatStore();
+  const { isOpen, isFullscreen, toggleChat, toggleFullscreen, resetChat } =
+    useChatStore();
 
   if (!isOpen) return null;
 
@@ -35,6 +36,22 @@ export const ChatPopup: React.FC = () => {
             Financial Assistant
           </h2>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (
+                  confirm(
+                    "Are you sure you want to start a new chat? This will clear all messages."
+                  )
+                ) {
+                  resetChat();
+                }
+              }}
+              className="p-1 rounded-full hover:bg-white/10 transition-colors duration-200
+                active:scale-95 touch-manipulation"
+              aria-label="Start new chat"
+            >
+              <RotateCcw className="w-5 h-5 text-white" />
+            </button>
             <button
               onClick={toggleFullscreen}
               className="p-1 rounded-full hover:bg-white/10 transition-colors duration-200
