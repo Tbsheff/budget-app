@@ -30,7 +30,10 @@ require("./jobs/cronJobs");
 })();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ["https://app.walit.live"], // Allow frontend domain
+  credentials: true, // Allow cookies
+}));
 app.use(express.json());
 app.use(morgan("dev"));
 
