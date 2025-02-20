@@ -69,7 +69,7 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
         });
 
         const userCategories = userCategoriesResponse.data;
-        console.log("Current Date", formattedDate)
+        console.log("Current Date", formattedDate);
         console.log("Fetched User Categories:", userCategories);
 
         // ✅ Ensure all budget groups exist, even if empty
@@ -96,7 +96,6 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
         setBudgetGroups(Object.values(groupedCategories));
         console.log("Updated Budget Groups State:", Object.values(groupedCategories));
-
       } catch (error) {
         console.error("Error fetching budget groups and categories:", error);
         toast({
@@ -187,7 +186,16 @@ export function BudgetCategories({ currentDate }: BudgetCategoriesProps) {
 
   return (
     <div className="space-y-6">
-      <Button onClick={() => setIsGroupDialogOpen(true)} variant="outline" className="mb-4 w-full">
+      <Button
+        onClick={() => setIsGroupDialogOpen(true)}
+        variant="outline"
+        className={`mb-4 w-full ${
+          currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+        }`}
+        disabled={currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)}
+      >
         <Plus className="w-4 h-4 mr-2" />
         Add New Budget Group
       </Button>

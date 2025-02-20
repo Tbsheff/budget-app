@@ -128,7 +128,12 @@ export function CategorySection({
             variant="ghost"
             size="sm"
             onClick={() => setIsCategoryDialogOpen(true)}
-            className="h-8"
+            className={`h-8 ${
+              currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
+            disabled={currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)}
           >
             <Plus className="w-4 h-4" />
           </Button>
