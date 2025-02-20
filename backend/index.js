@@ -31,9 +31,12 @@ require("./jobs/cronJobs");
 
 // Middleware
 app.use(cors({
-  origin: ["https://budget-app-production-2188.up.railway.app", "https://app.walit.live",], // Allow frontend domain
-  credentials: true, // Allow cookies
+  origin: ["https://budget-app-production-2188.up.railway.app", "https://app.walit.live"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  credentials: true
 }));
+
 app.use(express.json());
 app.use(morgan("dev"));
 
