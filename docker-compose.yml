@@ -6,13 +6,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "80:4173"
     environment:
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - SUPABASE_URL=${SUPABASE_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - BACKEND_URL=${BACKEND_URL}
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_OPENAI_API_KEY=${VITE_OPENAI_API_KEY}
+      - VITE_PORT=${VITE_PORT}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     depends_on:
       - backend
 
@@ -21,10 +22,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - NODE_ENV=production
-      - PORT=${PORT}
+      - PORT=5000
       - RUNNING_IN_DOCKER=true
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
@@ -37,6 +38,3 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
     volumes:
       - ./backend:/app
-
-volumes:
-  db_data:

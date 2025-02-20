@@ -4,10 +4,10 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: mode === "development" ? "" : "/",
+  base: mode === "development" ? "/" : "/",
   server: {
     host: "::",
-    port: 8080,
+    port: 4173, // Match the port exposed in Docker
     // proxy: {
     //   "/api": {
     //     target: "http://localhost:5000",
