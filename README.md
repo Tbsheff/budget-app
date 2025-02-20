@@ -51,7 +51,7 @@ Walit is **an AI-powered budgeting and expense-tracking application** specifical
 - **Server:** Node.js with Express
 - **Authentication:** JWT-based authentication with Supabase authentication integration
 - **Data Processing:** AI-driven receipt scanning with Azure AI Document Intelligence
-- **Middleware:** Morgan for logging, CORS for security, Express JSON for request parsing
+- **Middleware:** CORS for security, Express JSON for request parsing
 - **Chatbot Integration:** AI-powered chatbot using OpenAI API and NLP integration
 - **Deployment:** App is fully deployed and scalable
 
