@@ -155,11 +155,13 @@ export function CategorySection({
           </DialogContent>
         </Dialog>
 
-        <div className="grid grid-cols-[1fr_0.5fr_0.5fr] gap-2 text-sm font-medium mb-2 px-2">
-          <span className="text-left">Category</span>
-          <span className="text-right">Budget Amount</span>
-          <span className="text-right">Actual Amount</span>
-        </div>
+        <div className="flex items-center justify-between px-6 pb-2 text-sm font-medium border-b">
+  <span className="text-left flex-1">Category</span>
+  <span className="text-center flex-1">Budget Amount</span>
+  <span className="text-left flex-1">Actual Amount</span>
+</div>
+
+
 
         {budgetGroup.categories.map((category) => (
           <CategoryRow
