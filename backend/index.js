@@ -30,7 +30,13 @@ require("./jobs/cronJobs");
 })();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ["https://budget-app-production-2188.up.railway.app", "https://app.walit.live", "http://localhost:8080"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(morgan("dev"));
 
@@ -51,6 +57,7 @@ app.use("/api/budget", require("./routes/budgetRoutes"));
 app.use("/api/receipts", require("./routes/receiptRoutes"));
 app.use("/api/savings-goals", require("./routes/savingsGoalsRoutes"));
 app.use("/api/category", require("./routes/categoryAnalyticsRoutes"));
+app.use("/api/query", require("./routes/queryRoutes"));
 
 // Detect whether running in Docker or locally
 const isDocker = process.env.RUNNING_IN_DOCKER === "true";

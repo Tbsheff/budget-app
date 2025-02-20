@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Pause } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Pause,
+  Bot,
+  DollarSign,
+  PiggyBank,
+  TrendingUp,
+} from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 import { streamCompletion } from "../../lib/openai";
 import {
@@ -41,8 +49,6 @@ export const Chat: React.FC = () => {
     isOpen,
     quickstartOptions,
     setQuickstartOptions,
-    currentFlow,
-    setCurrentFlow,
   } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -52,6 +58,13 @@ export const Chat: React.FC = () => {
 
   const [showingSavingsGoals, setShowingSavingsGoals] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
+  const [currentFlow, setCurrentFlow] = useState<{
+    type: string;
+    name: string | null;
+    targetAmount: number | null;
+    deadline: string | null;
+    initialDeposit: number | null;
+  } | null>(null);
 
   const budgetFlow: QuickstartOption[] = [
     {
@@ -130,11 +143,11 @@ export const Chat: React.FC = () => {
   }, [isStreaming, isLoading]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && !isStreaming) {
       setCurrentFlow(null);
       setQuickstartOptions([]);
     }
-  }, [isOpen, setQuickstartOptions, setCurrentFlow]);
+  }, [isOpen, isStreaming, setQuickstartOptions, setCurrentFlow]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -144,7 +157,14 @@ export const Chat: React.FC = () => {
   };
 
   const handleNewSavingsGoal = async (type: string) => {
-    setCurrentFlow({ type });
+    setCurrentFlow({
+      type,
+      name: null,
+      targetAmount: null,
+      deadline: null,
+      initialDeposit: null,
+    });
+    console.log("currentFlow", currentFlow);
     addMessage({
       role: "assistant",
       content: "What would you like to name this savings goal?",
@@ -155,6 +175,8 @@ export const Chat: React.FC = () => {
   const handleSavingsGoalInput = async (input: string) => {
     if (!currentFlow) return;
 
+    console.log("Before Update: ", currentFlow);
+
     // Handle validation errors
     if (input.startsWith("ERROR:")) {
       addMessage({
@@ -164,32 +186,80 @@ export const Chat: React.FC = () => {
       return;
     }
 
+    // Step 1: Set goal name
     if (!currentFlow.name) {
-      setCurrentFlow({ ...currentFlow, name: input });
-      addMessage({ role: "user", content: input });
-      addMessage({
-        role: "assistant",
-        content: `How much do you need to save for ${input}? (Please enter an amount in dollars)`,
-      });
-    } else if (!currentFlow.targetAmount) {
+      // setCurrentFlow((prev) => (prev ? { ...prev, name: input } : prev));
+
+      setTimeout(() => {
+        addMessage({ role: "user", content: input });
+        addMessage({
+          role: "assistant",
+          content: `How much do you need to save for **${input}**? (Please enter an amount in dollars)`,
+        });
+      }, 100);
+      setCurrentFlow({ type: "savings", name: input });
+
+      return;
+    }
+
+    // Step 2: Set target amount
+    if (!currentFlow.targetAmount) {
       const amount = parseFloat(input.replace(/[^0-9.]/g, ""));
-      setCurrentFlow({ ...currentFlow, targetAmount: amount });
-      addMessage({ role: "user", content: input });
+      if (isNaN(amount) || amount <= 0) {
+        addMessage({
+          role: "assistant",
+          content: "ERROR: Please enter a valid positive amount.",
+        });
+        return;
+      }
+
+      addMessage({ role: "user", content: `$${amount}` });
       addMessage({
         role: "assistant",
         content:
           "When do you need to have this amount saved by? Please select a date.",
       });
-    } else if (!currentFlow.deadline) {
-      setCurrentFlow({ ...currentFlow, deadline: input });
+
+      setTimeout(() => {
+        setCurrentFlow({ ...currentFlow, targetAmount: amount });
+      }, 100);
+      return;
+    }
+
+    // Step 3: Set deadline
+    if (!currentFlow.deadline) {
+      if (isNaN(Date.parse(input))) {
+        addMessage({
+          role: "assistant",
+          content: "ERROR: Please select a valid date.",
+        });
+        return;
+      }
+
       addMessage({ role: "user", content: input });
       addMessage({
         role: "assistant",
         content:
           "How much would you like to deposit initially? (Enter 0 if none)",
       });
-    } else if (!currentFlow.initialDeposit) {
+
+      setTimeout(() => {
+        setCurrentFlow({ ...currentFlow, deadline: input });
+      }, 100);
+      return;
+    }
+
+    // Step 4: Set initial deposit and save the goal
+    if (!currentFlow.initialDeposit) {
       const deposit = parseFloat(input.replace(/[^0-9.]/g, ""));
+      if (isNaN(deposit) || deposit < 0) {
+        addMessage({
+          role: "assistant",
+          content: "ERROR: Please enter a valid non-negative amount.",
+        });
+        return;
+      }
+
       const goalData = {
         ...currentFlow,
         initialDeposit: deposit,
@@ -216,10 +286,10 @@ export const Chat: React.FC = () => {
           description: "Savings goal created successfully!",
         });
 
-        addMessage({ role: "user", content: input });
+        addMessage({ role: "user", content: `$${deposit}` });
         addMessage({
           role: "assistant",
-          content: `Great! I've created a savings goal for ${goalData.name} with a target of $${goalData.targetAmount} by ${goalData.deadline} and an initial deposit of $${deposit}.`,
+          content: `Great! Your savings goal for **${goalData.name}** is set with a target of **$${goalData.targetAmount}** by **${goalData.deadline}** with an initial deposit of **$${deposit}**.`,
         });
       } catch (error) {
         toast({
@@ -229,7 +299,10 @@ export const Chat: React.FC = () => {
         });
       }
 
-      setCurrentFlow(null);
+      setTimeout(() => {
+        setCurrentFlow(null);
+      }, 100);
+      return;
     }
   };
 
@@ -342,7 +415,7 @@ export const Chat: React.FC = () => {
     }
 
     addMessage({ role: "assistant", content: "", isStreaming: true });
-    let assistantResponse = "Let me query the database for you.\n\n";
+    const assistantResponse = "Let me check for you.\n\n";
     updateLastMessage(assistantResponse);
 
     try {
@@ -350,43 +423,198 @@ export const Chat: React.FC = () => {
       const schema = {
         tables: [
           {
-            name: "transactions",
-            columns: ["id", "amount", "date", "category", "description"],
+            name: "budget_history",
+            columns: [
+              "history_id",
+              "user_id",
+              "category_id",
+              "month_year",
+              "monthly_budget",
+              "created_at",
+              "updated_at",
+              "rolled_over_amount",
+            ],
           },
           {
-            name: "budgets",
-            columns: ["id", "category", "amount", "period"],
+            name: "currencies",
+            columns: ["currency_id", "code", "name", "symbol"],
+          },
+          {
+            name: "languages",
+            columns: ["language_id", "code", "name"],
+          },
+          {
+            name: "notifications",
+            columns: [
+              "notification_id",
+              "user_id",
+              "type",
+              "message",
+              "is_sent",
+              "send_date",
+              "created_at",
+            ],
+          },
+          {
+            name: "recurring_transactions",
+            columns: [
+              "recurring_id",
+              "user_id",
+              "category_id",
+              "amount",
+              "description",
+              "frequency",
+              "next_occurrence",
+              "created_at",
+            ],
+          },
+          {
+            name: "savings_goals",
+            columns: [
+              "goal_id",
+              "user_id",
+              "name",
+              "target_amount",
+              "current_amount",
+              "deadline",
+              "created_at",
+              "category_id",
+            ],
+          },
+          {
+            name: "survey",
+            columns: [
+              "survey_id",
+              "user_id",
+              "age",
+              "targetRetirementAge",
+              "employmentStatus",
+              "monthlyIncome",
+              "additionalIncome",
+              "housingPayment",
+              "utilities",
+              "internetAndPhone",
+              "transportationCosts",
+              "healthInsurance",
+              "groceries",
+              "creditCardDebt",
+              "otherLoans",
+              "monthlySavings",
+              "financialPriorities",
+              "otherPriority",
+              "desiredMonthlySavings",
+              "createdAt",
+              "updatedAt",
+            ],
+          },
+          {
+            name: "transactions",
+            columns: [
+              "transaction_id",
+              "user_id",
+              "category_id",
+              "amount",
+              "description",
+              "transaction_date",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_budget_groups",
+            columns: [
+              "budget_group_id",
+              "group_name",
+              "user_id",
+              "default_category_id",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_categories",
+            columns: [
+              "category_id",
+              "user_id",
+              "default_category_id",
+              "name",
+              "monthly_budget",
+              "created_at",
+              "icon_name",
+              "icon_color",
+              "budget_group_id",
+              "is_deleted",
+              "deleted_at",
+            ],
+          },
+          {
+            name: "user_settings",
+            columns: [
+              "setting_id",
+              "user_id",
+              "currency",
+              "timezone",
+              "theme",
+              "notifications_enabled",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_subcategories",
+            columns: [
+              "subcategory_id",
+              "user_id",
+              "category_id",
+              "name",
+              "created_at",
+            ],
           },
         ],
       };
 
       const sqlData = await generateSQLQuery(
         userMessage,
-        (token) => {
-          assistantResponse = token;
-          updateLastMessage(assistantResponse);
-        },
+
         schema
       );
 
       if (!sqlData) {
         updateLastMessage(
-          "I couldn't generate a valid SQL query for your request."
+          "I couldn't find the correct information for your request."
         );
         return true;
       }
 
-      updateLastMessage(assistantResponse + "\nExecuting query...");
+      updateLastMessage(assistantResponse + "\nSearching your budget...");
 
       const result = await executeSQLQuery(sqlData);
 
-      const formattedResult =
-        typeof result === "object"
-          ? "```json\n" + JSON.stringify(result, null, 2) + "\n```"
-          : result;
+      let formattedResponse = "";
+
+      // Function to capitalize each word in a string
+      const capitalizeWords = (str: string) => {
+        return str
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      };
+
+      if (Array.isArray(result)) {
+        formattedResponse = result
+          .map((item, index) => {
+            const entry = Object.entries(item)
+              .map(
+                ([key, value]) =>
+                  `${capitalizeWords(key.replace(/_/g, " "))}: ${value}`
+              )
+              .join(", ");
+            return `${entry}`;
+          })
+          .join("\n\n");
+      } else {
+        formattedResponse = JSON.stringify(result, null, 2);
+      }
 
       updateLastMessage(
-        assistantResponse + "\nHere's what I found:\n\n" + formattedResult
+        `${assistantResponse}\nHere's what I found:\n\n${formattedResponse}`
       );
     } catch (error) {
       console.error("Error in SQL query handling:", error);
@@ -403,10 +631,13 @@ export const Chat: React.FC = () => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    console.log("Handling submit, current flow:", currentFlow);
+
     const userMessage = input.trim();
     setInput("");
 
     if (currentFlow) {
+      console.log("Triggering handleSavingsGoalInput");
       await handleSavingsGoalInput(userMessage);
       return;
     }
@@ -414,41 +645,6 @@ export const Chat: React.FC = () => {
     addMessage({ role: "user", content: userMessage });
     setLoading(true);
     setIsStreaming(true);
-
-    try {
-      // First, try to handle as SQL query
-      const wasDataQuery = await handleSQLQuery(userMessage);
-
-      // If it wasn't a data query, proceed with normal chat
-      if (!wasDataQuery) {
-        addMessage({ role: "assistant", content: "", isStreaming: true });
-        let streamResponse = "";
-
-        abortControllerRef.current = new AbortController();
-        await streamCompletion(
-          userMessage,
-          (token) => {
-            streamResponse += token;
-            updateLastMessage(streamResponse);
-          },
-          abortControllerRef.current.signal
-        );
-
-        if (abortControllerRef.current.signal.aborted) {
-          updateLastMessage(
-            streamResponse + "\n\n*Message streaming was stopped*"
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error in chat:", error);
-      updateLastMessage(
-        "I encountered an error while processing your message. Please try again."
-      );
-    }
-
-    setLoading(false);
-    setIsStreaming(false);
   };
 
   const handleOptionClick = async (option: QuickstartOption) => {
@@ -713,8 +909,23 @@ export const Chat: React.FC = () => {
       addMessage({
         role: "assistant",
         content:
-          "Your budget has been updated successfully! Need anything else?",
+          "Your budget has been updated successfully! What would you like to do next?",
       });
+
+      setQuickstartOptions([
+        {
+          id: "adjust-budget",
+          text: "I need help adjusting my budget",
+        },
+        {
+          id: "create-savings",
+          text: "I want to create a savings plan",
+        },
+        {
+          id: "analyze-spending",
+          text: "Analyze my spending patterns",
+        },
+      ]);
     } catch (error) {
       toast({
         title: "Error",

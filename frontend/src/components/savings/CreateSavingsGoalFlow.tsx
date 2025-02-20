@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils";
 interface CreateSavingsGoalFlowProps {
   currentFlow: {
     type: string;
-    name?: string;
-    targetAmount?: number;
-    deadline?: string;
-    initialDeposit?: number;
+    name?: string | null;
+    targetAmount?: number | null;
+    deadline?: string | null;
+    initialDeposit?: number | null;
   } | null;
   onInputSubmit: (input: string) => void;
 }
@@ -26,22 +26,28 @@ export const CreateSavingsGoalFlow: React.FC<CreateSavingsGoalFlowProps> = ({
   currentFlow,
   onInputSubmit,
 }) => {
-  const [input, setInput] = React.useState("");
-  const [date, setDate] = React.useState<Date>();
+  const [input, setInput] = useState("");
+  const [date, setDate] = useState<Date | null>(null);
+
+  // Update component state when `currentFlow` changes
+  useEffect(() => {
+    setInput(""); // Clear input when switching steps
+    if (currentFlow?.deadline) {
+      setDate(new Date(currentFlow.deadline)); // Update selected date if already set
+    }
+  }, [currentFlow]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !date) return;
 
     if (!currentFlow?.name) {
-      // Validate goal name
       if (input.length < 3) {
         onInputSubmit("ERROR: Goal name must be at least 3 characters long");
         return;
       }
       onInputSubmit(input);
     } else if (!currentFlow?.targetAmount) {
-      // Validate target amount
       const amount = parseFloat(input.replace(/[^0-9.]/g, ""));
       if (isNaN(amount) || amount <= 0) {
         onInputSubmit("ERROR: Please enter a valid positive amount");
@@ -49,14 +55,12 @@ export const CreateSavingsGoalFlow: React.FC<CreateSavingsGoalFlowProps> = ({
       }
       onInputSubmit(input);
     } else if (!currentFlow?.deadline) {
-      // Date is handled by the calendar component
       if (!date) {
         onInputSubmit("ERROR: Please select a valid date");
         return;
       }
-      onInputSubmit(format(date, "MM/dd/yyyy"));
+      onInputSubmit(format(date, "yyyy-MM-dd"));
     } else if (!currentFlow?.initialDeposit) {
-      // Validate initial deposit
       const deposit = parseFloat(input.replace(/[^0-9.]/g, ""));
       if (isNaN(deposit) || deposit < 0) {
         onInputSubmit("ERROR: Please enter a valid non-negative amount");
@@ -65,7 +69,7 @@ export const CreateSavingsGoalFlow: React.FC<CreateSavingsGoalFlowProps> = ({
       onInputSubmit(input);
     }
 
-    setInput("");
+    setInput(""); // Reset input field
   };
 
   const renderInput = () => {
@@ -73,68 +77,88 @@ export const CreateSavingsGoalFlow: React.FC<CreateSavingsGoalFlowProps> = ({
 
     if (!currentFlow.name) {
       return (
-        <Input
-          placeholder="Enter goal name..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="mb-2"
-        />
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            Goal Name
+          </label>
+          <Input
+            placeholder="Enter goal name..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="mb-2"
+          />
+        </>
       );
     }
 
     if (!currentFlow.targetAmount) {
       return (
-        <Input
-          type="number"
-          placeholder="Enter target amount..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="mb-2"
-          min="0"
-          step="0.01"
-        />
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            Target Amount ($)
+          </label>
+          <Input
+            type="number"
+            placeholder="Enter target amount..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="mb-2"
+            min="0"
+            step="0.01"
+          />
+        </>
       );
     }
 
     if (!currentFlow.deadline) {
       return (
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal mb-2",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              initialFocus
-              disabled={(date) => date < new Date()}
-            />
-          </PopoverContent>
-        </Popover>
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            Target Date
+          </label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal mb-2",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={date || undefined}
+                onSelect={setDate}
+                initialFocus
+                disabled={(d) => d < new Date()} // Disable past dates
+              />
+            </PopoverContent>
+          </Popover>
+        </>
       );
     }
 
     if (!currentFlow.initialDeposit) {
       return (
-        <Input
-          type="number"
-          placeholder="Enter initial deposit..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="mb-2"
-          min="0"
-          step="0.01"
-        />
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            Initial Deposit ($)
+          </label>
+          <Input
+            type="number"
+            placeholder="Enter initial deposit..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="mb-2"
+            min="0"
+            step="0.01"
+          />
+        </>
       );
     }
 
@@ -144,11 +168,9 @@ export const CreateSavingsGoalFlow: React.FC<CreateSavingsGoalFlowProps> = ({
   return (
     <form onSubmit={handleSubmit} className="mt-2">
       {renderInput()}
-      {currentFlow && !currentFlow.deadline && (
-        <Button type="submit" className="w-full">
-          Next
-        </Button>
-      )}
+      <Button type="submit" className="w-full mt-3">
+        Next
+      </Button>
     </form>
   );
 };

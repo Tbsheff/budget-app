@@ -38,6 +38,7 @@ interface ChatState {
     isStreaming?: boolean;
   }) => void;
   updateLastMessage: (content: string) => void;
+  resetChat: () => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -63,4 +64,6 @@ export const useChatStore = create<ChatState>((set) => ({
         idx === state.messages.length - 1 ? { ...msg, content } : msg
       ),
     })),
+  resetChat: () =>
+    set({ messages: [], quickstartOptions: [], currentFlow: null }),
 }));
