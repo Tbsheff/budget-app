@@ -37,7 +37,8 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **Routing:** React Router for navigation
 - **UI Components:** Custom UI components with accessibility features
 - **Chatbot Integration:** AI-powered chatbot using OpenAI API
-- **Automatic Translation:** Google Translate API integration for multi-language support
+- - **User Language Detection:** The app identifies the browser's language and translates the interface accordingly and automatically.
+- **Colorblind Mode:** In profile settings, users can change the view mode to account for color blindness.
 
 ### Back-End
 
@@ -67,8 +68,7 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 ## Accessability
 In order to make Walit available to as many people as possible, we included the following features:
 
-- **User Language Detection:** The app identifies the browser's language and translates the interface accordingly.
-- **Colorblind Mode:** In profile settings, users can change the colors.
+
 
 ---
 
