@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 const Hero = () => {
   const features = [
@@ -12,7 +13,11 @@ const Hero = () => {
   // Animation for individual sections
   const fadeInUp = {
     hidden: { opacity: 0, y: 80 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
   };
 
   // REFS for tracking in-view state
@@ -23,7 +28,10 @@ const Hero = () => {
 
   // CHECKS if each section is in view
   const heroInView = useInView(heroRef, { once: false, margin: "-20%" });
-  const featuresInView = useInView(featuresRef, { once: false, margin: "-20%" });
+  const featuresInView = useInView(featuresRef, {
+    once: false,
+    margin: "-20%",
+  });
   const imageInView = useInView(imageRef, { once: false, margin: "-20%" });
   const buttonInView = useInView(buttonRef, { once: false, margin: "-20%" });
 
@@ -32,7 +40,6 @@ const Hero = () => {
       {/* Desktop Layout */}
       <div className="max-w-7xl mx-auto relative z-10 pt-32 pb-16">
         <div className="grid grid-cols-2 gap-12 items-center">
-          
           {/* LEFT TEXT SECTION */}
           <motion.div
             ref={heroRef}
@@ -54,17 +61,19 @@ const Hero = () => {
           {/* RIGHT IMAGE SECTION */}
           <motion.div
             ref={imageRef}
-            className="relative"
+            className="relative flex justify-center"
             variants={fadeInUp}
             initial="hidden"
             animate={imageInView ? "visible" : "hidden"}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <img
-              src="/placeholder.svg"
-              alt="Student budget planning illustration"
-              className="w-full h-auto"
-            />
+            <Card className="glass-panel p-6 rounded-2xl overflow-hidden w-fit">
+              <img
+                src="/images/NewBudget.png"
+                alt="Student budget planning illustration"
+                className="max-w-full h-auto rounded-lg"
+              />
+            </Card>
           </motion.div>
         </div>
       </div>

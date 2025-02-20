@@ -15,8 +15,7 @@ const features = [
       "Easily upload receipts to save time and keep accurate records",
     ],
     icon: <Wallet className="w-6 h-6 text-accent-purple" />,
-    image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80",
+    image: "/images/ChatbotUncropped-modified.png",
   },
   {
     title: "Academic Financial Planning",
@@ -28,8 +27,7 @@ const features = [
       "Get personalized recommendations for your savings goals",
     ],
     icon: <BookOpen className="w-6 h-6 text-accent-blue" />,
-    image:
-      "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&q=80",
+    image: "/images/DashboardZoomed.jpg",
   },
 ];
 
@@ -107,11 +105,11 @@ const Features = () => {
                 className="flex-1"
                 transition={{ duration: 1.2, delay: 0.6 }}
               >
-                <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
+                <Card className="glass-panel p-6 rounded-2xl overflow-hidden w-fit">
                   <img
                     src={feature.image}
                     alt={feature.title}
-                    className="w-full h-full object-cover rounded-lg aspect-video"
+                    className="max-w-full h-auto rounded-lg"
                   />
                 </Card>
               </motion.div>
