@@ -192,7 +192,7 @@ export function CategorySection({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      ;
+      
     </div>
   );
 }
