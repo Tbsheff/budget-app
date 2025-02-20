@@ -79,3 +79,44 @@ exports.getBudgetSummary = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch budget summary" });
   }
 };
+
+exports.updateBudget = async (req, res) => {
+  try {
+    const { changes } = req.body;
+    const userId = req.user.id;
+
+    for (const change of changes) {
+      if (change.type === 'CATEGORY') {
+        const category = await UserCategories.findOne({
+          where: { category_id: change.target, user_id: userId },
+        });
+
+        if (!category) {
+          return res.status(404).json({ message: 'Category not found' });
+        }
+
+        switch (change.action) {
+          case 'INCREASE':
+          case 'DECREASE':
+            category.monthly_budget = change.newValue;
+            break;
+          case 'RENAME':
+            category.name = change.newValue;
+            break;
+          case 'MOVE':
+            category.budget_group_id = change.newValue;
+            break;
+          default:
+            return res.status(400).json({ message: 'Invalid action' });
+        }
+
+        await category.save();
+      }
+    }
+
+    res.status(200).json({ message: 'Budget updated successfully' });
+  } catch (error) {
+    console.error('Error updating budget:', error);
+    res.status(500).json({ message: 'Failed to update budget' });
+  }
+};

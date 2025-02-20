@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Pause } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Pause,
+  Bot,
+  DollarSign,
+  PiggyBank,
+  TrendingUp,
+} from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 import { streamCompletion } from "../../lib/openai";
 import {
@@ -342,7 +350,7 @@ export const Chat: React.FC = () => {
     }
 
     addMessage({ role: "assistant", content: "", isStreaming: true });
-    let assistantResponse = "Let me query the database for you.\n\n";
+    const assistantResponse = "Let me check for you.\n\n";
     updateLastMessage(assistantResponse);
 
     try {
@@ -350,43 +358,198 @@ export const Chat: React.FC = () => {
       const schema = {
         tables: [
           {
-            name: "transactions",
-            columns: ["id", "amount", "date", "category", "description"],
+            name: "budget_history",
+            columns: [
+              "history_id",
+              "user_id",
+              "category_id",
+              "month_year",
+              "monthly_budget",
+              "created_at",
+              "updated_at",
+              "rolled_over_amount",
+            ],
           },
           {
-            name: "budgets",
-            columns: ["id", "category", "amount", "period"],
+            name: "currencies",
+            columns: ["currency_id", "code", "name", "symbol"],
+          },
+          {
+            name: "languages",
+            columns: ["language_id", "code", "name"],
+          },
+          {
+            name: "notifications",
+            columns: [
+              "notification_id",
+              "user_id",
+              "type",
+              "message",
+              "is_sent",
+              "send_date",
+              "created_at",
+            ],
+          },
+          {
+            name: "recurring_transactions",
+            columns: [
+              "recurring_id",
+              "user_id",
+              "category_id",
+              "amount",
+              "description",
+              "frequency",
+              "next_occurrence",
+              "created_at",
+            ],
+          },
+          {
+            name: "savings_goals",
+            columns: [
+              "goal_id",
+              "user_id",
+              "name",
+              "target_amount",
+              "current_amount",
+              "deadline",
+              "created_at",
+              "category_id",
+            ],
+          },
+          {
+            name: "survey",
+            columns: [
+              "survey_id",
+              "user_id",
+              "age",
+              "targetRetirementAge",
+              "employmentStatus",
+              "monthlyIncome",
+              "additionalIncome",
+              "housingPayment",
+              "utilities",
+              "internetAndPhone",
+              "transportationCosts",
+              "healthInsurance",
+              "groceries",
+              "creditCardDebt",
+              "otherLoans",
+              "monthlySavings",
+              "financialPriorities",
+              "otherPriority",
+              "desiredMonthlySavings",
+              "createdAt",
+              "updatedAt",
+            ],
+          },
+          {
+            name: "transactions",
+            columns: [
+              "transaction_id",
+              "user_id",
+              "category_id",
+              "amount",
+              "description",
+              "transaction_date",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_budget_groups",
+            columns: [
+              "budget_group_id",
+              "group_name",
+              "user_id",
+              "default_category_id",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_categories",
+            columns: [
+              "category_id",
+              "user_id",
+              "default_category_id",
+              "name",
+              "monthly_budget",
+              "created_at",
+              "icon_name",
+              "icon_color",
+              "budget_group_id",
+              "is_deleted",
+              "deleted_at",
+            ],
+          },
+          {
+            name: "user_settings",
+            columns: [
+              "setting_id",
+              "user_id",
+              "currency",
+              "timezone",
+              "theme",
+              "notifications_enabled",
+              "created_at",
+            ],
+          },
+          {
+            name: "user_subcategories",
+            columns: [
+              "subcategory_id",
+              "user_id",
+              "category_id",
+              "name",
+              "created_at",
+            ],
           },
         ],
       };
 
       const sqlData = await generateSQLQuery(
         userMessage,
-        (token) => {
-          assistantResponse = token;
-          updateLastMessage(assistantResponse);
-        },
+
         schema
       );
 
       if (!sqlData) {
         updateLastMessage(
-          "I couldn't generate a valid SQL query for your request."
+          "I couldn't find the correct information for your request."
         );
         return true;
       }
 
-      updateLastMessage(assistantResponse + "\nExecuting query...");
+      updateLastMessage(assistantResponse + "\nSearching your budget...");
 
       const result = await executeSQLQuery(sqlData);
 
-      const formattedResult =
-        typeof result === "object"
-          ? "```json\n" + JSON.stringify(result, null, 2) + "\n```"
-          : result;
+      let formattedResponse = "";
+
+      // Function to capitalize each word in a string
+      const capitalizeWords = (str: string) => {
+        return str
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      };
+
+      if (Array.isArray(result)) {
+        formattedResponse = result
+          .map((item, index) => {
+            const entry = Object.entries(item)
+              .map(
+                ([key, value]) =>
+                  `${capitalizeWords(key.replace(/_/g, " "))}: ${value}`
+              )
+              .join(", ");
+            return `${entry}`;
+          })
+          .join("\n\n");
+      } else {
+        formattedResponse = JSON.stringify(result, null, 2);
+      }
 
       updateLastMessage(
-        assistantResponse + "\nHere's what I found:\n\n" + formattedResult
+        `${assistantResponse}\nHere's what I found:\n\n${formattedResponse}`
       );
     } catch (error) {
       console.error("Error in SQL query handling:", error);
@@ -713,8 +876,23 @@ export const Chat: React.FC = () => {
       addMessage({
         role: "assistant",
         content:
-          "Your budget has been updated successfully! Need anything else?",
+          "Your budget has been updated successfully! What would you like to do next?",
       });
+
+      setQuickstartOptions([
+        {
+          id: "adjust-budget",
+          text: "I need help adjusting my budget",
+        },
+        {
+          id: "create-savings",
+          text: "I want to create a savings plan",
+        },
+        {
+          id: "analyze-spending",
+          text: "Analyze my spending patterns",
+        },
+      ]);
     } catch (error) {
       toast({
         title: "Error",
