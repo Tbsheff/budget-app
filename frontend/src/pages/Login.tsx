@@ -3,12 +3,15 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import Navigation from "../components/landing/Navigation";
 import { useUser } from "../context/userContext"; // Import the UserContext
+import { supabase } from "@/config/supabaseClient"; // Import supabase client
+import { useToast } from "@/hooks/use-toast"; // Import useToast hook
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { setUser } = useUser(); // Access the setUser function from context
+  const { toast } = useToast(); // Access the toast function
 
   const apiBaseUrl =
     import.meta.env.MODE === "development"
@@ -41,17 +44,29 @@ const Login: React.FC = () => {
         created_at: user.created_at,
       });
 
-      // Redirect based on survey completion
-      if (user.survey_completed) {
-        navigate("/budget");
+      // Check if MFA is enabled
+      const { data: mfaData, error: mfaError } =
+        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (mfaError) throw mfaError;
+
+      if (mfaData.currentLevel === "aal2") {
+        // Navigate to TOTP verification page
+        navigate("/mfa/totp-verify", { state: { from: location.pathname } });
       } else {
-        navigate("/survey");
+        // Redirect based on survey completion
+        if (user.survey_completed) {
+          navigate("/budget");
+        } else {
+          navigate("/survey");
+        }
       }
     } catch (error) {
       console.log(error.message);
-      alert(
-        `Login failed: ${error.message}. Please check your credentials and try again.`
-      );
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: `Login failed: ${error.message}. Please check your credentials and try again.`,
+      });
     }
   };
 

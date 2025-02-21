@@ -10,6 +10,7 @@ import {
   Target,
 } from "lucide-react";
 import { useUser } from "../context/userContext";
+import { supabase } from "@/config/supabaseClient"; // Import Supabase client
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -29,11 +30,20 @@ export function Sidebar() {
     navigate("/profile");
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // remove auth token
-    setUser(null); // reset user state
-    navigate("/login"); // redirect to login page
-    setTimeout(() => window.location.reload(), 100); //  full logout
+  const handleLogout = async () => {
+    try {
+      // Log out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Remove auth token and reset user state
+      localStorage.removeItem("token");
+      setUser(null);
+      navigate("/login");
+      setTimeout(() => window.location.reload(), 100); // Full logout
+    } catch (error) {
+      console.error("Error logging out:", error.message);
+    }
   };
 
   // Determine greeting text
