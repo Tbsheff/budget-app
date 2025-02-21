@@ -156,8 +156,13 @@ export function IconPicker({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
-          onClick={onClick} // Use onClick prop
+          className={`p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation ${
+            currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          onClick={onClick}
+          disabled={currentDate.toISOString().slice(0, 7) !== new Date().toISOString().slice(0, 7)}
         >
           <Icon className={cn("w-5 h-5 md:w-6 md:h-6", color)} />
         </button>

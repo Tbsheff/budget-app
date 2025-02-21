@@ -50,8 +50,10 @@ const Dashboard = () => {
               >
                 {/* Conditionally render ChevronLeft only if userCreatedAt allows */}
                 {new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) <
-                  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) && (
+                  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) ? (
                   <ChevronLeft className="w-4 h-4 mr-1" />
+                ): (
+                  <span className="w-4 h-4 mr-1" />
                 )}
                 {new Intl.DateTimeFormat("default", {
                   month: "long", // Use "long" for full month names
@@ -81,9 +83,19 @@ const Dashboard = () => {
           <div className="md:hidden flex justify-between items-center mb-6 mt-2">
             <button
               onClick={() => handleDateChange("prev")}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5"
+              disabled={
+                new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) >=
+                new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+              }
+              className={`inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-gray-900 shadow hover:bg-gray-100 px-3 py-1.5 ${new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) >= new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
+              {/* Conditionally render ChevronLeft only if userCreatedAt allows */}
+              {new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), 1) <
+                new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) ? (
+                <ChevronLeft className="w-4 h-4 mr-1" />
+              ) : (
+                <span className="w-4 h-4 mr-1" />
+              )}
               {`${new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toLocaleString(
                 "default",
                 { month: "short" }
