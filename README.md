@@ -41,7 +41,6 @@ Walit is **an AI-powered budgeting and expense-tracking application** specifical
 
 - **Framework:** React with TypeScript
 - **State Management:** React Query for API state management
-- **Routing:** React Router for navigation
 - **UI Components:** Custom UI components with accessibility features
 - **User Language Detection:** The app identifies the browser's language and translates the interface accordingly and automatically.
 - **Accessible Design:** In profile settings, users can change the view mode to account for color blindness. Accessible for screen readers.
