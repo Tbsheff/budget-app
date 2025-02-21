@@ -645,6 +645,32 @@ export const Chat: React.FC = () => {
     addMessage({ role: "user", content: userMessage });
     setLoading(true);
     setIsStreaming(true);
+
+    // **Handle generic chat messages**
+    try {
+      abortControllerRef.current = new AbortController();
+      addMessage({ role: "assistant", content: "", isStreaming: true });
+
+      let assistantResponse = "";
+      await streamCompletion(
+        userMessage, // User's message gets sent to AI
+        (token) => {
+          assistantResponse += token;
+          updateLastMessage(assistantResponse);
+        },
+        abortControllerRef.current.signal
+      );
+    } catch (error) {
+      if (error.name === "AbortError") {
+        updateLastMessage("Chat stopped.");
+      } else {
+        console.error("Error handling chat:", error);
+        updateLastMessage("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsStreaming(false);
+      setLoading(false);
+    }
   };
 
   const handleOptionClick = async (option: QuickstartOption) => {
