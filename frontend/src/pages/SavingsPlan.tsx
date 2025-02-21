@@ -79,7 +79,7 @@ export default function SavingsPlan() {
 
   const handleCompleteGoal = (goal: SavingsGoal) => {
     setGoals((prev) =>
-      prev.map((g) => (g.id === goal.id ? { ...g, completed: true } : g))
+      prev.map((g) => (g.goal_id === goal.goal_id ? { ...g, completed: true } : g))
     );
     toast({
       title: "Goal Completed",
@@ -167,7 +167,7 @@ export default function SavingsPlan() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {sortedAndFilteredGoals.map((goal) => (
               <GoalCard
-                key={goal.id}
+                key={goal.goal_id}
                 goal={goal}
                 onEdit={handleEditGoal}
                 onComplete={handleCompleteGoal}

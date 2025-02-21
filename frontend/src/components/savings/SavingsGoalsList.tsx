@@ -34,7 +34,7 @@ export function SavingsGoalsList({ onSelectGoal }: SavingsGoalsListProps) {
   const handleEdit = async (updatedGoal: SavingsGoal) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`/api/savings-goals/${updatedGoal.id}`, updatedGoal, {
+      await axios.put(`/api/savings-goals/${updatedGoal.goal_id}`, updatedGoal, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
@@ -53,11 +53,11 @@ export function SavingsGoalsList({ onSelectGoal }: SavingsGoalsListProps) {
   const handleComplete = async (goal: SavingsGoal) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`/api/savings-goals/${goal.id}/complete`, null, {
+      await axios.put(`/api/savings-goals/${goal.goal_id}/complete`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setGoals(
-        goals.map((g) => (g.id === goal.id ? { ...g, completed: true } : g))
+        goals.map((g) => (g.goal_id === goal.goal_id ? { ...g, completed: true } : g))
       );
     } catch (error) {
       console.error("Error completing goal:", error);
@@ -68,7 +68,7 @@ export function SavingsGoalsList({ onSelectGoal }: SavingsGoalsListProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {goals.map((goal) => (
         <div
-          key={goal.id}
+          key={goal.goal_id}
           onClick={() => onSelectGoal(goal)}
           className="cursor-pointer"
         >
