@@ -5,7 +5,7 @@ import { MobileHeader } from "@/components/profile/MobileHeader";
 import { DesktopHeader } from "@/components/profile/DesktopHeader";
 import { Sidebar } from "@/components/Sidebar";
 import { PersonalInformation } from "@/components/profile/PersonalInformation";
-import { SecuritySettings } from "@/components/profile/SecuritySettings";
+import { SecuritySettings } from "@/components/profile/securitySettings";
 import { Preferences } from "@/components/profile/Preferences";
 import { MobileEditButton } from "@/components/profile/MobileEditButton";
 import { MobileMenu } from "@/components/mobilemenu";
