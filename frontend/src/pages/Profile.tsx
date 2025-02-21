@@ -5,6 +5,7 @@ import { MobileHeader } from "@/components/profile/MobileHeader";
 import { DesktopHeader } from "@/components/profile/DesktopHeader";
 import { Sidebar } from "@/components/Sidebar";
 import { PersonalInformation } from "@/components/profile/PersonalInformation";
+import { SecuritySettings } from "@/components/profile/SecuritySettings";
 import { Preferences } from "@/components/profile/Preferences";
 import { MobileEditButton } from "@/components/profile/MobileEditButton";
 import { MobileMenu } from "@/components/mobilemenu";
@@ -47,16 +48,19 @@ const Profile = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-       <MobileMenu />
+      <MobileMenu />
 
-{/* Sidebar should remain for larger screens */}
-<div className="hidden md:block">
-  <Sidebar />
-</div>
+      {/* Sidebar should remain for larger screens */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
       <main className="flex-1 p-4 md:p-8 w-full pt-16">
         <MobileHeader />
         <div className="max-w-4xl mx-auto">
-          <DesktopHeader isEditing={false} onEditToggle={() => navigate("/edit-profile")} />
+          <DesktopHeader
+            isEditing={false}
+            onEditToggle={() => navigate("/edit-profile")}
+          />
 
           <div className="grid gap-8">
             <PersonalInformation
@@ -66,11 +70,10 @@ const Profile = () => {
             />
             <Preferences
               currency={profileData.currency}
-   
               isEditing={false}
               onInputChange={() => {}}
             />
-
+            <SecuritySettings />
             <MobileEditButton onEditToggle={() => navigate("/edit-profile")} />
           </div>
         </div>

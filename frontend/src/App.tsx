@@ -23,6 +23,10 @@ import CategoryAnalytics from "./pages/CategoryAnalytics";
 import TranslationWidget from "@/components/Translation";
 import SavingsPlan from "./pages/SavingsPlan";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import MFASetup from "./pages/MFASetup";
+import TOTPSetup from "./pages/TOTPSetup";
+import TOTPVerify from "./pages/TOTPVerify";
+import ManageMFA from "./pages/ManageMFA";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/email-confirmation" element={<EmailConfirmation />} />
+        <Route path="/mfa/totp-verify" element={<TOTPVerify />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
@@ -80,6 +85,9 @@ const AppRoutes = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/savings" element={<SavingsPlan />} />
+          <Route path="/mfa-setup" element={<MFASetup />} />
+          <Route path="/mfa/totp-setup" element={<TOTPSetup />} />
+          <Route path="/mfa/manage" element={<MFASetup />} />
         </Route>
       </Routes>
 
