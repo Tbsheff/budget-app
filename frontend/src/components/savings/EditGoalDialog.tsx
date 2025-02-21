@@ -31,7 +31,7 @@ export function EditGoalDialog({
   };
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/savings-goals/${editedGoal.goal_id}`, {
+      const response = await fetch(`/api/savings-goals/${editedGoal.goal_id}`, { // ✅ Use `goal_id`
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -39,6 +39,7 @@ export function EditGoalDialog({
         },
         body: JSON.stringify(editedGoal),
       });
+      
   
       if (!response.ok) {
         throw new Error("Failed to update goal");

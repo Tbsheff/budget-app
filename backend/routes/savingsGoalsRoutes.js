@@ -9,6 +9,6 @@ const { createSavingsGoal,
 
 router.post("/create", auth, createSavingsGoal);
 router.get("/", auth, getSavingsGoals);
-router.put("/:id", auth, updateSavingsGoal);
+router.put("/:goal_id", auth, updateSavingsGoal);
 
 module.exports = router;

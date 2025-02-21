@@ -45,7 +45,7 @@ exports.getSavingsGoals = async (req, res) => {
 
 exports.updateSavingsGoal = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { goal_id } = req.params; 
     const { name, target_amount, current_amount, deadline } = req.body;
     const userId = req.user.id;
 

@@ -30,7 +30,7 @@ export function GoalCard({ goal, onEdit, onComplete }: GoalCardProps) {
   const handleSave = async (editedGoal: SavingsGoal) => {
     try {
       const response = await axios.put(
-        `/api/savings-goals/${goal.goal_id}`,
+        `/api/savings-goals/${goal.id}`,
         editedGoal,
         {
           headers: {
