@@ -646,6 +646,14 @@ export const Chat: React.FC = () => {
     setLoading(true);
     setIsStreaming(true);
 
+    // **Handle SQL queries**
+    // const isDataQuery = await handleSQLQuery(userMessage);
+    // if (isDataQuery) {
+    //   setLoading(false);
+    //   setIsStreaming(false);
+    //   return;
+    // }
+
     // **Handle generic chat messages**
     try {
       abortControllerRef.current = new AbortController();
