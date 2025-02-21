@@ -24,6 +24,13 @@ const fetchProfileAndBudget = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    const transactions = await axios.get(
+      "/api/expenses/aggregated?startDate=2024-06-01&endDate=2025-02-28",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     const initialProfile = {
       firstName: response.data.first_name,
       lastName: response.data.last_name,
@@ -35,11 +42,12 @@ const fetchProfileAndBudget = async () => {
 
     const profileString = JSON.stringify(initialProfile);
     const budgetString = JSON.stringify(budget.data);
+    const transactionString = JSON.stringify(transactions.data);
 
-    return { profileString, budgetString };
+    return { profileString, budgetString, transactionString };
   } catch (error) {
     console.error("Error fetching profile or budget:", error);
-    return { profileString: "", budgetString: "" };
+    return { profileString: "", budgetString: "", transactionString: "" };
   }
 };
 
@@ -48,7 +56,8 @@ export const streamCompletion = async (
   onToken: (token: string) => void,
   signal?: AbortSignal
 ) => {
-  const { profileString, budgetString } = await fetchProfileAndBudget();
+  const { profileString, budgetString, transactionString } =
+    await fetchProfileAndBudget();
 
   const stream = await openai.chat.completions.create(
     {
@@ -56,7 +65,7 @@ export const streamCompletion = async (
       messages: [
         {
           role: "system",
-          content: `${chatbotInstructions} ${profileString} ${budgetString}`,
+          content: `${chatbotInstructions} ${profileString} ${budgetString} ${transactionString}`,
         },
         { role: "user", content: prompt },
       ],
