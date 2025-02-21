@@ -44,7 +44,7 @@ const TOTPSetup: React.FC = () => {
         title: "Error setting up authenticator",
         description: error.message,
       });
-      navigate("/mfa-setup");
+      navigate("/profile");
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ const TOTPSetup: React.FC = () => {
         title: "MFA setup complete",
         description: "Your authenticator app has been successfully configured",
       });
-      navigate("/mfa-setup");
+      navigate("/profile");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -103,7 +103,7 @@ const TOTPSetup: React.FC = () => {
       <Button
         variant="ghost"
         className="mb-6"
-        onClick={() => navigate("/mfa-setup")}
+        onClick={() => navigate("/profile")}
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to MFA Setup
