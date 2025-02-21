@@ -66,8 +66,9 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 ## Accessability
 In order to make Walit available to as many people as possible, we included the following features:
 
+- **Mobile Friendly:** The app is accessible on both deskop and mobile browsers, which makes it easy to use from a phone while on the go.
 - **User Language Detection:** The app identifies the browser's language and translates the interface accordingly.
-- **Colorblind Mode:** In profile settings, users can change the colors.
+- **Colorblind Mode:** In profile settings, users can edit the "Colorblind Mode" setting which provides options for deuteranopia, protanopia, tritanopia, grayscale.
 
 ---
 
@@ -76,7 +77,8 @@ In order to make Walit available to as many people as possible, we included the 
 ### Chatbot Capabilities
 
 - **Budget Assistance:** Adjusting budgets, suggesting savings plans, and analyzing spending habits.
-- **Database Modifications:** The chatbot can edit financial data, such as updating transactions, adjusting budgets, and creating new savings goals.
+- **Database Modifications:** The chatbot can edit financial data, such as updating transactions, adjusting budgets, and creating new savings goals. We securely configured the inputs to avoid any unwanted data entries such as SQL injection.
+
 - **UI Customization:** It can modify UI elements dynamically based on user requests.
 - **Quick Action Recommendations:** Users can select predefined actions such as "Adjust My Budget," "Create a Savings Plan," or "Analyze My Spending Patterns."
 

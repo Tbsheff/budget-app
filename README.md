@@ -24,7 +24,14 @@
 ---
 
 ## Project Overview
-Walit is an an AI-Powered Budgeting App specifically designed to help students create and track their budgets no matter where they are at in their savings journey. This application is a comprehensive budgeting and expense-tracking system designed to provide users with AI-powered insights into their financial habits. It allows users to track income, expenses, savings goals, and budgeting analytics while maintaining high security and compliance with privacy regulations. The ease of use and AI integrations make this app perfect for students that are constantly on the go but want to make progress toward their financial goals.
+Managing finances is a major challenge for students, with many struggling to track their income, expenses, and savings effectively. **Financial stress** is one of the biggest contributors to overall student well-being, affecting **mental health, academic performance, and long-term financial stability.** Many students lack financial literacy, do not know how to manage their money, or struggle with accountability when setting financial goals.
+
+Walit is **an AI-powered budgeting and expense-tracking application** specifically designed to help students gain control over their finances. It provides **real-time, AI-driven insights** to help users understand their spending habits, create personalized budgets, and develop better financial behaviors.
+
+- **Smart Budgeting Assistance:** Personalized budget recommendations based on student income, expenses, and financial goals.
+- **AI-Powered Expense Tracking:** Automatically categorizes transactions and identifies spending trends.
+- **Accountability & Habit Formation:** Encourages consistent financial tracking through AI-driven reminders and insights.
+- **Actionable Financial Insights:** Uses machine learning to suggest savings strategies, spending adjustments, and alerts for unusual expenses.
 
 ---
 
@@ -36,38 +43,58 @@ Walit is an an AI-Powered Budgeting App specifically designed to help students c
 - **State Management:** React Query for API state management
 - **Routing:** React Router for navigation
 - **UI Components:** Custom UI components with accessibility features
-- **Chatbot Integration:** AI-powered chatbot using OpenAI API
-- **Automatic Translation:** Google Translate API integration for multi-language support
+- **User Language Detection:** The app identifies the browser's language and translates the interface accordingly and automatically.
+- **Accessible Design:** In profile settings, users can change the view mode to account for color blindness. Accessible for screen readers.
 
 ### Back-End
 
 - **Server:** Node.js with Express
 - **Authentication:** JWT-based authentication with Supabase authentication integration
 - **Data Processing:** AI-driven receipt scanning with Azure AI Document Intelligence
-- **Middleware:** Morgan for logging, CORS for security, Express JSON for request parsing
+- **Middleware:** CORS for security, Express JSON for request parsing
+- **Chatbot Integration:** AI-powered chatbot using OpenAI API and NLP integration
+- **Deployment:** App is fully deployed and scalable
 
 ### Database
 
 - **Database Type:** MySQL (via Sequelize ORM)
 - **Configuration:** Defined in `db.js` with connection pooling
 - **Entities:** Users, Transactions, Budget Categories, Income, Expenses, Savings Goals
+- **Encryption:** Data is encrypted through Supabase to protect sensitive information
 
 ---
 
 ## Security Measures
 
 - **Authentication:** OAuth and JWT-based authentication
-- **Data Protection:** HTTPS, encrypted database fields, and secure API keys
-- **Access Control:** Middleware for route protection, role-based access control (RBAC)
-- **Privacy Compliance:** GDPR and FERPA-compliant data storage and management
+- **Data Protection:** Secure data transmission (HTTPS), encrypted database fields, and secure API keys
+- **Integrity:** Database is SQL injection and app is XSS proof
+- **Access Control:** Route protection through role-based access control (RBAC)
+- **Privacy Compliance:** Privacy regulation compliant with data storage and management
+- **Passwords:** BCrypt is used to hash and store passwords. Passwords are required to be complex (at least 12 characters with a capital letter, a number, and two special characters)
 
----
 
-## Accessability
-In order to make Walit available to as many people as possible, we included the following features:
+## Responsiveness
 
-- **User Language Detection:** The app identifies the browser's language and translates the interface accordingly.
-- **Colorblind Mode:** In profile settings, users can change the colors.
+- **Real-Time AI-Powered Responses:** The chatbot and AI-driven financial assistant provide instant insights using streaming responses, minimizing latency.
+- **Scalability:** Docker Compose to manage and deploy both the Node.js backend and React TypeScript frontend. It simplifies deployment, ensures consistency, and enables easy scaling
+- **Impact on User Needs:** AI-driven budget recommendations help students make informed financial decisions with minimal effort. Helping students to learn finances in an easy, applied manner
+- **User Experience:**  The UI dynamically adjusts to user preferences, offering personalized insights and an intuitive navigation experience
+- **Technical Excellence:** AI optimizations, database indexing, and caching reduce processing time, ensuring smooth and efficient interactions
+- **Creativity and Innovation:** Features like AI-powered receipt scanning and expense categorization enhance budgeting efficiency with minimal manual input. Multilingual ability expands the solution to different demographics
+- **Security and Privacy:** All AI-generated insights and financial data are encrypted, ensuring compliance with industry privacy standards.
+
+
+## Google Lighthouse 
+
+Using Google's Lighthouse tool we were able to measure scores for our website's, accessibility, SEO, and practices. 
+- ![image](https://github.com/user-attachments/assets/4ae1cb7e-8050-4a0e-8aa9-51db2e0d9deb)
+- ![image](https://github.com/user-attachments/assets/fecad24e-6f46-4e04-be9b-c47b11d4f663)
+- ![image](https://github.com/user-attachments/assets/976d4bfa-51ca-435f-b7d9-25d5cfd7b586)
+
+
+
+
 
 ---
 
@@ -77,7 +104,6 @@ In order to make Walit available to as many people as possible, we included the 
 
 - **Budget Assistance:** Adjusting budgets, suggesting savings plans, and analyzing spending habits.
 - **Database Modifications:** The chatbot can edit financial data, such as updating transactions, adjusting budgets, and creating new savings goals.
-- **UI Customization:** It can modify UI elements dynamically based on user requests.
 - **Quick Action Recommendations:** Users can select predefined actions such as "Adjust My Budget," "Create a Savings Plan," or "Analyze My Spending Patterns."
 
 ### Chatbot Components

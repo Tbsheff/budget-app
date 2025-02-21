@@ -17,6 +17,11 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast, dismiss } = useToast();
 
+  const apiBaseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:5000"
+      : import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     return () => {
       dismiss(); // Dismiss all active toasts when component unmounts
@@ -88,7 +93,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await axios.post(`${apiBaseUrl}/api/auth/register`, {
         first_name: firstName,
         last_name: lastName,
         email,

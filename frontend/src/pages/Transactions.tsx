@@ -30,6 +30,10 @@ import {
 import { MobileMenu } from "@/components/mobilemenu";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
+const apiBaseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000"
+    : import.meta.env.VITE_API_BASE_URL;
 
 const TransactionsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -54,7 +58,7 @@ const TransactionsPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("/api/user-categories", {
+        const response = await axios.get(`${apiBaseUrl}/api/user-categories`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -93,7 +97,7 @@ const TransactionsPage = () => {
         transaction_date: transactionDate,
       };
 
-      await axios.post("/api/expenses", transactionData, {
+      await axios.post(`${apiBaseUrl}/api/expenses`, transactionData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -126,7 +130,7 @@ const TransactionsPage = () => {
 
     const saveTransaction = async () => {
       try {
-        await axios.post("/api/expenses", extractedData, {
+        await axios.post(`${apiBaseUrl}/api/expenses`, extractedData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -176,7 +180,7 @@ const TransactionsPage = () => {
       try {
         setIsUploading(true);
         const response = await axios.post(
-          "/api/receipts/analyze",
+          `${apiBaseUrl}/api/receipts/analyze`,
           { base64Content },
           {
             headers: {
@@ -471,84 +475,86 @@ const TransactionsPage = () => {
           <DialogHeader>
             <DialogTitle>Confirm Transaction Details</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="flex space-x-4 py-4">
             {imageUrl && (
-              <div className="space-y-2">
+              <div className="w-1/2 space-y-2">
                 <Label>Receipt Image</Label>
                 <img src={imageUrl} alt="Receipt" className="w-full h-auto" />
               </div>
             )}
-            <div className="space-y-2">
-              <Label>Amount</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            <div className="w-1/2 space-y-4">
+              <div className="space-y-2">
+                <Label>Amount</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={extractedData.amount}
+                    onChange={(e) =>
+                      setExtractedData({
+                        ...extractedData,
+                        amount: e.target.value,
+                      })
+                    }
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Merchant</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  value={extractedData.amount}
+                  value={extractedData.description}
                   onChange={(e) =>
                     setExtractedData({
                       ...extractedData,
-                      amount: e.target.value,
+                      description: e.target.value,
                     })
                   }
-                  className="pl-10"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Merchant</Label>
-              <Input
-                value={extractedData.description}
-                onChange={(e) =>
-                  setExtractedData({
-                    ...extractedData,
-                    description: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={extractedData.category_id}
-                onValueChange={(value) =>
-                  setExtractedData({ ...extractedData, category_id: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.category_id} value={cat.category_id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Transaction Date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="date"
-                  value={
-                    extractedData.transaction_date
-                      ? new Date(extractedData.transaction_date)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select
+                  value={extractedData.category_id}
+                  onValueChange={(value) =>
+                    setExtractedData({ ...extractedData, category_id: value })
                   }
-                  onChange={(e) =>
-                    setExtractedData({
-                      ...extractedData,
-                      transaction_date: e.target.value,
-                    })
-                  }
-                  className="pl-10"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.category_id} value={cat.category_id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Transaction Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="date"
+                    value={
+                      extractedData.transaction_date
+                        ? new Date(extractedData.transaction_date)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setExtractedData({
+                        ...extractedData,
+                        transaction_date: e.target.value,
+                      })
+                    }
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
           </div>

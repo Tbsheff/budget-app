@@ -1,14 +1,28 @@
 # Stage 1: Build React Frontend
-FROM node:22-slim AS build
-WORKDIR /app
+FROM node:22-slim
+WORKDIR /app/
 COPY package*.json ./
 RUN npm install
-RUN npm update
 COPY . .
+
+ARG VITE_JWT_SECRET
+ARG VITE_OPENAI_API_KEY
+ARG VITE_PORT
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_SUPABASE_URL
+ARG VITE_API_BASE_URL
+
+ENV VITE_JWT_SECRET=$VITE_JWT_SECRET
+ENV VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY
+ENV VITE_PORT=$VITE_PORT
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+RUN echo $VITE_JWT_SECRET
+RUN echo $VITE_API_BASE_URL
+
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 4173
+CMD ["npm", "run", "preview"]
