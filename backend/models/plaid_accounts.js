@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 
-const PlaidAccounts = sequelize.define('PlaidAccounts', {
+const PlaidAccounts = sequelize.define('plaid_accounts', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
