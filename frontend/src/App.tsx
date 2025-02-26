@@ -27,6 +27,7 @@ import MFASetup from "./pages/MFASetup";
 import TOTPSetup from "./pages/TOTPSetup";
 import TOTPVerify from "./pages/TOTPVerify";
 import ManageMFA from "./pages/ManageMFA";
+import PlaidPage from "./pages/PlaidPage";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const AppRoutes = () => {
     "/category/analytics/:categoryId",
     "/",
     "/dashboard",
+    "/bank-connections", // Add new route to chat routes
   ];
 
   return (
@@ -88,6 +90,7 @@ const AppRoutes = () => {
           <Route path="/mfa-setup" element={<MFASetup />} />
           <Route path="/mfa/totp-setup" element={<TOTPSetup />} />
           <Route path="/mfa/manage" element={<MFASetup />} />
+          <Route path="/bank-connections" element={<PlaidPage />} />
         </Route>
       </Routes>
 

@@ -58,6 +58,7 @@ app.use("/api/receipts", require("./routes/receiptRoutes"));
 app.use("/api/savings-goals", require("./routes/savingsGoalsRoutes"));
 app.use("/api/category", require("./routes/categoryAnalyticsRoutes"));
 app.use("/api/query", require("./routes/queryRoutes"));
+app.use("/api/plaid", require("./routes/plaidRoutes")); // Add Plaid routes
 
 // Detect whether running in Docker or locally
 const isDocker = process.env.RUNNING_IN_DOCKER === "true";
@@ -84,7 +85,7 @@ app.use((req, res, next) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

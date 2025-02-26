@@ -28,6 +28,10 @@ const SavingsGoals = require("./savings_goals");
 const Survey = require("./survey");
 const Notifications = require("./notifications");
 
+// Import Plaid models
+const PlaidItems = require("./plaid_items");
+const PlaidAccounts = require("./plaid_accounts");
+const PlaidTransactionSync = require("./plaid_transaction_sync");
 
 // ✅ Attach models to Sequelize instance
 const db = {
@@ -40,6 +44,9 @@ const db = {
   Income,
   Languages,
   Notifications,
+  PlaidAccounts,
+  PlaidItems,
+  PlaidTransactionSync,
   RecurringTransactions,
   SavingsGoals,
   Survey,
@@ -92,7 +99,6 @@ BudgetHistory.belongsTo(UserCategories, {
   foreignKey: "category_id",
   as: "category",
 });
-
 
 // 🔹 UserCategories -> UserSubcategories (One-to-Many)
 UserCategories.hasMany(UserSubcategories, {
@@ -170,6 +176,46 @@ Users.hasMany(Notifications, {
   as: "notifications",
 });
 Notifications.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 Users -> PlaidItems (One-to-Many)
+Users.hasMany(PlaidItems, {
+  foreignKey: "user_id",
+  as: "plaidItems",
+});
+PlaidItems.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// 🔹 PlaidItems -> PlaidAccounts (One-to-Many)
+PlaidItems.hasMany(PlaidAccounts, {
+  foreignKey: "plaid_item_id",
+  as: "accounts",
+});
+PlaidAccounts.belongsTo(PlaidItems, {
+  foreignKey: "plaid_item_id",
+  as: "plaidItem",
+});
+
+// 🔹 PlaidItems -> PlaidTransactionSync (One-to-Many)
+PlaidItems.hasMany(PlaidTransactionSync, {
+  foreignKey: "plaid_item_id",
+  as: "transactionSyncs",
+});
+PlaidTransactionSync.belongsTo(PlaidItems, {
+  foreignKey: "plaid_item_id",
+  as: "plaidItem",
+});
+
+// 🔹 Users -> PlaidAccounts (One-to-Many)
+Users.hasMany(PlaidAccounts, {
+  foreignKey: "user_id",
+  as: "plaidAccounts",
+});
+PlaidAccounts.belongsTo(Users, {
   foreignKey: "user_id",
   as: "user",
 });

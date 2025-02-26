@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bar, Line } from "react-chartjs-2";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
+import PlaidConnectionWidget from "@/components/Plaid/PlaidConnectionWidget";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -501,8 +502,12 @@ export default function CategoryAnalytics() {
           </div>
         </div>
   
-        {/* Right Side: Recent Transactions */}
-        <div className="w-full md:w-1/3 flex-shrink-0 mt-32">
+        {/* Right Side: Plaid Connection Widget and Recent Transactions */}
+        <div className="w-full md:w-1/3 flex-shrink-0 mt-32 space-y-6">
+          {/* Plaid Connection Widget */}
+          <PlaidConnectionWidget />
+          
+          {/* Recent Transactions */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">

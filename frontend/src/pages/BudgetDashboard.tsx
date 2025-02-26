@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, HelpCircle, Menu } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { BudgetCategories } from "@/components/BudgetCategories";
 import { BudgetSummary } from "@/components/BudgetSummary";
+import PlaidConnectionWidget from "@/components/Plaid/PlaidConnectionWidget";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileMenu } from "@/components/mobilemenu";
@@ -124,9 +125,17 @@ const Dashboard = () => {
             </div>
 
             {/* Hide Summary on Mobile (already shown above) */}
-            <div className="hidden md:block">
+            <div className="hidden md:block space-y-6">
               <BudgetSummary currentDate={currentDate} />
+              
+              {/* Add PlaidConnectionWidget below BudgetSummary */}
+              <PlaidConnectionWidget />
             </div>
+          </div>
+
+          {/* Add PlaidConnectionWidget for mobile at the bottom */}
+          <div className="md:hidden mt-6">
+            <PlaidConnectionWidget />
           </div>
         </div>
       </main>
