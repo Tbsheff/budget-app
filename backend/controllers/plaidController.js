@@ -22,7 +22,6 @@ exports.createLinkToken = async (req, res) => {
       products: ["transactions"],
       language: "en",
       country_codes: ["US", "CA"],
-      webhook: process.env.PLAID_WEBHOOK_URL,
     };
 
     const response = await plaidClient.linkTokenCreate(request);

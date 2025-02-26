@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bank, Check, RefreshCcw } from 'lucide-react';
+import { ArrowRight, Landmark, Check, RefreshCcw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import plaidService from '@/services/plaidService';
 import PlaidLinkButton from './PlaidLinkButton';
@@ -50,7 +50,7 @@ export function PlaidConnectionWidget() {
     <Card className={expanded ? 'border-primary/50' : ''}>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Bank className="mr-2 h-5 w-5" /> 
+          <Landmark className="mr-2 h-5 w-5" /> 
           Connect Bank Accounts
         </CardTitle>
         <CardDescription>

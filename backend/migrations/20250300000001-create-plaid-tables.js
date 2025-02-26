@@ -10,11 +10,11 @@ module.exports = {
         autoIncrement: true,
       },
       user_id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.BIGINT, // changed from INTEGER to BIGINT to match referenced users table column type
         allowNull: false,
         references: {
           model: "users",
-          key: "id",
+          key: "user_id",
         },
       },
       access_token: {
@@ -66,11 +66,11 @@ module.exports = {
         },
       },
       user_id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.BIGINT, // changed from INTEGER to BIGINT to match referenced users table column type
         allowNull: false,
         references: {
           model: "users",
-          key: "id",
+          key: "user_id",
         },
       },
       plaid_account_id: {
@@ -134,11 +134,11 @@ module.exports = {
         autoIncrement: true,
       },
       user_id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.BIGINT, // changed from INTEGER to BIGINT to match referenced users table column type
         allowNull: false,
         references: {
           model: "users",
-          key: "id",
+          key: "user_id",
         },
       },
       plaid_item_id: {
@@ -181,28 +181,10 @@ module.exports = {
         onUpdate: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
-
-    // 4. Add plaid_transaction_id and plaid_account_id to transactions table
-    await queryInterface.addColumn("transactions", "plaid_transaction_id", {
-      type: DataTypes.STRING,
-      allowNull: true,
-      unique: true, // Prevent duplicate imports
-    });
-
-    await queryInterface.addColumn("transactions", "plaid_account_id", {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: "plaid_accounts",
-        key: "id",
-      },
-    });
   },
 
   async down(queryInterface, Sequelize) {
     // Drop in reverse order
-    await queryInterface.removeColumn("transactions", "plaid_account_id");
-    await queryInterface.removeColumn("transactions", "plaid_transaction_id");
     await queryInterface.dropTable("plaid_transaction_sync");
     await queryInterface.dropTable("plaid_accounts");
     await queryInterface.dropTable("plaid_items");

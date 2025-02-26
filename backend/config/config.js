@@ -5,7 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 module.exports = {
   development: {
@@ -31,5 +31,10 @@ module.exports = {
     host: process.env.DB_HOST || "127.0.0.1",
     port: process.env.DB_PORT || 3306,
     dialect: "mysql",
+  },
+  supabase: {
+    url: supabaseUrl,
+    key: supabaseAnonKey,
+    client: supabase,
   },
 };
