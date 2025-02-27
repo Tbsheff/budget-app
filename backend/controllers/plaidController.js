@@ -22,7 +22,6 @@ exports.createLinkToken = async (req, res) => {
       products: ["transactions"],
       language: "en",
       country_codes: ["US", "CA"],
-      webhook: process.env.PLAID_WEBHOOK_URL,
     };
 
     const response = await plaidClient.linkTokenCreate(request);
@@ -129,13 +128,13 @@ exports.exchangePublicToken = async (req, res) => {
       success: true,
       message: "Account successfully linked",
       item: result.plaidItem,
-      accounts: result.accounts.map(account => ({
+      accounts: result.accounts.map((account) => ({
         id: account.id,
         name: account.name,
         type: account.type,
         subtype: account.subtype,
-        mask: account.mask
-      }))
+        mask: account.mask,
+      })),
     });
   } catch (error) {
     console.error("Error exchanging public token:", error);
@@ -150,16 +149,32 @@ exports.getAccounts = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Fetch all active PlaidItems for the user
     const plaidItems = await PlaidItems.findAll({
       where: { user_id: userId, status: "active" },
-      include: [{
-        model: PlaidAccounts,
-        as: "accounts",
-        where: { is_active: true },
-      }]
     });
 
-    return res.json(plaidItems);
+    // Fetch all active PlaidAccounts for the user
+    const plaidAccounts = await PlaidAccounts.findAll({
+      where: { user_id: userId, is_active: true },
+    });
+
+    // Combine the results
+    const result = plaidItems.map((item) => {
+      const accounts = plaidAccounts.filter((account) => account.plaid_item_id === item.id);
+      return {
+        ...item.toJSON(),
+        accounts: accounts.map((account) => ({
+          id: account.id,
+          name: account.name,
+          type: account.type,
+          subtype: account.subtype,
+          mask: account.mask,
+        })),
+      };
+    });
+
+    return res.json(result);
   } catch (error) {
     console.error("Error fetching accounts:", error);
     return res.status(500).json({
@@ -182,9 +197,9 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
     } else if (userId) {
       // If only userId is provided, sync all items for that user
       const items = await PlaidItems.findAll({
-        where: { user_id: userId, status: "active" }
+        where: { user_id: userId, status: "active" },
       });
-      
+
       for (const item of items) {
         await this.syncTransactionsForItem(item.id);
       }
@@ -198,7 +213,7 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
 
     // Get or create a sync record for this item
     let syncRecord = await PlaidTransactionSync.findOne({
-      where: { plaid_item_id: plaidItem.id }
+      where: { plaid_item_id: plaidItem.id },
     });
 
     if (!syncRecord) {
@@ -230,16 +245,16 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
     while (hasMore) {
       const response = await plaidClient.transactionsSync(options);
       const data = response.data;
-      
+
       // Update cursor for next request
       options.cursor = data.next_cursor;
       nextCursor = data.next_cursor;
-      
+
       // Append new transaction data
       added = added.concat(data.added);
       modified = modified.concat(data.modified);
       removed = removed.concat(data.removed);
-      
+
       // Check if there are more transactions to fetch
       hasMore = data.has_more;
     }
@@ -252,9 +267,9 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
         const account = await PlaidAccounts.findOne({
           where: {
             plaid_account_id: plaidTx.account_id,
-            plaid_item_id: plaidItem.id
+            plaid_item_id: plaidItem.id,
           },
-          transaction
+          transaction,
         });
 
         if (!account) continue;
@@ -264,53 +279,59 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
           where: {
             user_id: userId,
             name: {
-              [Op.like]: plaidTx.personal_finance_category?.primary || "Uncategorized"
-            }
+              [Op.like]: plaidTx.personal_finance_category?.primary || "Uncategorized",
+            },
           },
-          transaction
+          transaction,
         });
 
         if (!category) {
           category = await UserCategories.findOne({
             where: { user_id: userId, name: "Uncategorized" },
-            transaction
+            transaction,
           });
 
           // If still no category, use the first available user category
           if (!category) {
             category = await UserCategories.findOne({
               where: { user_id: userId },
-              transaction
+              transaction,
             });
           }
         }
 
         // Create transaction in our database
-        await Transactions.create({
-          user_id: userId,
-          category_id: category ? category.category_id : null,
-          amount: Math.abs(plaidTx.amount), // Plaid uses negative for expenses, positive for income
-          description: plaidTx.name,
-          transaction_date: plaidTx.date,
-          plaid_transaction_id: plaidTx.transaction_id,
-          plaid_account_id: account.id,
-          created_at: new Date(),
-        }, { transaction });
+        await Transactions.create(
+          {
+            user_id: userId,
+            category_id: category ? category.category_id : null,
+            amount: Math.abs(plaidTx.amount), // Plaid uses negative for expenses, positive for income
+            description: plaidTx.name,
+            transaction_date: plaidTx.date,
+            plaid_transaction_id: plaidTx.transaction_id,
+            plaid_account_id: account.id,
+            created_at: new Date(),
+          },
+          { transaction }
+        );
       }
 
       // Handle modified transactions
       for (const plaidTx of modified) {
         const existingTx = await Transactions.findOne({
           where: { plaid_transaction_id: plaidTx.transaction_id },
-          transaction
+          transaction,
         });
 
         if (existingTx) {
-          await existingTx.update({
-            amount: Math.abs(plaidTx.amount),
-            description: plaidTx.name,
-            transaction_date: plaidTx.date,
-          }, { transaction });
+          await existingTx.update(
+            {
+              amount: Math.abs(plaidTx.amount),
+              description: plaidTx.name,
+              transaction_date: plaidTx.date,
+            },
+            { transaction }
+          );
         }
       }
 
@@ -318,24 +339,27 @@ exports.syncTransactionsForItem = async (itemId, userId) => {
       for (const removedTx of removed) {
         await Transactions.destroy({
           where: { plaid_transaction_id: removedTx.transaction_id },
-          transaction
+          transaction,
         });
       }
 
       // Update the sync record
-      await syncRecord.update({
-        cursor: nextCursor,
-        added_count: syncRecord.added_count + added.length,
-        modified_count: syncRecord.modified_count + modified.length,
-        removed_count: syncRecord.removed_count + removed.length,
-        last_sync_date: new Date(),
-      }, { transaction });
+      await syncRecord.update(
+        {
+          cursor: nextCursor,
+          added_count: syncRecord.added_count + added.length,
+          modified_count: syncRecord.modified_count + modified.length,
+          removed_count: syncRecord.removed_count + removed.length,
+          last_sync_date: new Date(),
+        },
+        { transaction }
+      );
     });
 
     return {
       added: added.length,
       modified: modified.length,
-      removed: removed.length
+      removed: removed.length,
     };
   } catch (error) {
     console.error("Error syncing transactions:", error);
@@ -353,7 +377,7 @@ exports.syncTransactions = async (req, res) => {
     if (itemId) {
       // Check if the item belongs to this user
       const item = await PlaidItems.findOne({
-        where: { id: itemId, user_id: userId }
+        where: { id: itemId, user_id: userId },
       });
 
       if (!item) {
@@ -369,7 +393,7 @@ exports.syncTransactions = async (req, res) => {
     return res.json({
       success: true,
       message: "Transactions synced successfully",
-      stats: result
+      stats: result,
     });
   } catch (error) {
     console.error("Error in sync transactions endpoint:", error);
@@ -387,37 +411,34 @@ exports.unlinkAccount = async (req, res) => {
 
     // Verify the item belongs to the user
     const item = await PlaidItems.findOne({
-      where: { id: itemId, user_id: userId }
+      where: { id: itemId, user_id: userId },
     });
 
     if (!item) {
       return res.status(404).json({
-        error: "Item not found or doesn't belong to this user"
+        error: "Item not found or doesn't belong to this user",
       });
     }
 
     // Call Plaid's remove item endpoint
     await plaidClient.itemRemove({
-      access_token: item.access_token
+      access_token: item.access_token,
     });
 
     // Update our database to mark the item as removed
     await item.update({ status: "removed" });
 
     // Mark all accounts as inactive
-    await PlaidAccounts.update(
-      { is_active: false },
-      { where: { plaid_item_id: itemId } }
-    );
+    await PlaidAccounts.update({ is_active: false }, { where: { plaid_item_id: itemId } });
 
     return res.json({
       success: true,
-      message: "Account successfully unlinked"
+      message: "Account successfully unlinked",
     });
   } catch (error) {
     console.error("Error unlinking account:", error);
     return res.status(500).json({
-      error: error.message || "Failed to unlink account"
+      error: error.message || "Failed to unlink account",
     });
   }
 };
