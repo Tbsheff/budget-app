@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { Button } from '@/components/ui/button';
