@@ -5,12 +5,9 @@ const { Op } = require("sequelize");
 // Fetch aggregated earnings for a specific date range
 exports.getAggregatedEarnings = async (req, res) => {
   try {
-    console.log("🔹 Received request for aggregated earnings");
 
     const userId = req.user.id;
     const { startDate, endDate } = req.query;
-
-    console.log("🔹 Query Params:", { userId, startDate, endDate });
 
     if (!startDate || !endDate) {
       return res.status(400).json({ message: "Start and end dates are required." });
@@ -24,8 +21,6 @@ exports.getAggregatedEarnings = async (req, res) => {
       },
       attributes: [[sequelize.fn("SUM", sequelize.col("amount")), "total_amount"]],
     });
-
-    console.log("🔹 Aggregated Earnings Data:", aggregatedEarnings);
 
     // Return the sum or default to 0 if no earnings exist
     const totalEarnings = aggregatedEarnings[0]?.dataValues?.total_amount || 0;

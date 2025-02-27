@@ -6,12 +6,9 @@ const { Op } = require("sequelize");
 // Fetch aggregated expenses by category for a specific date range
 exports.getAggregatedExpenses = async (req, res) => {
   try {
-    console.log("🔹 Received request for aggregated expenses");
 
     const userId = req.user.id; // Ensure the correct reference
     const { startDate, endDate } = req.query;
-
-    console.log("🔹 Query Params:", { userId, startDate, endDate });
 
     if (!startDate || !endDate) {
       return res.status(400).json({ message: "Start and end dates are required." });
@@ -25,8 +22,6 @@ exports.getAggregatedExpenses = async (req, res) => {
       attributes: ["category_id", [sequelize.fn("SUM", sequelize.col("amount")), "total_amount"]],
       group: ["category_id"],
     });
-
-    console.log("🔹 Aggregated Data:", aggregatedExpenses);
 
     res.status(200).json(aggregatedExpenses);
   } catch (error) {
