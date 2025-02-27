@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const PlaidAccounts = sequelize.define('plaid_accounts', {
+const PlaidAccounts = sequelize.define("plaid_accounts", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -66,12 +66,5 @@ const PlaidAccounts = sequelize.define('plaid_accounts', {
     defaultValue: DataTypes.NOW,
   },
 });
-
-PlaidAccounts.associate = (models) => {
-  PlaidAccounts.belongsTo(models.PlaidItems, {
-    foreignKey: 'plaid_item_id',
-    as: 'plaidItem',
-  });
-};
 
 module.exports = PlaidAccounts;
