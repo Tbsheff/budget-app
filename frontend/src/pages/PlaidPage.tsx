@@ -15,7 +15,6 @@ export function PlaidPage() {
       </Helmet>
 
       <div className="flex min-h-screen flex-col">
-        <Header />
         
         <div className="container flex-1 py-8">
           <div className="mb-6">
